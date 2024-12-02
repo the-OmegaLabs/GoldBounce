@@ -21,7 +21,7 @@ jobs:
           java-version: 8
           cache: "gradle"
       - name: Build
-        run: chmod -R 777 * | ./gradlew build
+        run: chmod +x gradlew | ./gradlew build
       - name: Upload artifact
         run: |
           cd build/libs
