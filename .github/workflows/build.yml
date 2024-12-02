@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  push:
+    branches: [ legacy ]
+  pull_request:
+    branches: [ legacy ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: 8
+          cache: "gradle"
+      - name: Build
+        run: ./gradlew build
+      - name: Upload artifact
+        run: |
+          cd build/libs
+          export JAR=$(find . -regex '.*liquidbounce-b[0-9|.]*\.jar')
+          export LB_VERSION=$(echo $JAR | sed -r 's/.\/liquidbounce-([a-zA-Z][0-9]+)\.jar/\1/')
+          export MINECRAFT_VERSION='1.8.9'
+          echo Version: $LB_VERSION, Minecraft: $MINECRAFT_VERSION
+          cp $JAR zip/liquidbounce.jar
+          cd zip
+          zip -r liquidbounce.zip *
+          md5sum liquidbounce.zip
+          curl --connect-timeout 30 -m 300 -X POST -F "artifact=@liquidbounce.zip" -H "Authorization: ${{ secrets.NIGHTLY_PASS }}" -F "gh_id=${{ github.event.head_commit.id }}" -F "gh_ref=${{ github.ref }}" -F "gh_message=${{ github.event.head_commit.message }}" -F "gh_timestamp=${{ github.event.head_commit.timestamp }}" -F "lb_version=$LB_VERSION" -F "mc_version=$MINECRAFT_VERSION" -F "jre_version=8" -F "subsystem=forge" https://api.liquidbounce.net/api/v1/version/new
