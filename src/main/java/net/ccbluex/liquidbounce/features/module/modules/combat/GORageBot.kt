@@ -107,6 +107,7 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
     private val headLock by boolean("Headlock", false) { center && lock }
     private val headLockBlockHeight by float("HeadBlockHeight", -1f, -2f..0f) { headLock && center && lock }
     private val breakBlocks by boolean("BreakBlocks", true)
+    private val silent by boolean("Silent", false) { horizontalAim || verticalAim }
 
     private val clickTimer = MSTimer()
     private val clickCount = AtomicInteger(0)
@@ -172,8 +173,8 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
         if (!onlyAimbot && mc.currentScreen == null && !mc.playerController.isHittingBlock) {
             if (AutoClicker.handleEvents()) {
                 val currentTime = System.currentTimeMillis()
-                if (currentTime - lastClick.get() >= 66L) { // 66ms for 15 CPS
-                    if (clickCount.get() < 15) {
+                if (currentTime - lastClick.get() >= 50L) { // 50ms for 20 CPS
+                    if (clickCount.get() < 20) {
                         mc.playerController.attackEntity(thePlayer, entity)
                         clickCount.incrementAndGet()
                         lastClick.set(currentTime)
@@ -184,7 +185,6 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
             }
         }
     }
-
 
     private fun isTargetVisible(entity: Entity): Boolean {
         val player = mc.thePlayer ?: return false
@@ -269,7 +269,14 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
             minRotationDiff = minRotationDifference,
         )
 
-        rotation.toPlayer(player, horizontalAim, verticalAim)
+        if (silent) {
+            // Silent mode: directly set the player's rotation without visual changes
+            player.rotationYaw = destinationRotation.yaw
+            player.rotationPitch = destinationRotation.pitch
+        } else {
+            // Normal mode: apply the calculated rotation with visual changes
+            rotation.toPlayer(player, horizontalAim, verticalAim)
+        }
 
         player.setPosAndPrevPos(currPos, oldPos)
 
