@@ -1,13 +1,13 @@
 [
   {
-    "modid": "liquidbounce",
-    "name": "LiquidBounce",
-    "description": "A free mixin-based injection hacked-client",
+    "modid": "goldbounce",
+    "name": "GoldBounce",
+    "description": "fuck them all XD",
     "version": "${version}",
     "mcversion": "1.8.9",
-    "url": "https://liquidbounce.net",
+    "url": "https://gb.bzym.fun/",
     "updateUrl": "",
-    "authorList": ["CCBlueX"],
+    "authorList": ["CCBlueX","bzym2"],
     "credits": "",
     "logoFile": "",
     "screenshots": [],

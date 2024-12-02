@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.ui.client.hud.element.elements
 
-
 import net.ccbluex.liquidbounce.ui.client.hud.HUD
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
@@ -28,16 +27,24 @@ import java.awt.Color
 class Notifications(x: Double = 0.0, y: Double = 30.0, scale: Float = 1F,
                     side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.DOWN)) : Element(x, y, scale, side) {
 
-    /**
-     * Example notification for CustomHUD designer
-     */
+    private val initialY = 30.0 // Initial Y coordinate
     private val exampleNotification = Notification("Example Notification")
 
     /**
      * Draw element
      */
     override fun drawElement(): Border? {
-        HUD.notifications.firstOrNull()?.drawNotification()
+        val notifications = HUD.notifications.toList() // Create a copy of the list to avoid concurrent modification issues
+
+        if (notifications.isEmpty()) {
+            // Reset Y coordinate if there are no notifications
+            this.y = initialY
+            return null
+        }
+
+        for ((index, notification) in notifications.withIndex()) {
+            notification.drawNotification(index * 25F) // Offset each notification vertically
+        }
 
         if (mc.currentScreen is GuiHudDesigner) {
             if (exampleNotification !in HUD.notifications)
@@ -46,10 +53,10 @@ class Notifications(x: Double = 0.0, y: Double = 30.0, scale: Float = 1F,
             exampleNotification.fadeState = Notification.FadeState.STAY
             exampleNotification.x = exampleNotification.textLength + 8F
 
-            return Border(-95F, -20F, 0F, 0F)
+            return Border(-95F, -20F * notifications.size, 0F, 0F)
         }
 
-        return null
+        return Border(-95F, -20F * notifications.size, 0F, 0F)
     }
 
 }
@@ -75,14 +82,14 @@ class Notification(private val message: String, private val delay: Float = 60F) 
     /**
      * Draw notification
      */
-    fun drawNotification() {
+    fun drawNotification(offsetY: Float) {
         resetColor()
         glColor4f(1f, 1f, 1f, 1f)
 
         // Draw notification
-        drawRect(-x + 8 + textLength, 0F, -x, -20F, Color.BLACK.rgb)
-        drawRect(-x, 0F, -x - 5, -20F, Color(255, 255, 0).rgb)
-        Fonts.font35.drawString(message, -x + 4, -14F, Int.MAX_VALUE)
+        drawRect(-x + 8 + textLength, offsetY, -x, offsetY - 20F, Color.BLACK.rgb)
+        drawRect(-x, offsetY, -x - 5, offsetY - 20F, Color(255, 255, 0).rgb)
+        Fonts.font35.drawString(message, -x + 4, offsetY - 14F, Int.MAX_VALUE)
 
         // Animation
         val delta = deltaTime
@@ -118,4 +125,3 @@ class Notification(private val message: String, private val delay: Float = 60F) 
         }
     }
 }
-

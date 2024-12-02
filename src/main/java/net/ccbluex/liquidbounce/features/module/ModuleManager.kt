@@ -222,7 +222,9 @@ object ModuleManager : Listenable {
             ForwardTrack,
             FreeLook,
             SilentHotbarModule,
-            ClickRecorder
+            ClickRecorder,
+            GOTriggerBot,
+            NLCrosshair
         )
 
         InventoryManager.startCoroutine()
