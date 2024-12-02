@@ -224,7 +224,8 @@ object ModuleManager : Listenable {
             SilentHotbarModule,
             ClickRecorder,
             GOTriggerBot,
-            NLCrosshair
+            NLCrosshair,
+            GORageBot
         )
 
         InventoryManager.startCoroutine()

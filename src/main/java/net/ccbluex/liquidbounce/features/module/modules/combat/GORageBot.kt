@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.atan
 
-object GORageBot : Module("Aimbot", Category.COMBAT, hideModule = false) {
+object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
 
     private val visibilityCheck by boolean("VisibilityCheck", false)
     private val onlyAimbot by boolean("OnlyAimbot", false)
