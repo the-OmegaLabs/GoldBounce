@@ -19,6 +19,10 @@ import net.ccbluex.liquidbounce.features.module.modules.misc.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.*
 import net.ccbluex.liquidbounce.features.module.modules.player.*
 import net.ccbluex.liquidbounce.features.module.modules.render.*
+import net.ccbluex.liquidbounce.features.module.modules.render.Hat
+import net.ccbluex.liquidbounce.features.module.modules.render.NoBooks
+import net.ccbluex.liquidbounce.features.module.modules.render.NoRender
+import net.ccbluex.liquidbounce.features.module.modules.render.TNTTrails
 import net.ccbluex.liquidbounce.features.module.modules.world.*
 import net.ccbluex.liquidbounce.features.module.modules.world.Timer
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
@@ -148,7 +152,6 @@ object ModuleManager : Listenable {
             MidClick,
             MoreCarry,
             MultiActions,
-            NameProtect,
             NameTags,
             NoBob,
             NoClip,
@@ -225,7 +228,11 @@ object ModuleManager : Listenable {
             ClickRecorder,
             GOTriggerBot,
             NLCrosshair,
-            GORageBot
+            GORageBot,
+            Hat,
+            NoBooks,
+            TNTTrails,
+            NoRender
         )
 
         InventoryManager.startCoroutine()
