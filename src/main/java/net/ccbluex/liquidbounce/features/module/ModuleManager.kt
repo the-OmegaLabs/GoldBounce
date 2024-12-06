@@ -232,7 +232,8 @@ object ModuleManager : Listenable {
             Hat,
             NoBooks,
             TNTTrails,
-            NoRender
+            NoRender,
+            GORageTriggerBot
         )
 
         InventoryManager.startCoroutine()
