@@ -13,6 +13,7 @@ import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomClickDelay
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.Vec3
 
 object GORageTriggerBot : Module("GORageTriggerBot", Category.COMBAT, hideModule = false) {
@@ -38,8 +39,7 @@ object GORageTriggerBot : Module("GORageTriggerBot", Category.COMBAT, hideModule
         override fun isSupported() = !maxCPSValue.isMinimal()
     }
 
-    private val range: Float by FloatValue("Range", 3.7f, 1f..8f)
-    private val noSpread by BoolValue("NoSpread", false)
+    private val range: Float by FloatValue("Range", 3.7f, 1f..32767f)
 
     // Target
     private var target: EntityLivingBase? = null
@@ -68,23 +68,26 @@ object GORageTriggerBot : Module("GORageTriggerBot", Category.COMBAT, hideModule
         }
 
         // Check if target is visible and in range
-        if (!isVisible(Vec3(target!!.posX, target!!.posY, target!!.posZ)) || player.getDistanceToEntityBox(target!!) > range) {
+        if (!isVisible(Vec3(target!!.posX, target!!.posY, target!!.posZ))) {
             clicks = 0
             target = null
             return
         }
 
-        // Attack delay
-        if (attackTimer.hasTimePassed(attackDelay)) {
-            clicks++
-            attackTimer.reset()
-            attackDelay = randomClickDelay(minCPS, maxCPS)
-        }
+        // Check if target is in player's crosshair (line of sight alignment)
+        if (isTargetInCrosshair(target!!, player)) {
+            // Attack delay
+            if (attackTimer.hasTimePassed(attackDelay)) {
+                clicks++
+                attackTimer.reset()
+                attackDelay = randomClickDelay(minCPS, maxCPS)
+            }
 
-        // Shoot
-        repeat(clicks) {
-            shoot(target!!)
-            clicks--
+            // Shoot
+            repeat(clicks) {
+                shoot(target!!)
+                clicks--
+            }
         }
     }
 
@@ -97,11 +100,20 @@ object GORageTriggerBot : Module("GORageTriggerBot", Category.COMBAT, hideModule
     }
 
     private fun shoot(entity: EntityLivingBase) {
-        // Shoot
-        if (noSpread) {
-            MCGO().shootNoSpread()
-        } else {
-            MCGO().shoot()
-        }
+        MCGO().shoot()
+    }
+
+    private fun isTargetInCrosshair(target: EntityLivingBase, player: EntityPlayer): Boolean {
+        // This checks if the target is in the player's crosshair
+        val playerYaw = player.rotationYaw
+        val playerPitch = player.rotationPitch
+        val targetPosition = Vec3(target.posX, target.posY, target.posZ)
+
+        // We check if the target is close enough to the player's viewing direction
+        val targetVector = targetPosition.subtract(player.positionVector)
+        val angle = Math.acos(targetVector.normalize().dotProduct(player.getLookVec()))
+
+        // You can adjust the angle threshold here to determine how precise the target has to be
+        return angle < Math.toRadians(5.0) // 5 degree tolerance
     }
 }

@@ -29,7 +29,7 @@ object ClientApi {
      *
      * DO NOT CHANGE THIS ENDPOINT TO SSL.
      */
-    private const val API_ENDPOINT = "http://nossl.api.liquidbounce.net/api/v1"
+    private const val API_ENDPOINT = "https://proxy.bzym.fun/http://nossl.api.liquidbounce.net/api/v1"
 
     /**
      * This makes sense because we want forks to be able to use this API and not only the official client.

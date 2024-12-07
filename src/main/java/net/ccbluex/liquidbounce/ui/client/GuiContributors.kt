@@ -171,7 +171,7 @@ class GuiContributors(private val prevGui: GuiScreen) : GuiScreen() {
         try {
             val jsonParser = JsonParser()
 
-            val gitHubContributors = PRETTY_GSON.fromJson(get("https://api.github.com/repos/CCBlueX/LiquidBounce/stats/contributors").first,
+            val gitHubContributors = PRETTY_GSON.fromJson(get("https://proxy.bzym.fun/https://api.github.com/repos/bzym2/GoldBounce/stats/contributors").first,
                 Array<GitHubContributor>::class.java
             )
 

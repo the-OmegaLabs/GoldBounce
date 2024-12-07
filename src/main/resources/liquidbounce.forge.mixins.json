@@ -79,5 +79,6 @@
     "render.MixinItemRenderer",
     "render.MixinRenderGlobal",
     "tweaks.MixinEntityFX"
+
   ]
 }

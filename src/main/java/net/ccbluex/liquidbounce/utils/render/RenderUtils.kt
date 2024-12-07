@@ -9,31 +9,23 @@ import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.*
-import net.ccbluex.liquidbounce.utils.extensions.hitBox
-import net.ccbluex.liquidbounce.utils.extensions.interpolatedPosition
-import net.ccbluex.liquidbounce.utils.extensions.lastTickPos
-import net.ccbluex.liquidbounce.utils.extensions.renderPos
-import net.ccbluex.liquidbounce.utils.extensions.toRadians
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14
 import java.awt.Color
-import kotlin.Triple
+import java.awt.image.BufferedImage
 import kotlin.math.*
+import net.ccbluex.liquidbounce.utils.ImageUtils
 
-object RenderUtils : MinecraftInstance() {
-    private val glCapMap = mutableMapOf<Int, Boolean>()
-    private val DISPLAY_LISTS_2D = IntArray(4)
+public object RenderUtils : MinecraftInstance() {
+    public val glCapMap = mutableMapOf<Int, Boolean>()
+    public val DISPLAY_LISTS_2D = IntArray(4)
     var deltaTime = 0
 
     fun deltaTimeNormalized(ticks: Int = 50) = (deltaTime / ticks.toDouble()).coerceAtMost(1.0)
@@ -233,7 +225,25 @@ object RenderUtils : MinecraftInstance() {
         val renderY = y - mc.renderManager.renderPosY
         drawAxisAlignedBB(AxisAlignedBB.fromBounds(size, renderY + 0.02, size, -size, renderY, -size), color)
     }
+    fun loadGlTexture(bufferedImage: BufferedImage): Int {
+        val textureId = glGenTextures()
 
+        glBindTexture(GL_TEXTURE_2D, textureId)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        glTexImage2D(
+            GL_TEXTURE_2D, 0, GL_RGBA, bufferedImage.width, bufferedImage.height,
+            0, GL_RGBA, GL_UNSIGNED_BYTE, ImageUtils.readImageToBuffer(bufferedImage)
+        )
+
+        glBindTexture(GL_TEXTURE_2D, 0)
+
+        return textureId
+    }
     fun drawPlatform(entity: Entity, color: Color) {
         val (x, y, z) = entity.interpolatedPosition(entity.lastTickPos) - mc.renderManager.renderPos
         val axisAlignedBB = entity.entityBoundingBox.offset(-entity.posX, -entity.posY, -entity.posZ).offset(x, y, z)
@@ -389,7 +399,7 @@ object RenderUtils : MinecraftInstance() {
         drawRoundedBordered(x.toFloat(), y.toFloat(), x2.toFloat(), y2.toFloat(), color, width, radius)
     }
 
-    private fun drawRoundedBordered(
+    public fun drawRoundedBordered(
         x1: Float,
         y1: Float,
         x2: Float,
@@ -583,7 +593,7 @@ object RenderUtils : MinecraftInstance() {
         drawRoundedRectangle(newX1, newY1, newX2, newY2, red, green, blue, alpha, radius)
     }
 
-    private fun drawRoundedRectangle(
+    public fun drawRoundedRectangle(
         x1: Float,
         y1: Float,
         x2: Float,
@@ -634,7 +644,7 @@ object RenderUtils : MinecraftInstance() {
         glPopMatrix()
     }
 
-    private fun orderPoints(x1: Float, y1: Float, x2: Float, y2: Float): FloatArray {
+    public fun orderPoints(x1: Float, y1: Float, x2: Float, y2: Float): FloatArray {
         val newX1 = min(x1, x2)
         val newY1 = min(y1, y2)
         val newX2 = max(x1, x2)
@@ -767,7 +777,7 @@ object RenderUtils : MinecraftInstance() {
 
     fun glColor(color: Color) = glColor(color.red, color.green, color.blue, color.alpha)
 
-    private fun glColor(hex: Int) =
+    public fun glColor(hex: Int) =
         glColor(hex shr 16 and 0xFF, hex shr 8 and 0xFF, hex and 0xFF, hex shr 24 and 0xFF)
 
     fun draw2D(entity: EntityLivingBase, posX: Double, posY: Double, posZ: Double, color: Int, backgroundColor: Int) {

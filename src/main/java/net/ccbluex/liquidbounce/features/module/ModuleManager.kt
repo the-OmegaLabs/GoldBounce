@@ -233,7 +233,8 @@ object ModuleManager : Listenable {
             NoBooks,
             TNTTrails,
             NoRender,
-            GORageTriggerBot
+            GORageTriggerBot,
+            NoSpreadShoot
         )
 
         InventoryManager.startCoroutine()

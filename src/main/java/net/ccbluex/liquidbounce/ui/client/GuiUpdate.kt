@@ -22,8 +22,7 @@ class GuiUpdate : GuiScreen() {
         val j = height / 4 + 48
 
         buttonList.run {
-            add(GuiButton(1, width / 2 + 2, j + 24 * 2, 98, 20, "Ignore"))
-            add(GuiButton(2, width / 2 - 100, j + 24 * 2, 98, 20, "Go to download page"))
+            add(GuiButton(1, width / 2 + 2, j + 24 * 2, 98, 20, "测试按钮"))
         }
     }
 
@@ -42,7 +41,6 @@ class GuiUpdate : GuiScreen() {
     override fun actionPerformed(button: GuiButton) {
         when (button.id) {
             1 -> mc.displayGuiScreen(GuiMainMenu())
-            2 -> MiscUtils.showURL("https://liquidbounce.net/download")
         }
     }
 

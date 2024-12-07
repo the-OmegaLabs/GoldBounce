@@ -95,7 +95,7 @@ object Tracers : Module("Tracers", Category.RENDER, hideModule = false) {
 
                     val colorMode = colorMode.lowercase()
                     val color = when {
-                        entity is EntityPlayer && entity.isClientFriend() -> Color(0, 0, 255, 150)
+                        entity is EntityPlayer && entity.isClientFriend() -> Color(250, 192, 61, 150)
                         teams && state && Teams.isInYourTeam(entity) -> Color(0, 162, 232)
                         colorMode == "custom" -> Color(colorRed, colorGreen, colorBlue, 150)
                         colorMode == "distancecolor" -> Color(255 - dist, dist, 0, 150)

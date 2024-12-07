@@ -40,6 +40,6 @@ object AAC1910 : FlyMode("AAC1.9.10") {
 	}
 
 	override fun onRender3D(event: Render3DEvent) {
-		drawPlatform(startY + jump, Color(0, 0, 255, 90), 1.0)
+		drawPlatform(startY + jump, Color(250, 192, 61, 90), 1.0)
 	}
 }

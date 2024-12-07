@@ -26,6 +26,6 @@ object AAC3312 : FlyMode("AAC3.3.12") {
 	}
 
 	override fun onRender3D(event: Render3DEvent) {
-		RenderUtils.drawPlatform(-70.0, Color(0, 0, 255, 90), 1.0)
+		RenderUtils.drawPlatform(-70.0, Color(250, 192, 61, 90), 1.0)
 	}
 }
