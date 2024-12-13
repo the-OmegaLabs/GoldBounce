@@ -226,7 +226,6 @@ object ModuleManager : Listenable {
             FreeLook,
             SilentHotbarModule,
             ClickRecorder,
-            GOTriggerBot,
             NLCrosshair,
             GORageBot,
             Hat,

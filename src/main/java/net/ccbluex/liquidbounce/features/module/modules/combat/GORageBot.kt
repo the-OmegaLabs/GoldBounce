@@ -38,7 +38,7 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
     private val visibilityCheck by boolean("VisibilityCheck", false)
     private val onlyAimbot by boolean("OnlyAimbot", false)
     private val infiniteRange by boolean("InfiniteRange", false)
-    private val range by float("Range", 16F, 1F..32F)
+    private val range by float("Range", 16F, 1F..32767F)
     private val horizontalAim by boolean("HorizontalAim", true)
     private val verticalAim by boolean("VerticalAim", true)
     private val legitimize by boolean("Legitimize", true) { horizontalAim || verticalAim }
