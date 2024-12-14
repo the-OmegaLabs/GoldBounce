@@ -57,8 +57,9 @@ object ClientFixes : MinecraftInstance(), Listenable {
                     packet.data = PacketBuffer(Unpooled.buffer()).writeString(
                         when (clientBrand) {
                             "Vanilla" -> "vanilla"
-                            "LunarClient" -> "lunarclient:" + randomString(7)
+                            "LunarClient" -> "lunarclient:v2.18.2-2449"
                             "CheatBreaker" -> "CB"
+                            "Geyser" -> "geyser"
                             else -> {
                                 // do nothing
                                 return@runCatching

@@ -65,7 +65,7 @@ import java.awt.Color
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-object KillAura : Module("KillAura", Category.COMBAT, Keyboard.KEY_R, hideModule = false) {
+object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
      * OPTIONS
      */

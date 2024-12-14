@@ -50,7 +50,7 @@ import kotlin.math.roundToInt
 object ClickGui : GuiScreen() {
 
     val panels = mutableListOf<Panel>()
-    private val hudIcon = ResourceLocation("${CLIENT_NAME.lowercase()}/custom_hud_icon.png")
+    private val hudIcon = ResourceLocation("liquidbounce/custom_hud_icon.png")
     var style: Style = LiquidBounceStyle
     private var mouseX = 0
         set(value) {

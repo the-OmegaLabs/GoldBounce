@@ -39,7 +39,8 @@ object HUD : MinecraftInstance() {
         SpeedGraph::class.java,
         Cooldown::class.java,
         BlockCounter::class.java,
-        Taco::class.java
+        Taco::class.java,
+        Keystrokes::class.java
     )
 
     /** Create default HUD */
@@ -54,6 +55,7 @@ object HUD : MinecraftInstance() {
         addElement(Armor())
         addElement(Effects())
         addElement(Notifications())
+        addElement(Keystrokes())
     }
 
     /** Render all elements */

@@ -17,8 +17,7 @@
        @Inject(method = "drawScreen", at = @At("HEAD"), cancellable = true)
        private void onDrawScreen(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
            // Replace with your image path
-           String imagePath = "/assets/minecraft/liquidbounce/splash/splash.png";
-           ResourceLocation backgroundTexture = new ResourceLocation(imagePath);
+           ResourceLocation backgroundTexture = new ResourceLocation("liquidbounce/splash/splash.png");
            Minecraft mc = Minecraft.getMinecraft();
            mc.getTextureManager().bindTexture(backgroundTexture);
 
