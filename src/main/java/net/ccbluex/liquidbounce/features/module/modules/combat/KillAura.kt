@@ -60,7 +60,6 @@ import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.util.Vec3
-import org.lwjgl.input.Keyboard
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.roundToInt

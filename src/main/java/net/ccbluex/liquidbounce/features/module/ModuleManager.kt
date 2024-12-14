@@ -234,7 +234,7 @@ object ModuleManager : Listenable {
             NoRender,
             GORageTriggerBot,
             NoSpreadShoot,
-            IntaveFastFall
+            FastFall
         )
 
         InventoryManager.startCoroutine()

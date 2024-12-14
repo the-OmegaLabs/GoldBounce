@@ -35,7 +35,6 @@ import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager.resetColor
 import net.minecraft.init.Blocks
 import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.max
 import kotlin.math.pow
