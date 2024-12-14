@@ -77,7 +77,7 @@ object LiquidBounce {
      */
     const val IN_DEV = true
 
-    val clientTitle = CLIENT_NAME + " " + clientVersionText + " " + "| Let's fuck them all!"
+    val clientTitle = CLIENT_NAME + " " + clientVersionText + " "
 
     var isStarting = true
 

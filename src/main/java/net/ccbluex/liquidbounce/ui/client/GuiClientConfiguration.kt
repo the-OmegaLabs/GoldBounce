@@ -39,7 +39,9 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
                 Display.setTitle(clientTitle)
-                mc.setWindowIcon()
+                IconUtils.getFavicon()?.let { icons ->
+                    Display.setIcon(icons)
+                }
             } else {
                 // Set original title
                 Display.setTitle("Minecraft 1.8.9")

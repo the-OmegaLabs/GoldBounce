@@ -6,7 +6,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.float
 
-object IntaveFastFall : Module("FastFall", Category.MOVEMENT, hideModule = false) {
+object IntaveFastFall : Module("IntaveFastFall", category = Category.MOVEMENT, hideModule = false) {
 
     private val timerSpeed = float("TimerSpeed", 1F, 0F..5F)
 
