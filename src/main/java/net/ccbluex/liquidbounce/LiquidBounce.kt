@@ -62,11 +62,11 @@ object LiquidBounce {
     const val CLIENT_NAME = "GoldBounce"
     const val CLIENT_AUTHOR = "bzym2"
     const val CLIENT_CLOUD = "https://cloud.liquidbounce.net/LiquidBounce"
-    const val CLIENT_WEBSITE = "gb.bzym.fun"
+    const val CLIENT_WEBSITE = "炉管.online"
 
     const val MINECRAFT_VERSION = "1.8.9"
     
-    val clientVersionText = "b02"
+    val clientVersionText = "b03"
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy
     val clientCommit = ""
     val clientBranch = "main"

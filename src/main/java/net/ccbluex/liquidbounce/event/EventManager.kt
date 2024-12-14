@@ -4,6 +4,7 @@
  * https://github.com/CCBlueX/LiquidBounce/
  */
 package net.ccbluex.liquidbounce.event
+import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 
 object EventManager {
 
@@ -42,18 +43,19 @@ object EventManager {
      *
      * @param event to call
      */
-    fun callEvent(event: Event) {
-        val targets = registry[event.javaClass] ?: return
+     fun callEvent(event: Event) {
+         val targets = registry[event.javaClass] ?: return
 
-        for (invokableEventTarget in targets) {
-            try {
-                if (!invokableEventTarget.eventClass.handleEvents() && !invokableEventTarget.ignoreCondition)
-                    continue
+         for (invokableEventTarget in targets) {
+             try {
+                 if (!invokableEventTarget.eventClass.handleEvents() && !invokableEventTarget.ignoreCondition)
+                     continue
 
-                invokableEventTarget.method.invoke(invokableEventTarget.eventClass, event)
-            } catch (throwable: Throwable) {
-                throwable.printStackTrace()
-            }
-        }
-    }
+                 invokableEventTarget.method.invoke(invokableEventTarget.eventClass, event)
+             } catch (throwable: Throwable) {
+                 LOGGER.error("Error calling event ${event.javaClass.name}", throwable)
+             }
+         }
+     }
+
 }

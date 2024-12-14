@@ -1,19 +1,87 @@
-<html>
-    <body style="background-color: white;">
-        <div align="center" style="margin: 20px">
-            <img align="center" height="73" width="251" src="{assets}/minecraft/liquidbounce/logo_large.png"/>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>如何安装 GoldBounce</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-r from-blue-200 to-blue-400 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="bg-white/30 backdrop-blur-md p-8 rounded-lg max-w-md shadow-lg space-y-4 w-full">
+        <div class="flex justify-center mb-4">
+            <img class="mb-4" src="assets/minecraft/liquidbounce/logo_large.png" alt="GoldBounce Logo" style="height: 73px; width: 251px;">
         </div>
 
-        <div style="padding-left: 8px; font-size: 18px;">How to install LiquidBounce</div>
-        <ol style="margin-left: 20px; margin-right: 10px;">
-            <li>Download Forge for Minecraft 1.8.9 from <a href="https://minecraftforge.net">minecraftforge.net</a>.</li>
-            <li>Install Forge.</li>
-            <li>Open the Minecraft folder.</li>
-            <li>Create a folder called <code>mods</code>.</li>
-            <lI>Copy this file into it.</lI>
-            <li>Run Minecraft with the Forge profile selected.</li>
+        <div id="install-title" class="text-lg font-semibold mb-2 text-center">如何安装 GoldBounce</div>
+
+        <ol id="install-steps" class="list-decimal pl-5 mb-4 space-y-2 text-gray-800">
+            <li>从 <a href="https://minecraftforge.net" class="text-blue-500">minecraftforge.net</a> 下载 Minecraft 1.8.9 的 Forge。</li>
+            <li>安装 Forge。</li>
+            <li>打开 Minecraft 文件夹。</li>
+            <li>创建一个名为 <code>mods</code> 的文件夹。</li>
+            <li>将此文件复制到其中。</li>
+            <li>选择 Forge 资料片后运行 Minecraft。</li>
         </ol>
-        <div style="padding-left: 8px; padding-bottom: 10px;">For more detailed instructions visit <a href="https://liquidbounce.net">liquidbounce.net</a></div>
-        <small>LiquidBounce by CCBlueX © 2015 - 2020</small>
-    </body>
+
+        <div id="more-info" class="mb-4 text-center">有关更多详细信息，请访问 <a href="https://炉管.online" class="text-blue-500">炉管.online</a></div>
+
+        <small class="text-gray-600 block text-center">GoldBounce by CCBlueX © 2015 - 2020</small>
+
+        <div class="mt-4 flex space-x-2 justify-center">
+            <button id="btn-en" onclick="switchLanguage('en')" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-gray-600 transition duration-300">English</button>
+            <button id="btn-zh" onclick="switchLanguage('zh')" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300">中文</button>
+        </div>
+    </div>
+
+    <script>
+        function switchLanguage(lang) {
+            const elements = {
+                'install-title': {
+                    'en': 'How to install GoldBounce',
+                    'zh': '如何安装 GoldBounce'
+                },
+                'install-steps': {
+                    'en': [
+                        'Download Forge for Minecraft 1.8.9 from <a href="https://minecraftforge.net" class="text-blue-500">minecraftforge.net</a>.',
+                        'Install Forge.',
+                        'Open the Minecraft folder.',
+                        'Create a folder called <code>mods</code>.',
+                        'Copy this file into it.',
+                        'Run Minecraft with the Forge profile selected.'
+                    ],
+                    'zh': [
+                        '从 <a href="https://minecraftforge.net" class="text-blue-500">minecraftforge.net</a> 下载 Minecraft 1.8.9 的 Forge。',
+                        '安装 Forge。',
+                        '打开 Minecraft 文件夹。',
+                        '创建一个名为 <code>mods</code> 的文件夹。',
+                        '将此文件复制到其中。',
+                        '选择 Forge 资料片后运行 Minecraft。'
+                    ]
+                },
+                'more-info': {
+                    'en': 'For more detailed instructions visit <a href="https://炉管.online" class="text-blue-500">炉管.online</a>',
+                    'zh': '有关更多详细信息，请访问 <a href="https://炉管.online" class="text-blue-500">炉管.online</a>'
+                }
+            };
+
+            // Update the content based on the selected language
+            document.querySelector('#install-title').innerHTML = elements['install-title'][lang];
+            document.querySelector('#install-steps').innerHTML = elements['install-steps'][lang].map(step => `<li>${step}</li>`).join('');
+            document.querySelector('#more-info').innerHTML = elements['more-info'][lang];
+
+            // Toggle button styles
+            document.getElementById('btn-en').classList.toggle('bg-gray-500', lang !== 'en');
+            document.getElementById('btn-en').classList.toggle('text-white', lang !== 'en');
+            document.getElementById('btn-en').classList.toggle('bg-blue-500', lang === 'en');
+            document.getElementById('btn-en').classList.toggle('hover:bg-blue-600', lang === 'en');
+
+            document.getElementById('btn-zh').classList.toggle('bg-blue-500', lang !== 'zh');
+            document.getElementById('btn-zh').classList.toggle('text-white', lang !== 'zh');
+            document.getElementById('btn-zh').classList.toggle('bg-gray-500', lang === 'zh');
+            document.getElementById('btn-zh').classList.toggle('hover:bg-gray-600', lang === 'zh');
+        }
+    </script>
+
+</body>
 </html>

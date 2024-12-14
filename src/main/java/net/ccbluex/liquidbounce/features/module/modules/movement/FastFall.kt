@@ -1,5 +1,6 @@
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
+import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.MoveEvent
 import net.ccbluex.liquidbounce.event.PacketEvent
@@ -13,10 +14,10 @@ object FastFall : Module("FastFall", category = Category.MOVEMENT, hideModule = 
     private var donnotclickme = 0
     private var freeze = false
 
-    private val listValue = ListValue("Mode", arrayOf("Normal", "Polar", "Intave", "Vulcan"), "Normal")
+    private val selected by choices("Mode", arrayOf("Normal", "Polar/Vulcan", "Intave/Vulcan"), "Normal")
     private val maxFallDistance = float("MaxFallDistance", 3f, 0F.. 10F)
-    private var freezeValue = float("FreezeTick", 10f, 6F.. 50F) {listValue.equals("Polar")}
-    private val timerSpeed = float("TimerSpeed", 1F, 0F..5F) {listValue.equals("Vulcan") || listValue.equals("Intave")}
+    private var freezeValue = float("FreezeTick", 10f, 6F.. 50F) {selected == "Polar/Vulcan"}
+    private val timerSpeed = float("TimerSpeed", 1F, 0F..5F) {selected == "Intave/Vulcan"}
     override fun onEnable() {
         donnotclickme = 0
         freeze = false
@@ -26,11 +27,11 @@ object FastFall : Module("FastFall", category = Category.MOVEMENT, hideModule = 
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
-        if (listValue.equals("Normal")) {
+        if (selected == "Normal") {
             if (mc.thePlayer.fallDistance >= maxFallDistance.get()) {
                 mc.thePlayer.motionY -= 5.0
             }
-        }else if(listValue.equals("Intave") || listValue.equals("Vulcan")){
+        }else if(selected == "Intave/Vulcan"){
             // If player is on the ground, slow down the timer
             if (mc.thePlayer.onGround) {
                 mc.timer.timerSpeed = 0.2F
@@ -54,7 +55,7 @@ object FastFall : Module("FastFall", category = Category.MOVEMENT, hideModule = 
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val packet = event.packet
-        if (listValue.equals("Polar")) {
+        if (selected == "Polar/Vulcan") {
             if (freeze) {
                 if (packet is C03PacketPlayer) {
                     packet.y += mc.thePlayer.posY + 0.01
