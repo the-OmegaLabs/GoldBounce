@@ -17,6 +17,7 @@ import net.ccbluex.liquidbounce.features.module.modules.`fun`.Derp
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.SkinDerp
 import net.ccbluex.liquidbounce.features.module.modules.misc.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.*
+import net.ccbluex.liquidbounce.features.module.modules.other.AntiStaff
 import net.ccbluex.liquidbounce.features.module.modules.player.*
 import net.ccbluex.liquidbounce.features.module.modules.render.*
 import net.ccbluex.liquidbounce.features.module.modules.render.Hat
@@ -153,7 +154,7 @@ object ModuleManager : Listenable {
             MoreCarry,
             MultiActions,
             NameTags,
-            NoBob,
+            Camera,
             NoClip,
             NoFOV,
             NoFall,
@@ -234,7 +235,8 @@ object ModuleManager : Listenable {
             NoRender,
             GORageTriggerBot,
             NoSpreadShoot,
-            FastFall
+            FastFall,
+            AntiStaff
         )
 
         InventoryManager.startCoroutine()
