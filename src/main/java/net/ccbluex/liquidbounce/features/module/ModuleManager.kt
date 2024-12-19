@@ -236,7 +236,9 @@ object ModuleManager : Listenable {
             GORageTriggerBot,
             NoSpreadShoot,
             FastFall,
-            AntiStaff
+            AntiStaff,
+            Clutch,
+            NameProtect
         )
 
         InventoryManager.startCoroutine()

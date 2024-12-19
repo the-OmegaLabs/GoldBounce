@@ -134,7 +134,7 @@ class ScoreboardElement(
 
                     runCatching {
                         if (nameWithoutFormatting?.lowercase() == trimmedServerIP || containsDomain) {
-                            val colorCode = name?.substring(0, 2) ?: "§9"
+                            val colorCode = name?.substring(0, 2) ?: "§e"
                             name = when (serverIp.lowercase()) {
                                 "none" -> ""
                                 "client" -> "$colorCode$CLIENT_NAME"

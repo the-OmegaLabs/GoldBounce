@@ -58,9 +58,9 @@ object LocalSettingsCommand : Command("localsettings", "localsetting", "localcon
             }
 
             try {
-                chat("§9Loading settings...")
+                chat("§eLoading settings...")
                 val settings = settingsFile.readText()
-                chat("§9Set settings...")
+                chat("§eSet settings...")
                 SettingsUtils.applyScript(settings)
                 chat("§6Settings applied successfully.")
                 addNotification(Notification("Updated Settings"))
@@ -98,10 +98,10 @@ object LocalSettingsCommand : Command("localsettings", "localsetting", "localcon
                     return@withContext
                 }
 
-                chat("§9Creating settings...")
+                chat("§eCreating settings...")
                 val settingsScript = SettingsUtils.generateScript(values, binds, states)
 
-                chat("§9Saving settings...")
+                chat("§eSaving settings...")
                 settingsFile.writeText(settingsScript)
 
                 chat("§6Settings saved successfully.")

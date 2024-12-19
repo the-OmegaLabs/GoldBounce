@@ -113,9 +113,9 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
             }
 
             try {
-                chat("§9Creating settings...")
+                chat("§eCreating settings...")
                 val settingsScript = SettingsUtils.generateScript(values, binds, states)
-                chat("§9Uploading settings...")
+                chat("§eUploading settings...")
 
                 val serverData = mc.currentServerData ?: error("You need to be on a server to upload settings.")
 
@@ -125,7 +125,7 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
                 when (response.status) {
                     Status.SUCCESS -> {
                         chat("§6${response.message}")
-                        chat("§9Token: §6${response.token}")
+                        chat("§eToken: §6${response.token}")
 
                         // Store token in clipboard
                         val stringSelection = StringSelection(response.token)

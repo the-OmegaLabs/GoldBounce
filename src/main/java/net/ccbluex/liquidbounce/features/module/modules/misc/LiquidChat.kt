@@ -51,12 +51,12 @@ object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameD
         /**
          * Handle connect to web socket
          */
-        override fun onConnect() = chat("§7[§a§lChat§7] §9Connecting to chat server...")
+        override fun onConnect() = chat("§7[§a§lChat§7] §eConnecting to chat server...")
 
         /**
          * Handle connect to web socket
          */
-        override fun onConnected() = chat("§7[§a§lChat§7] §9Connected to chat server!")
+        override fun onConnected() = chat("§7[§a§lChat§7] §eConnected to chat server!")
 
         /**
          * Handle handshake
@@ -71,7 +71,7 @@ object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameD
         /**
          * Handle logon to web socket with minecraft account
          */
-        override fun onLogon() = chat("§7[§a§lChat§7] §9Logging in...")
+        override fun onLogon() = chat("§7[§a§lChat§7] §eLogging in...")
 
         /**
          * Handle incoming packets
@@ -86,14 +86,14 @@ object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameD
                         return
                     }
 
-                    val chatComponent = ChatComponentText("§7[§a§lChat§7] §9${packet.user.name}: ")
+                    val chatComponent = ChatComponentText("§7[§a§lChat§7] §e${packet.user.name}: ")
                     val messageComponent = toChatComponent(packet.content)
                     chatComponent.appendSibling(messageComponent)
 
                     thePlayer.addChatMessage(chatComponent)
                 }
 
-                is ClientPrivateMessagePacket -> chat("§7[§a§lChat§7] §c(P)§9 ${packet.user.name}: §7${packet.content}")
+                is ClientPrivateMessagePacket -> chat("§7[§a§lChat§7] §c(P)§e ${packet.user.name}: §7${packet.content}")
                 is ClientErrorPacket -> {
                     val message = when (packet.message) {
                         "NotSupported" -> "This method is not supported!"
@@ -120,7 +120,7 @@ object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameD
                 is ClientSuccessPacket -> {
                     when (packet.reason) {
                         "Login" -> {
-                            chat("§7[§a§lChat§7] §9Logged in!")
+                            chat("§7[§a§lChat§7] §eLogged in!")
 
                             chat("====================================")
                             chat("§c>> §lLiquidChat")
@@ -131,8 +131,8 @@ object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameD
                             loggedIn = true
                         }
 
-                        "Ban" -> chat("§7[§a§lChat§7] §9Successfully banned user!")
-                        "Unban" -> chat("§7[§a§lChat§7] §9Successfully unbanned user!")
+                        "Ban" -> chat("§7[§a§lChat§7] §eSuccessfully banned user!")
+                        "Unban" -> chat("§7[§a§lChat§7] §eSuccessfully unbanned user!")
                     }
                 }
 

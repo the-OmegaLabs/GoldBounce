@@ -990,7 +990,7 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
                     value.set(oldValue)
                     value.openList = true
 
-                    chat("§8[§9§lInventoryCleaner§8] §3Value §a${value.name}§3 was changed to §a$oldValue§3 to prevent conflicts.")
+                    chat("§8[§e§lInventoryCleaner§8] §3Value §a${value.name}§3 was changed to §a$oldValue§3 to prevent conflicts.")
                 }
             }
     }

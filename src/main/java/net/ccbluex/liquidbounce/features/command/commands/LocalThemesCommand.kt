@@ -46,7 +46,7 @@ object LocalThemesCommand : Command("localthemes", "localtheme") {
                 }
 
                 try {
-                    chat("§9Loading theme...")
+                    chat("§eLoading theme...")
                     themeFile.copyTo(hudFile, true)
                     loadConfig(hudConfig)
                     chat("§6Theme applied successfully.")
@@ -69,10 +69,10 @@ object LocalThemesCommand : Command("localthemes", "localtheme") {
                     if (themeFile.exists())
                         themeFile.delete()
 
-                    chat("§9Creating theme...")
+                    chat("§eCreating theme...")
                     themeFile.createNewFile()
 
-                    chat("§9Saving theme...")
+                    chat("§eSaving theme...")
                     File(dir, "hud.json").copyTo(themeFile, true)
                     loadConfig(hudConfig)
 

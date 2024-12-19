@@ -105,10 +105,14 @@ public abstract class MixinEntityRenderer {
         double d0 = entity.prevPosX + (entity.posX - entity.prevPosX) * (double)p_orientCamera_1_;
         double d1 = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)p_orientCamera_1_ + (double)f;
         double d2 = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)p_orientCamera_1_;
+        double currentInterpolation = 0.5f;
+        if(camera.isActive() && camera.getMotionCamera().get()){
+            currentInterpolation = camera.getInterpolation().get();
+        }
         if(camera!=null){
-            prevRenderX = prevRenderX + (d0 - prevRenderX) * camera.getInterpolation().get();
-            prevRenderY = prevRenderY + (d1-prevRenderY) * camera.getInterpolation().get();
-            prevRenderZ = prevRenderZ + (d2-prevRenderZ) * camera.getInterpolation().get();
+            prevRenderX = prevRenderX + (d0 - prevRenderX) * currentInterpolation;
+            prevRenderY = prevRenderY + (d1-prevRenderY) * currentInterpolation;
+            prevRenderZ = prevRenderZ + (d2-prevRenderZ) * currentInterpolation;
         }
         if (entity instanceof EntityLivingBase && ((EntityLivingBase)entity).isPlayerSleeping()) {
             f = (float)((double)f + (double)1.0F);

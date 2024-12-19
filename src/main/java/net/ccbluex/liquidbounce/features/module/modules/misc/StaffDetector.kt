@@ -385,22 +385,22 @@ object StaffDetector : Module("StaffDetector", Category.MISC, gameDetecting = fa
                         .map { it.trim() }
                         .toSet()
 
-                    chat("§aSuccessfully loaded §9${staffList.size} §astaff names.")
+                    chat("§aSuccessfully loaded §e${staffList.size} §astaff names.")
                     mapOf(url to staffList)
                 }
 
                 404 -> {
-                    chat("§cFailed to load staff list. §9(§3Doesn't exist in LiquidCloud§9)")
+                    chat("§cFailed to load staff list. §e(§3Doesn't exist in LiquidCloud§e)")
                     emptyMap()
                 }
 
                 else -> {
-                    chat("§cFailed to load staff list. §9(§3ERROR CODE: $code§9)")
+                    chat("§cFailed to load staff list. §e(§3ERROR CODE: $code§e)")
                     emptyMap()
                 }
             }
         } catch (e: Exception) {
-            chat("§cFailed to load staff list. §9(${e.message})")
+            chat("§cFailed to load staff list. §e(${e.message})")
             e.printStackTrace()
             emptyMap()
         }

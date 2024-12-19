@@ -5,12 +5,12 @@
  */
 package net.ccbluex.liquidbounce.ui.font
 
-import net.ccbluex.liquidbounce.features.module.modules.misc.NameProtect
 import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawLine
 import net.ccbluex.liquidbounce.utils.render.shader.shaders.GradientFontShader
 import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowFontShader
+import net.ccbluex.liquidbounce.features.module.modules.render.NameProtect
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.util.ResourceLocation

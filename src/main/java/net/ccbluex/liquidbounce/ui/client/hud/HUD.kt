@@ -22,6 +22,7 @@ object HUD : MinecraftInstance() {
 
     val elements = mutableListOf<Element>()
     val notifications = mutableListOf<Notification>()
+    val notifications2 = mutableListOf<NewNotification>()
 
     val ELEMENTS = arrayOf(
         Armor::class.java,
@@ -40,7 +41,8 @@ object HUD : MinecraftInstance() {
         Cooldown::class.java,
         BlockCounter::class.java,
         Taco::class.java,
-        Keystrokes::class.java
+        Keystrokes::class.java,
+        NewNotifications::class.java
     )
 
     /** Create default HUD */
@@ -189,7 +191,10 @@ object HUD : MinecraftInstance() {
     /** Add [notification] */
     fun addNotification(notification: Notification) =
         elements.any { it is Notifications } && notifications.add(notification)
+    fun addNewNotification(notification2: NewNotification) =
+        elements.any { it is NewNotifications } && notifications2.add(notification2)
 
     /** Remove [notification] */
     fun removeNotification(notification: Notification) = notifications.remove(notification)
+    fun removeNewNotification(notification2: NewNotification) = notifications2.remove(notification2)
 }

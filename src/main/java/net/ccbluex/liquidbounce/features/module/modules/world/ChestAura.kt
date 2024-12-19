@@ -262,7 +262,7 @@ object ChestAura : Module("ChestAura", Category.WORLD) {
                     val playerMsg =
                         if (player == mc.thePlayer) actionMsg else "§b${player.name} §3${actionMsg.lowercase()}"
 
-                    chat("§8[§9§lChestAura§8] $playerMsg chest from §b$distance m§3$timeTakenMsg.")
+                    chat("§8[§e§lChestAura§8] $playerMsg chest from §b$distance m§3$timeTakenMsg.")
 
                     chestOpenMap[packet.blockPosition] = packet.data2 to System.currentTimeMillis()
                 }
