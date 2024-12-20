@@ -29,6 +29,7 @@ import net.ccbluex.liquidbounce.features.module.modules.world.Timer
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
+import scala.tools.ant.sabbus.Break
 import java.util.*
 
 object ModuleManager : Listenable {
@@ -238,7 +239,8 @@ object ModuleManager : Listenable {
             FastFall,
             AntiStaff,
             Clutch,
-            NameProtect
+            NameProtect,
+            AntiVoid
         )
 
         InventoryManager.startCoroutine()
