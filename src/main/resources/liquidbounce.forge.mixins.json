@@ -69,8 +69,7 @@
     "tweaks.MixinMinecraftServer",
     "world.MixinChunk",
     "world.MixinWorld",
-    "world.MixinWorldClient",
-    "splash.MixinSplashProgress"
+    "world.MixinWorldClient"
   ],
   "client": [
     "block.MixinBlockSlime",
@@ -80,6 +79,5 @@
     "render.MixinItemRenderer",
     "render.MixinRenderGlobal",
     "tweaks.MixinEntityFX"
-
   ]
 }

@@ -28,13 +28,20 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Session;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
@@ -57,6 +64,7 @@ public abstract class MixinGuiDisconnected extends MixinGuiScreen {
     private GuiButton forgeBypassButton;
     private int reconnectTimer;
 
+
     @Inject(method = "initGui", at = @At("RETURN"))
     private void initGui(CallbackInfo callbackInfo) {
         reconnectTimer = 0;
@@ -64,7 +72,6 @@ public abstract class MixinGuiDisconnected extends MixinGuiScreen {
 
         drawReconnectDelaySlider();
 
-        buttonList.add(new GuiButton(3, width / 2 - 100, height / 2 + field_175353_i / 2 + fontRendererObj.FONT_HEIGHT + 44, 98, 20, GuiTheAltening.Companion.getApiKey().isEmpty() ? "Random alt" : "New TheAltening alt"));
         buttonList.add(new GuiButton(4, width / 2 + 2, height / 2 + field_175353_i / 2 + fontRendererObj.FONT_HEIGHT + 44, 98, 20, "Random username"));
         buttonList.add(forgeBypassButton = new GuiButton(5, width / 2 - 100, height / 2 + field_175353_i / 2 + fontRendererObj.FONT_HEIGHT + 66, "Bypass AntiForge: " + (ClientFixes.INSTANCE.getFmlFixesEnabled() ? "On" : "Off")));
 
@@ -76,51 +83,6 @@ public abstract class MixinGuiDisconnected extends MixinGuiScreen {
         switch (button.id) {
             case 1:
                 ServerUtils.INSTANCE.connectToLastServer();
-                break;
-            case 3:
-                if (!GuiTheAltening.Companion.getApiKey().isEmpty()) {
-                    final String apiKey = GuiTheAltening.Companion.getApiKey();
-                    final TheAltening theAltening = new TheAltening(apiKey);
-
-                    try {
-                        final AccountData account = theAltening.getAccountData();
-                        GuiAltManager.Companion.getAltService().switchService(AltService.EnumAltService.THEALTENING);
-
-                        final YggdrasilUserAuthentication yggdrasilUserAuthentication = new YggdrasilUserAuthentication(new YggdrasilAuthenticationService(Proxy.NO_PROXY, ""), Agent.MINECRAFT);
-                        yggdrasilUserAuthentication.setUsername(account.getToken());
-                        yggdrasilUserAuthentication.setPassword(CLIENT_NAME);
-                        yggdrasilUserAuthentication.logIn();
-
-                        mc.session = new Session(yggdrasilUserAuthentication.getSelectedProfile().getName(), yggdrasilUserAuthentication.getSelectedProfile().getId().toString(), yggdrasilUserAuthentication.getAuthenticatedToken(), "microsoft");
-                        EventManager.INSTANCE.callEvent(new SessionEvent());
-                        ServerUtils.INSTANCE.connectToLastServer();
-                        break;
-                    } catch (final Throwable throwable) {
-                        ClientUtils.INSTANCE.getLOGGER().error("Failed to login into random account from TheAltening.", throwable);
-                    }
-                }
-
-                final List<MinecraftAccount> accounts = FileManager.INSTANCE.getAccountsConfig().getAccounts();
-                if (accounts.isEmpty())
-                    break;
-                final MinecraftAccount minecraftAccount = accounts.get(new Random().nextInt(accounts.size()));
-
-                mc.displayGuiScreen(new GuiLoginProgress(minecraftAccount, () -> {
-                    mc.addScheduledTask(() -> {
-                        EventManager.INSTANCE.callEvent(new SessionEvent());
-                        ServerUtils.INSTANCE.connectToLastServer();
-                    });
-                    return null;
-                }, e -> {
-                    mc.addScheduledTask(() -> {
-                        final JsonObject jsonObject = new JsonObject();
-                        jsonObject.addProperty("text", e.getMessage());
-
-                        mc.displayGuiScreen(new GuiDisconnected(new GuiMultiplayer(new GuiMainMenu()), e.getMessage(), IChatComponent.Serializer.jsonToComponent(jsonObject.toString())));
-                    });
-                    return null;
-                }, () -> null));
-
                 break;
             case 4:
                 RandomUtils.INSTANCE.randomAccount();
