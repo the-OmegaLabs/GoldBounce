@@ -17,13 +17,14 @@ import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
+import net.minecraft.util.ResourceLocation
 import java.io.File
 
 @SideOnly(Side.CLIENT)
 object FileManager : MinecraftInstance() {
 
     val dir = File(mc.mcDataDir, "$CLIENT_NAME-$MINECRAFT_VERSION")
-    val fontsDir = File(dir, "fonts")
+    val fontsDir = File(dir, "font")
     val settingsDir = File(dir, "settings")
     val themesDir = File(dir, "themes")
     val modulesConfig = ModulesConfig(File(dir, "modules.json"))

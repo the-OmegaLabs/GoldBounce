@@ -17,7 +17,6 @@ object Teams : Module("Teams", Category.MISC, gameDetecting = false, hideModule 
     private val nameColor by boolean("NameColor", true)
     private val armorColor by boolean("ArmorColor", true)
     private val gommeSW by boolean("GommeSW", false)
-    private val hatColor by boolean("HatColor", false)
 
     /**
      * Check if [entity] is in your own team using scoreboard, name/armor color or team prefix
@@ -52,20 +51,18 @@ object Teams : Module("Teams", Category.MISC, gameDetecting = false, hideModule 
                 val entityArmor = entity.getCurrentArmor(i)
 
                 if (playerArmor != null && entityArmor != null) {
-                    val playerArmorColor = (playerArmor.item as ItemArmor).getColor(playerArmor)
-                    val entityArmorColor = (entityArmor.item as ItemArmor).getColor(entityArmor)
+                    val playerItem = playerArmor.item
+                    val entityItem = entityArmor.item
 
-                    return entityArmorColor == playerArmorColor
+                    if (playerItem is ItemArmor && entityItem is ItemArmor) {
+                        val playerArmorColor = playerItem.getColor(playerArmor)
+                        val entityArmorColor = entityItem.getColor(entityArmor)
+
+                        if (entityArmorColor == playerArmorColor) {
+                            return true
+                        }
+                    }
                 }
-            }
-        }
-        if(hatColor){
-            val playerHat = thePlayer.getCurrentArmor(1)
-            val entityHat = entity.getCurrentArmor(1)
-            if (playerHat != null && entityHat != null) {
-                val playerHatColor = (playerHat.item as ItemArmor).getColor(playerHat)
-                val entityHatColor = (entityHat.item as ItemArmor).getColor(entityHat)
-                return entityHatColor == playerHatColor
             }
         }
 
