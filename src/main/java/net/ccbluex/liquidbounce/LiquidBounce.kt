@@ -52,6 +52,7 @@ import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.ccbluex.liquidbounce.utils.client.TrayUtils
+import net.ccbluex.liquidbounce.utils.client.SysUtils
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -113,6 +114,7 @@ object LiquidBounce {
         LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
 
         try {
+            TrayUtils().start()
             // Load languages
             loadLanguages()
 
@@ -132,26 +134,8 @@ object LiquidBounce {
             registerListener(WaitTickUtils)
             registerListener(SilentHotbar)
             registerListener(WaitMsUtils)
-            TrayUtils().start()
-            // Copy misans.ttf to fontsDir if it doesn't exist
-            val misansTtfInFontsDir = File(FileManager.fontsDir, "misans.ttf")
-            if (!misansTtfInFontsDir.exists()) {
-                val inputStream: InputStream = LiquidBounce::class.java.classLoader.getResourceAsStream("assets/minecraft/liquidbounce/font/misans.ttf")
-                    ?: throw IllegalStateException("misans.ttf not found in resources")
 
-                Files.copy(inputStream, misansTtfInFontsDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                inputStream.close()
-                LOGGER.info("Copied misans.ttf to ${misansTtfInFontsDir.absolutePath}")
-            }
-            val misans2TtfInFontsDir = File(FileManager.fontsDir, "MiSans-SemiBold.ttf")
-            if (!misans2TtfInFontsDir.exists()) {
-                val inputStream: InputStream = LiquidBounce::class.java.classLoader.getResourceAsStream("assets/minecraft/liquidbounce/font/MiSans-Semibold.ttf")
-                    ?: throw IllegalStateException("MiSans-SemiBold.ttf not found in resources")
-
-                Files.copy(inputStream, misans2TtfInFontsDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
-                inputStream.close()
-                LOGGER.info("Copied MiSans-SemiBold.ttf to ${misans2TtfInFontsDir.absolutePath}")
-            }
+            SysUtils().copyToFontDir("HarmonyOS_Sans_SC_Bold.ttf")
             // Load client fonts
             loadFonts()
 

@@ -11,10 +11,19 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 class SysUtils {
-    fun copyToGameDir(filePath: String) {
-        val isFileInDir = File(FileManager.dir, filePath)
+    fun copyToGameDir(filePath: String,objectPath: String) {
+        val isFileInDir = File(FileManager.dir, objectPath)
         if (!isFileInDir.exists()) {
             val inputStream: InputStream = LiquidBounce::class.java.classLoader.getResourceAsStream("assets/minecraft/liquidbounce/${filePath}") ?: throw IllegalStateException("$filePath not found in resources")
+            Files.copy(inputStream, isFileInDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            inputStream.close()
+            LOGGER.info("Copied $filePath to ${isFileInDir.absolutePath}")
+        }
+    }
+    fun copyToFontDir(filePath: String) {
+        val isFileInDir = File(FileManager.fontsDir, filePath)
+        if (!isFileInDir.exists()) {
+            val inputStream: InputStream = LiquidBounce::class.java.classLoader.getResourceAsStream("assets/minecraft/liquidbounce/font/${filePath}") ?: throw IllegalStateException("$filePath not found in resources")
             Files.copy(inputStream, isFileInDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
             inputStream.close()
             LOGGER.info("Copied $filePath to ${isFileInDir.absolutePath}")

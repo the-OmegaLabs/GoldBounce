@@ -28,13 +28,13 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Minecraft Font")
     val minecraftFont: FontRenderer = mc.fontRendererObj
 
-    @FontDetails(fontName = "Misans Medium", fontSize = 35)
+    @FontDetails(fontName = "Harmony Medium", fontSize = 35)
     lateinit var font35: GameFontRenderer
 
-    @FontDetails(fontName = "Misans Medium", fontSize = 40)
+    @FontDetails(fontName = "Harmony Medium", fontSize = 40)
     lateinit var font40: GameFontRenderer
 
-    @FontDetails(fontName = "Misans Bold", fontSize = 180)
+    @FontDetails(fontName = "Harmony Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
     private val CUSTOM_FONT_RENDERERS = hashMapOf<FontInfo, FontRenderer>()
@@ -44,9 +44,9 @@ object Fonts : MinecraftInstance() {
         LOGGER.info("Loading Fonts.")
 
         downloadFonts()
-        font35 = GameFontRenderer(getFont("misans.ttf", 35))
-        font40 = GameFontRenderer(getFont("misans.ttf", 40))
-        fontBold180 = GameFontRenderer(getFont("MiSans-Semibold.ttf", 180))
+        font35 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 35))
+        font40 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 40))
+        fontBold180 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 180))
         try {
             CUSTOM_FONT_RENDERERS.clear()
             val fontsFile = File(fontsDir, "fonts.json")

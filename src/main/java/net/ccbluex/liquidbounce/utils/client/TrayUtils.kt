@@ -33,7 +33,7 @@ class TrayUtils {
             trayIcon.toolTip = "Notification Tool"
             tray.add(trayIcon)
             trayIcon.displayMessage("GoldBounce", "Starting mod...", TrayIcon.MessageType.INFO)
-            
+
         }
     }
 
