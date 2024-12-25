@@ -27,6 +27,7 @@ import net.ccbluex.liquidbounce.features.module.modules.render.TNTTrails
 import net.ccbluex.liquidbounce.features.module.modules.world.*
 import net.ccbluex.liquidbounce.features.module.modules.world.Timer
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
+import net.ccbluex.liquidbounce.features.module.modules.settings.*
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
 import scala.tools.ant.sabbus.Break

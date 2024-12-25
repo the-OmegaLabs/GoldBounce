@@ -14,6 +14,7 @@ enum class Category(val displayName: String) {
     WORLD("World"),
     MISC("Misc"),
     EXPLOIT("Exploit"),
-    FUN("Fun");
+    FUN("Fun"),
+    SETTINGS("Settings");
 
 }

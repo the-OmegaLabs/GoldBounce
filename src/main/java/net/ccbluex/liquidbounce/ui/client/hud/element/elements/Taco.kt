@@ -19,7 +19,7 @@ import net.minecraft.util.ResourceLocation
 /**
  * TACO TACO TACO!!
  */
-@ElementInfo(name = "Taco", priority = 1)
+@ElementInfo(name = "Polar Bear", priority = 1)
 class Taco(x: Double = 2.0, y: Double = 441.0) : Element(x = x, y = y) {
 
     private val frameSpeed by float("frameSpeed", 50f, 0f..200f)
@@ -41,7 +41,8 @@ class Taco(x: Double = 2.0, y: Double = 441.0) : Element(x = x, y = y) {
         ResourceLocation("liquidbounce/taco/9.png"),
         ResourceLocation("liquidbounce/taco/10.png"),
         ResourceLocation("liquidbounce/taco/11.png"),
-        ResourceLocation("liquidbounce/taco/12.png")
+        ResourceLocation("liquidbounce/taco/12.png"),
+        ResourceLocation("liquidbounce/taco/13.png")
     )
 
     override fun drawElement(): Border {
