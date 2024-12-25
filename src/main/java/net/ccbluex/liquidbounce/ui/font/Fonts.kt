@@ -77,9 +77,7 @@ object Fonts : MinecraftInstance() {
             val outputFile = File(fontsDir, "roboto.zip")
             if (!outputFile.exists()) {
                 LOGGER.info("Downloading fonts...")
-                download("$CLIENT_CLOUD/fonts/Roboto.zip", outputFile)
-                LOGGER.info("Extract fonts...")
-                extractZip(outputFile.path, fontsDir.path)
+                LOGGER.error("Download font module is not available now")
             }
         } catch (e: IOException) {
             e.printStackTrace()

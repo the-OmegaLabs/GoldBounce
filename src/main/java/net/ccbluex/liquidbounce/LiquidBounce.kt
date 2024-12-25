@@ -51,6 +51,7 @@ import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
+import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -131,6 +132,7 @@ object LiquidBounce {
             registerListener(WaitTickUtils)
             registerListener(SilentHotbar)
             registerListener(WaitMsUtils)
+            TrayUtils().start()
             // Copy misans.ttf to fontsDir if it doesn't exist
             val misansTtfInFontsDir = File(FileManager.fontsDir, "misans.ttf")
             if (!misansTtfInFontsDir.exists()) {
