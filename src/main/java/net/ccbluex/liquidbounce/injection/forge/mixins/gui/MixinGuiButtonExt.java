@@ -81,7 +81,7 @@ public abstract class MixinGuiButtonExt extends GuiButton {
 
         if (enabled && progress != xPosition) {
             // Draw blue overlay
-            RenderUtils.INSTANCE.drawRoundedRect(xPosition, yPosition, progress, yPosition + height, new Color(0F, 0F, 1F, 1F).getRGB(), radius);
+            RenderUtils.INSTANCE.drawRoundedRect(xPosition, yPosition, progress, yPosition + height, new Color(1F, 1F, 0F, 1F).getRGB(), radius);
         }
 
         mc.getTextureManager().bindTexture(buttonTextures);
