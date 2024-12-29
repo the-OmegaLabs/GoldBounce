@@ -1,5 +1,6 @@
 package net.vitox.particle.util;
 
+import kotlin.jvm.JvmStatic;
 import net.ccbluex.liquidbounce.utils.extensions.MathExtensionsKt;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -50,4 +51,5 @@ public class RenderUtils {
         glDisable(GL_LINE_SMOOTH);
         glColor4f(1F, 1F, 1F, 1F);
     }
+
 }

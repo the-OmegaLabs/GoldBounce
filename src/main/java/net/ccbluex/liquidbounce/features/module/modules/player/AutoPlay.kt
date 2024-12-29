@@ -13,29 +13,33 @@ import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.hotBarSlot
 import net.ccbluex.liquidbounce.value.choices
+import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
+import net.minecraft.world.WorldSettings
+import kotlin.math.abs
 
 object AutoPlay : Module("AutoPlay", Category.PLAYER, gameDetecting = false, hideModule = false) {
 
-    private val mode by choices("Mode", arrayOf("Paper", "Hypixel"), "Paper")
+    private val mode by choices("Mode", arrayOf("Paper", "Hypixel", "KKCraft"), "KKCraft")
 
     // Hypixel Settings
     private val hypixelMode by choices("HypixelMode", arrayOf("Skywars", "Bedwars"), "Skywars") {
         mode == "Hypixel"
     }
     private val skywarsMode by choices("SkywarsMode", arrayOf("SoloNormal", "SoloInsane"), "SoloNormal") {
-        hypixelMode == "Skywars"
+        hypixelMode == "Skywars" && mode == "Hypixel"
     }
     private val bedwarsMode by choices("BedwarsMode", arrayOf("Solo", "Double", "Trio", "Quad"), "Solo") {
-        hypixelMode == "Bedwars"
+        hypixelMode == "Bedwars" && mode == "Hypixel"
     }
 
     private val delay by int("Delay", 50, 0..200)
 
     private var delayTick = 0
-
+    private var lastPosX = 0.0
+    private var lastPosZ = 0.0
     /**
      * Update Event
      */
@@ -80,6 +84,14 @@ object AutoPlay : Module("AutoPlay", Category.PLAYER, gameDetecting = false, hid
                         }
                     }
                     delayTick = 0
+                }
+            }
+
+            "KKCraft" -> {
+                if (delayTick >= delay && (mc.playerController.currentGameType == WorldSettings.GameType.SPECTATOR || player.inventory.hasItemStack(ItemStack(Items.paper)))) {
+                    player.sendChatMessage("/sw leave")
+                    Thread.sleep(2000)
+                    player.sendChatMessage("/sw randomjoin solo")
                 }
             }
         }

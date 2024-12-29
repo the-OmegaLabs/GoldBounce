@@ -22,6 +22,8 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.*
 import net.ccbluex.liquidbounce.utils.ImageUtils
+import net.minecraft.client.renderer.GlStateManager
+import org.lwjgl.opengl.GL11
 
 public object RenderUtils : MinecraftInstance() {
     public val glCapMap = mutableMapOf<Int, Boolean>()
@@ -643,7 +645,13 @@ public object RenderUtils : MinecraftInstance() {
         glDisable(GL_BLEND)
         glPopMatrix()
     }
-
+    private fun quickPolygonCircle(x: Float, y: Float, xRadius: Float, yRadius: Float, start: Int, end: Int) {
+        var i = end
+        while (i >= start) {
+            glVertex2d(x + sin(i * Math.PI / 180.0) * xRadius, y + cos(i * Math.PI / 180.0) * yRadius)
+            i -= 4
+        }
+    }
     public fun orderPoints(x1: Float, y1: Float, x2: Float, y2: Float): FloatArray {
         val newX1 = min(x1, x2)
         val newY1 = min(y1, y2)
@@ -880,7 +888,63 @@ public object RenderUtils : MinecraftInstance() {
             ((y2 - y) * factor).toInt()
         )
     }
+    @JvmStatic
+    fun drawShadow(x: Float, y: Float, width: Float, height: Float) {
+        drawTexturedRect(x - 9, y - 9, 9f, 9f, "paneltopleft")
+        drawTexturedRect(x - 9, y + height, 9f, 9f, "panelbottomleft")
+        drawTexturedRect(x + width, y + height, 9f, 9f, "panelbottomright")
+        drawTexturedRect(x + width, y - 9, 9f, 9f, "paneltopright")
+        drawTexturedRect(x - 9, y, 9f, height, "panelleft")
+        drawTexturedRect(x + width, y, 9f, height, "panelright")
+        drawTexturedRect(x, y - 9, width, 9f, "paneltop")
+        drawTexturedRect(x, y + height, width, 9f, "panelbottom")
+    }
 
+    fun drawTexturedRect(x: Float, y: Float, width: Float, height: Float, image: String) {
+        glPushMatrix()
+        val enableBlend = GL11.glIsEnabled(GL11.GL_BLEND)
+        val disableAlpha = !GL11.glIsEnabled(GL11.GL_ALPHA_TEST)
+        if (!enableBlend) glEnable(GL11.GL_BLEND)
+        if (!disableAlpha) glDisable(GL11.GL_ALPHA_TEST)
+        mc.textureManager.bindTexture(ResourceLocation("liquidbounce/ui/shadow/$image.png"))
+        GlStateManager.color(1f, 1f, 1f, 1f)
+        drawModalRectWithCustomSizedTexture(x, y, 0f, 0f, width, height, width, height)
+        if (!enableBlend) glDisable(GL11.GL_BLEND)
+        if (!disableAlpha) glEnable(GL11.GL_ALPHA_TEST)
+        GL11.glPopMatrix()
+    }
+    fun drawRoundedCornerRect(x: Float, y: Float, x1: Float, y1: Float, radius: Float) {
+        glBegin(GL11.GL_POLYGON)
+
+        val xRadius = min((x1 - x) * 0.5, radius.toDouble()).toFloat()
+        val yRadius = min((y1 - y) * 0.5, radius.toDouble()).toFloat()
+        quickPolygonCircle(x + xRadius, y + yRadius, xRadius, yRadius, 180, 270)
+        quickPolygonCircle(x1 - xRadius, y + yRadius, xRadius, yRadius, 90, 180)
+        quickPolygonCircle(x1 - xRadius, y1 - yRadius, xRadius, yRadius, 0, 90)
+        quickPolygonCircle(x + xRadius, y1 - yRadius, xRadius, yRadius, 270, 360)
+
+        glEnd()
+    }
+    fun customRotatedObject2D(oXpos: Float, oYpos: Float, oWidth: Float, oHeight: Float, rotate: Double) {
+        translate((oXpos + oWidth / 2).toDouble(), (oYpos + oHeight / 2).toDouble(), 0.0)
+        glRotated(rotate, 0.0, 0.0, 1.0)
+        translate(-(oXpos + oWidth / 2).toDouble(), -(oYpos + oHeight / 2).toDouble(), 0.0)
+    }
+    @JvmStatic
+    fun drawRoundedCornerRect(x: Float, y: Float, x1: Float, y1: Float, radius: Float, color: Int) {
+        glEnable(GL11.GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glDisable(GL11.GL_TEXTURE_2D)
+        val hasCull = GL11.glIsEnabled(GL11.GL_CULL_FACE)
+        glDisable(GL11.GL_CULL_FACE)
+
+        glColor(color)
+        drawRoundedCornerRect(x, y, x1, y1, radius)
+
+        glEnable(GL11.GL_TEXTURE_2D)
+        glDisable(GL11.GL_BLEND)
+        setGlState(GL11.GL_CULL_FACE, hasCull)
+    }
     /**
      * GL CAP MANAGER
      *

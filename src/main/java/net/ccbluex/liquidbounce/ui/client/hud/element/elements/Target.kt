@@ -23,6 +23,7 @@ import net.ccbluex.liquidbounce.utils.render.animation.AnimationUtil.debugFPS
 import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowShader
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.gui.GuiChat
+import net.minecraft.entity.EntityLiving
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11.*
@@ -94,7 +95,10 @@ class Target : Element() {
         get() = alphaBorder > 0 || alphaBackground > 0 || alphaText > 0
 
     private var delayCounter = 0
-
+    fun getTargetEntity(): EntityLivingBase{
+        val target = KillAura.target ?: if (delayCounter >= vanishDelay) mc.thePlayer else lastTarget ?: mc.thePlayer
+        return target as EntityLivingBase
+    }
     override fun drawElement(): Border {
         assumeNonVolatile = true
 
