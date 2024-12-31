@@ -87,8 +87,8 @@ object ClickGui : GuiScreen() {
         panels += setupTargetsPanel(100, yPos, width, height)
 
         // Settings Panel
-        yPos += 20
-        panels += setupSettingsPanel(100, yPos, width, height)
+//        yPos += 20
+//        panels += setupSettingsPanel(100, yPos, width, height)
     }
 
     private fun setupTargetsPanel(xPos: Int = 100, yPos: Int, width: Int, height: Int) =
@@ -114,51 +114,51 @@ object ClickGui : GuiScreen() {
 
         }
 
-    private fun setupSettingsPanel(xPos: Int = 100, yPos: Int, width: Int, height: Int) =
-        object : Panel("Auto Settings", xPos, yPos, width, height, false) {
-
-            /**
-             * Auto settings list
-             */
-            override val elements = runBlocking {
-                async(Dispatchers.IO) {
-                    autoSettingsList?.map { setting ->
-                        ButtonElement(setting.name, { Integer.MAX_VALUE }) {
-                            GlobalScope.launch {
-                                try {
-                                    chat("Loading settings...")
-
-                                    // Load settings and apply them
-                                    val settings = ClientApi.requestSettingsScript(setting.settingId)
-
-                                    chat("Applying settings...")
-                                    SettingsUtils.applyScript(settings)
-
-                                    chat("§6Settings applied successfully")
-                                    HUD.addNotification(Notification("Updated Settings"))
-                                    synchronized(mc.soundHandler) {
-                                        mc.soundHandler.playSound(
-                                            PositionedSoundRecord.create(ResourceLocation("random.anvil_use"), 1F)
-                                        )
-                                    }
-                                } catch (e: Exception) {
-                                    ClientUtils.LOGGER.error("Failed to load settings", e)
-                                    chat("Failed to load settings: ${e.message}")
-                                }
-                            }
-                        }.apply {
-                            this.hoverText = buildString {
-                                appendLine("§7Description: §e${setting.description.ifBlank { "No description available" }}")
-                                appendLine("§7Type: §e${setting.type.displayName}")
-                                appendLine("§7Contributors: §e${setting.contributors}")
-                                appendLine("§7Last updated: §e${setting.date}")
-                                append("§7Status: §e${setting.statusType.displayName} §a(${setting.statusDate})")
-                            }
-                        }
-                    } ?: emptyList()
-                }.await()
-            }
-        }
+//    private fun setupSettingsPanel(xPos: Int = 100, yPos: Int, width: Int, height: Int) =
+//        object : Panel("Auto Settings", xPos, yPos, width, height, false) {
+//
+//            /**
+//             * Auto settings list
+//             */
+////            override val elements = runBlocking {
+////                async(Dispatchers.IO) {
+////                    autoSettingsList?.map { setting ->
+////                        ButtonElement(setting.name, { Integer.MAX_VALUE }) {
+////                            GlobalScope.launch {
+////                                try {
+////                                    chat("Loading settings...")
+////
+////                                    // Load settings and apply them
+////                                    val settings = ClientApi.requestSettingsScript(setting.settingId)
+////
+////                                    chat("Applying settings...")
+////                                    SettingsUtils.applyScript(settings)
+////
+////                                    chat("§6Settings applied successfully")
+////                                    HUD.addNotification(Notification("Updated Settings"))
+////                                    synchronized(mc.soundHandler) {
+////                                        mc.soundHandler.playSound(
+////                                            PositionedSoundRecord.create(ResourceLocation("random.anvil_use"), 1F)
+////                                        )
+////                                    }
+////                                } catch (e: Exception) {
+////                                    ClientUtils.LOGGER.error("Failed to load settings", e)
+////                                    chat("Failed to load settings: ${e.message}")
+////                                }
+////                            }
+////                        }.apply {
+////                            this.hoverText = buildString {
+////                                appendLine("§7Description: §e${setting.description.ifBlank { "No description available" }}")
+////                                appendLine("§7Type: §e${setting.type.displayName}")
+////                                appendLine("§7Contributors: §e${setting.contributors}")
+////                                appendLine("§7Last updated: §e${setting.date}")
+////                                append("§7Status: §e${setting.statusType.displayName} §a(${setting.statusDate})")
+////                            }
+////                        }
+////                    } ?: emptyList()
+////                }.await()
+////            }
+////        }
 
     override fun drawScreen(x: Int, y: Int, partialTicks: Float) {
         // Enable DisplayList optimization
