@@ -18,6 +18,7 @@ import net.ccbluex.liquidbounce.features.module.modules.`fun`.SkinDerp
 import net.ccbluex.liquidbounce.features.module.modules.misc.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.*
 import net.ccbluex.liquidbounce.features.module.modules.other.AntiStaff
+import net.ccbluex.liquidbounce.features.module.modules.misc.ItemsDetector
 import net.ccbluex.liquidbounce.features.module.modules.player.*
 import net.ccbluex.liquidbounce.features.module.modules.render.*
 import net.ccbluex.liquidbounce.features.module.modules.render.Hat
@@ -32,7 +33,6 @@ import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
 import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
-import scala.tools.ant.sabbus.Break
 import java.util.*
 
 object ModuleManager : Listenable {
@@ -247,7 +247,9 @@ object ModuleManager : Listenable {
             GApple,
             FollowTargetHud,
             HitBubbles,
-            FireFlies
+            FireFlies,
+            ItemsDetector,
+            DynamicLand
         )
 
         InventoryManager.startCoroutine()

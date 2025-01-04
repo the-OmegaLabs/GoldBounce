@@ -42,7 +42,8 @@ object HUD : MinecraftInstance() {
         BlockCounter::class.java,
         Taco::class.java,
         Keystrokes::class.java,
-        NewNotifications::class.java
+        NewNotifications::class.java,
+        SpeedBPS::class.java
     )
 
     /** Create default HUD */

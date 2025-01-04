@@ -33,7 +33,9 @@ object ClientFixes : MinecraftInstance(), Listenable {
         "Vanilla",
         "Forge",
         "LunarClient",
-        "CheatBreaker"
+        "CheatBreaker",
+        "Geyser",
+        "LabyMod"
     )
 
     @EventTarget
@@ -60,6 +62,7 @@ object ClientFixes : MinecraftInstance(), Listenable {
                             "LunarClient" -> "lunarclient:v2.18.2-2449"
                             "CheatBreaker" -> "CB"
                             "Geyser" -> "geyser"
+
                             else -> {
                                 // do nothing
                                 return@runCatching

@@ -28,6 +28,7 @@ object AutoProjectile : Module("AutoProjectile", Category.COMBAT, hideModule = f
 
     private val mode by choices("Mode", arrayOf("Normal", "Smart"), "Normal")
     private val range by float("Range", 8F, 1F..20F)
+    private val disableRange by float("DisableRange", 3F, 0F..20F)
     private val throwDelay by int("ThrowDelay", 1000, 50..2000) { mode != "Smart" }
 
     private val minThrowDelay: IntegerValue = object : IntegerValue("MinThrowDelay", 1000, 50..2000) {
@@ -74,12 +75,18 @@ object AutoProjectile : Module("AutoProjectile", Category.COMBAT, hideModule = f
 
             if (facingEnemy) {
                 var facingEntity = mc.objectMouseOver?.entityHit
-
+                var facingEntity2: Any? = null
+                if(disableRange != 0F) {
+                    facingEntity2 = mc.objectMouseOver?.entityHit
+                }
                 if (facingEntity == null) {
                     facingEntity = raycastEntity(range.toDouble()) { isSelected(it, true) }
+                    if(disableRange != 0F) {
+                        facingEntity2 = raycastEntity(disableRange.toDouble()) { isSelected(it, true) }
+                    }
                 }
 
-                if (isSelected(facingEntity, true)) {
+                if (isSelected(facingEntity, true) && (facingEntity != facingEntity2 || disableRange==0F)) {
                     throwProjectile = true
                 }
             } else {

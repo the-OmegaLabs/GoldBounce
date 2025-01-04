@@ -134,8 +134,7 @@ object Fonts : MinecraftInstance() {
             fonts += CUSTOM_FONT_RENDERERS.values
             return fonts
         }
-
-    private fun getFont(fontName: String, size: Int) =
+    fun getFont(fontName: String, size: Int) =
         try {
             val inputStream = File(fontsDir, fontName).inputStream()
             var awtClientFont = Font.createFont(Font.TRUETYPE_FONT, inputStream)
