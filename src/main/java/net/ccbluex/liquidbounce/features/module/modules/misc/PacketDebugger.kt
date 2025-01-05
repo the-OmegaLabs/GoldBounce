@@ -7,14 +7,15 @@ package net.ccbluex.liquidbounce.features.module.modules.misc
 
 import net.ccbluex.liquidbounce.LiquidBounce.hud
 import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.value.choices
+import net.ccbluex.liquidbounce.value.int
 import net.ccbluex.liquidbounce.event.PacketEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.script.remapper.Remapper
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.chat
+import net.ccbluex.liquidbounce.script.api.global.Chat
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
 
 object PacketDebugger : Module("PacketDebugger", Category.MISC, gameDetecting = false, hideModule = false) {
 
@@ -24,9 +25,8 @@ object PacketDebugger : Module("PacketDebugger", Category.MISC, gameDetecting = 
 
     private val timer = MSTimer()
     val selectedPackets = mutableListOf<String>()
-
     @EventTarget
-    fun onPacket(event: PacketEvent) {
+    fun onPacket(event: PacketEvent){
         if (mc.thePlayer == null || mc.theWorld == null) {
             return
         }
@@ -50,18 +50,28 @@ object PacketDebugger : Module("PacketDebugger", Category.MISC, gameDetecting = 
     private fun logPacket(event: PacketEvent) {
         val packet = event.packet
 
+        val packetEvent = if (event.isCancelled) "§7(§cCancelled§7)" else ""
+
         val packetInfo = buildString {
             append("\n")
-            append("§aPacket: §b${packet.javaClass.simpleName}\n")
+            append("§aPacket: §b${packet.javaClass.simpleName} $packetEvent\n")
             append("§aEventType: §b${event.eventType}\n")
-            packet.javaClass.declaredFields.forEach { field ->
-                field.isAccessible = true
-                append("§a${field.name}: §b${field.get(packet)}\n")
+
+            var clazz: Class<*>? = packet.javaClass
+
+            while (clazz != null) {
+                clazz.declaredFields.forEach { field ->
+                    field.isAccessible = true
+
+                    append("§a${Remapper.remapField(clazz!!, field.name)}: §b${field.get(packet)}\n")
+                }
+
+                clazz = clazz.superclass
             }
         }
 
         if (notify == "Chat") {
-            chat(packetInfo)
+            Chat.print(packetInfo)
         } else {
             hud.addNotification(Notification(packetInfo, 3000F))
         }

@@ -20,6 +20,7 @@ import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.login.UserUtils
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.BoolValue
+import net.ccbluex.liquidbounce.value.ListValue
 import net.minecraft.event.ClickEvent
 import net.minecraft.util.ChatComponentText
 import net.minecraft.util.EnumChatFormatting
@@ -28,13 +29,13 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.util.regex.Pattern
 
-object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameDetecting = false) {
+object IRC : Module("LiquidChat", Category.MISC, subjective = true, gameDetecting = false) {
 
     init {
         state = true
         inArray = false
     }
-
+    val host by ListValue("Host",arrayOf("LiquidChat","Incomplete"),"LiquidChat")
     var jwt by object : BoolValue("JWT", false) {
         override fun onChanged(oldValue: Boolean, newValue: Boolean) {
             if (state) {
@@ -160,52 +161,60 @@ object LiquidChat : Module("LiquidChat", Category.MISC, subjective = true, gameD
     private val connectTimer = MSTimer()
 
     override fun onDisable() {
-        loggedIn = false
-        client.disconnect()
+        if(host == "LiquidChat") {
+            loggedIn = false
+            client.disconnect()
+        }
     }
 
     @EventTarget
     fun onSession(sessionEvent: SessionEvent) {
-        client.disconnect()
-        connect()
+        if(host == "LiquidChat") {
+            client.disconnect()
+            connect()
+        }
     }
 
     @EventTarget
     fun onUpdate(updateEvent: UpdateEvent) {
-        if (client.isConnected() || (loginJob?.isActive == true)) return
+        if(host == "LiquidChat") {
+            if (client.isConnected() || (loginJob?.isActive == true)) return
 
-        if (connectTimer.hasTimePassed(5000)) {
-            connect()
-            connectTimer.reset()
+            if (connectTimer.hasTimePassed(5000)) {
+                connect()
+                connectTimer.reset()
+            }
         }
     }
 
     private fun connect() {
-        if (client.isConnected() || (loginJob?.isActive == true)) return
+        if(host == "LiquidChat"){
+            if (client.isConnected() || (loginJob?.isActive == true)) return
 
-        if (jwt && jwtToken.isEmpty()) {
-            chat("§7[§a§lChat§7] §cError: §7No token provided!")
-            state = false
-            return
-        }
-
-        loggedIn = false
-
-        loginJob = SharedScopes.IO.launch {
-            try {
-                client.connect()
-
-                if (jwt)
-                    client.loginJWT(jwtToken)
-                else if (UserUtils.isValidTokenOffline(mc.session.token)) {
-                    client.loginMojang()
-                }
-            } catch (cause: Exception) {
-                LOGGER.error("LiquidChat error", cause)
-                chat("§7[§a§lChat§7] §cError: §7${cause.javaClass.name}: ${cause.message}")
+            if (jwt && jwtToken.isEmpty()) {
+                chat("§7[§a§lChat§7] §cError: §7No token provided!")
+                state = false
+                return
             }
 
-            loginJob = null
+            loggedIn = false
+
+            loginJob = SharedScopes.IO.launch {
+                try {
+                    client.connect()
+
+                    if (jwt)
+                        client.loginJWT(jwtToken)
+                    else if (UserUtils.isValidTokenOffline(mc.session.token)) {
+                        client.loginMojang()
+                    }
+                } catch (cause: Exception) {
+                    LOGGER.error("LiquidChat error", cause)
+                    chat("§7[§a§lChat§7] §cError: §7${cause.javaClass.name}: ${cause.message}")
+                }
+
+                loginJob = null
+            }
         }
     }
 

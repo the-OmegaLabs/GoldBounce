@@ -1,7 +1,7 @@
 package net.ccbluex.liquidbounce.features.command.special
 
 import net.ccbluex.liquidbounce.features.command.Command
-import net.ccbluex.liquidbounce.features.module.modules.misc.LiquidChat
+import net.ccbluex.liquidbounce.features.module.modules.misc.IRC
 
 object ChatAdminCommand : Command("chatadmin") {
 
@@ -9,7 +9,7 @@ object ChatAdminCommand : Command("chatadmin") {
      * Execute commands with provided [args]
      */
     override fun execute(args: Array<String>) {
-        if (!LiquidChat.state) {
+        if (!IRC.state) {
             chat("§cError: §7LiquidChat is disabled!")
             return
         }
@@ -22,7 +22,7 @@ object ChatAdminCommand : Command("chatadmin") {
         when (args[1].lowercase()) {
             "ban" -> {
                 if (args.size > 2) {
-                    LiquidChat.client.banUser(args[2])
+                    IRC.client.banUser(args[2])
                 } else {
                     chatSyntax("chatadmin ban <username>")
                 }
@@ -30,7 +30,7 @@ object ChatAdminCommand : Command("chatadmin") {
 
             "unban" -> {
                 if (args.size > 2) {
-                    LiquidChat.client.unbanUser(args[2])
+                    IRC.client.unbanUser(args[2])
                 } else {
                     chatSyntax("chatadmin unban <username>")
                 }

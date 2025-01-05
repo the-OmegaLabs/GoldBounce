@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
+import cn.stars.reversal.module.impl.render.AppleSkin
 import net.ccbluex.liquidbounce.event.EventManager.registerListener
 import net.ccbluex.liquidbounce.event.EventManager.unregisterListener
 import net.ccbluex.liquidbounce.event.EventTarget
@@ -150,7 +151,7 @@ object ModuleManager : Listenable {
             Kick,
             KillAura,
             LadderJump,
-            LiquidChat,
+            IRC,
             LiquidWalk,
             Liquids,
             LongJump,
@@ -249,7 +250,10 @@ object ModuleManager : Listenable {
             HitBubbles,
             FireFlies,
             ItemsDetector,
-            DynamicLand
+            DynamicLand,
+            AppleSkin,
+            Zoom,
+            RawInput
         )
 
         InventoryManager.startCoroutine()

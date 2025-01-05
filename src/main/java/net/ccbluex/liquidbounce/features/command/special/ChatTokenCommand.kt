@@ -3,7 +3,7 @@ package net.ccbluex.liquidbounce.features.command.special
 import net.ccbluex.liquidbounce.LiquidBounce.commandManager
 import net.ccbluex.liquidbounce.chat.packet.packets.ServerRequestJWTPacket
 import net.ccbluex.liquidbounce.features.command.Command
-import net.ccbluex.liquidbounce.features.module.modules.misc.LiquidChat
+import net.ccbluex.liquidbounce.features.module.modules.misc.IRC
 import net.ccbluex.liquidbounce.utils.misc.StringUtils
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -22,12 +22,12 @@ object ChatTokenCommand : Command("chattoken") {
         when (args[1].lowercase()) {
             "set" -> {
                 if (args.size > 2) {
-                    LiquidChat.jwtToken = StringUtils.toCompleteString(args, 2)
-                    LiquidChat.jwt = true
+                    IRC.jwtToken = StringUtils.toCompleteString(args, 2)
+                    IRC.jwt = true
 
-                    if (LiquidChat.state) {
-                        LiquidChat.state = false
-                        LiquidChat.state = true
+                    if (IRC.state) {
+                        IRC.state = false
+                        IRC.state = true
                     }
                 } else {
                     chatSyntax("chattoken set <token>")
@@ -35,21 +35,21 @@ object ChatTokenCommand : Command("chattoken") {
             }
 
             "generate" -> {
-                if (!LiquidChat.state) {
+                if (!IRC.state) {
                     chat("§cError: §7LiquidChat is disabled!")
                     return
                 }
 
-                LiquidChat.client.sendPacket(ServerRequestJWTPacket())
+                IRC.client.sendPacket(ServerRequestJWTPacket())
             }
 
             "copy" -> {
-                if (LiquidChat.jwtToken.isEmpty()) {
+                if (IRC.jwtToken.isEmpty()) {
                     chat("§cError: §7No token set! Generate one first using '${commandManager.prefix}chattoken generate'.")
                     return
                 }
 
-                val stringSelection = StringSelection(LiquidChat.jwtToken)
+                val stringSelection = StringSelection(IRC.jwtToken)
                 Toolkit.getDefaultToolkit().systemClipboard.setContents(stringSelection, stringSelection)
                 chat("§aCopied to clipboard!")
             }

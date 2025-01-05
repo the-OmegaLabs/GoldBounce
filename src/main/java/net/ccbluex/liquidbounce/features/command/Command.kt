@@ -29,7 +29,7 @@ abstract class Command(val command: String, vararg val alias: String) : Minecraf
     /**
      * Print [msg] to chat
      */
-    protected fun chat(msg: String) = net.ccbluex.liquidbounce.utils.chat("§3$msg")
+    fun chat(msg: String) = net.ccbluex.liquidbounce.utils.chat("§3$msg")
 
     /**
      * Print [syntax] of command to chat
