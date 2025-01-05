@@ -11,9 +11,11 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.clickgui.ClickGui
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
+import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.canClickInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.hasScheduledInLastLoop
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
+import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenContainer
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.float
 import net.minecraft.client.gui.GuiChat
@@ -22,6 +24,8 @@ import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraft.client.settings.GameSettings
 import net.minecraft.client.settings.KeyBinding
+import net.minecraft.network.play.client.C0DPacketCloseWindow
+import net.minecraft.network.play.client.C0EPacketClickWindow
 import org.lwjgl.input.Mouse
 
 object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting = false, hideModule = false) {
@@ -29,8 +33,10 @@ object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting 
     private val notInChests by boolean("NotInChests", false)
     val aacAdditionPro by boolean("AACAdditionPro", false)
     private val intave by boolean("Intave", false)
-
+    private val saveC0E by boolean("SaveC0E",true)
+    private val noSprintWhenClosed by boolean("NoSprintWhenClosed",false) { saveC0E }
     private val isIntave = (mc.currentScreen is GuiInventory || mc.currentScreen is GuiChest) && intave
+    private val clickWindowList = mutableListOf<C0EPacketClickWindow>()
 
     private val noMove by InventoryManager.noMoveValue
     private val noMoveAir by InventoryManager.noMoveAirValue
@@ -92,7 +98,37 @@ object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting 
             mc.gameSettings.keyBindSneak.pressed = true
         }
     }
+    @EventTarget
+    fun onPacket(event:PacketEvent){
+        val packet = event.packet
+        val player = mc.thePlayer ?: return
+        if (!saveC0E)
+            return
 
+        if (noSprintWhenClosed) {
+            if (clickWindowList.isNotEmpty() && !(serverOpenInventory || serverOpenContainer))
+                mc.thePlayer.isSprinting = false
+
+            if (packet is C0DPacketCloseWindow) {
+                event.cancelEvent()
+                player.isSprinting = false
+                if (!player.serverSprintState)
+                    PacketUtils.sendPacket(C0DPacketCloseWindow(),false)
+            }
+        }
+
+        if (serverOpenInventory || serverOpenContainer) {
+            if (packet is C0EPacketClickWindow) {
+                clickWindowList.add(packet)
+                event.cancelEvent()
+            }
+        } else if (clickWindowList.isNotEmpty()) {
+            clickWindowList.forEach {
+                PacketUtils.sendPacket(it,false)
+            }
+            clickWindowList.clear()
+        }
+    }
     @EventTarget
     fun onJump(event: JumpEvent) {
         if (isIntave) event.cancelEvent()
