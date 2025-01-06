@@ -6,7 +6,7 @@
 杂牌人用杂牌水XD</br>
 但是这是金振口服液</br>
 <img src="https://img.shields.io/github/license/bzym2/GoldBounce?style=for-the-badge">
-<img src="https://i.111666.best/image/beMgdGNq7nMSuh51T3LE5G.png">
+<img src="https://img.shields.io/github/downloads/bzym2/GoldBounce/total">
 </div>
 
 
