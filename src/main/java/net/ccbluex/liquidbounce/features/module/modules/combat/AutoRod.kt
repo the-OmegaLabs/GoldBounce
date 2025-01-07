@@ -50,106 +50,123 @@ object AutoRod : Module("AutoRod", Category.COMBAT, hideModule = false) {
     private val pullbackDelay by int("PullbackDelay", 500, 50..1000)
 
     private val onUsingItem by boolean("OnUsingItem", false)
-
+    private val disableRange by float("DisableRange", 3f, 0f..20f)
     private val pushTimer = MSTimer()
     private val rodPullTimer = MSTimer()
 
     private var rodInUse = false
     private var switchBack = -1
 
-    @EventTarget
-    fun onUpdate(event: UpdateEvent) {
-        // Check if player is using rod
-        val usingRod = (mc.thePlayer.isUsingItem && mc.thePlayer.heldItem?.item == Items.fishing_rod) || rodInUse
+@EventTarget
+fun onUpdate(event: UpdateEvent) {
+    // Check if player is using rod
+    val usingRod = (mc.thePlayer.isUsingItem && mc.thePlayer.heldItem?.item == Items.fishing_rod) || rodInUse
 
-        if (usingRod) {
-            // Check if rod pull timer has reached delay
-            // mc.thePlayer.fishEntity?.caughtEntity != null is always null
+    if (usingRod) {
+        // Check if rod pull timer has reached delay
+        // mc.thePlayer.fishEntity?.caughtEntity != null is always null
 
-            if (rodPullTimer.hasTimePassed(pullbackDelay)) {
-                if (switchBack != -1 && mc.thePlayer.inventory.currentItem != switchBack) {
-                    // Switch back to previous item
-                    mc.thePlayer.inventory.currentItem = switchBack
-                    mc.playerController.syncCurrentPlayItem()
-                } else {
-                    // Stop using rod
-                    mc.thePlayer.stopUsingItem()
-                }
-
-                switchBack = -1
-                rodInUse = false
-
-                // Reset push timer. Push will always wait for pullback delay.
-                pushTimer.reset()
+        if (rodPullTimer.hasTimePassed(pullbackDelay)) {
+            if (switchBack != -1 && mc.thePlayer.inventory.currentItem != switchBack) {
+                // Switch back to previous item
+                mc.thePlayer.inventory.currentItem = switchBack
+                mc.playerController.syncCurrentPlayItem()
+            } else {
+                // Stop using rod
+                mc.thePlayer.stopUsingItem()
             }
-        } else {
-            var rod = false
 
-            if (facingEnemy && getHealth(mc.thePlayer, healthFromScoreboard, absorption) >= playerHealthThreshold) {
-                var facingEntity = mc.objectMouseOver?.entityHit
-                val nearbyEnemies = getAllNearbyEnemies()
+            switchBack = -1
+            rodInUse = false
 
-                if (facingEntity == null) {
-                    // Check if player is looking at enemy.
-                    facingEntity = RaycastUtils.raycastEntity(activationDistance.toDouble()) { isSelected(it, true) }
+            // Reset push timer. Push will always wait for pullback delay.
+            pushTimer.reset()
+        }
+    } else {
+        // Check if there is a player in the DisableRange
+        if (isPlayerInRange(disableRange)) {
+            return // If there is a player in the range, do not execute the rest of the logic
+        }
+
+        var rod = false
+
+        if (facingEnemy && getHealth(mc.thePlayer, healthFromScoreboard, absorption) >= playerHealthThreshold) {
+            var facingEntity = mc.objectMouseOver?.entityHit
+            val nearbyEnemies = getAllNearbyEnemies()
+
+            if (facingEntity == null) {
+                // Check if player is looking at enemy.
+                facingEntity = RaycastUtils.raycastEntity(activationDistance.toDouble()) { isSelected(it, true) }
+            }
+
+            // Check whether player is using items/blocking.
+            if (!onUsingItem) {
+                if (mc.thePlayer?.itemInUse?.item != Items.fishing_rod && (mc.thePlayer?.isUsingItem == true || KillAura.blockStatus)) {
+                    return
                 }
+            }
 
-                // Check whether player is using items/blocking.
-                if (!onUsingItem) {
-                    if (mc.thePlayer?.itemInUse?.item != Items.fishing_rod && (mc.thePlayer?.isUsingItem == true || KillAura.blockStatus)) {
-                        return
-                    }
-                }
+            if (isSelected(facingEntity, true)) {
+                // Checks how many enemy is nearby, if <= then should rod.
+                if (nearbyEnemies?.size!! <= enemiesNearby) {
 
-                if (isSelected(facingEntity, true)) {
-                    // Checks how many enemy is nearby, if <= then should rod.
-                    if (nearbyEnemies?.size!! <= enemiesNearby) {
-
-                        // Check if the enemy's health is below the threshold.
-                        if (ignoreOnEnemyLowHealth) {
-                            if (getHealth(
-                                    facingEntity as EntityLivingBase,
-                                    healthFromScoreboard,
-                                    absorption
-                                ) >= enemyHealthThreshold
-                            ) {
-                                rod = true
-                            }
-                        } else {
+                    // Check if the enemy's health is below the threshold.
+                    if (ignoreOnEnemyLowHealth) {
+                        if (getHealth(
+                                facingEntity as EntityLivingBase,
+                                healthFromScoreboard,
+                                absorption
+                            ) >= enemyHealthThreshold
+                        ) {
                             rod = true
                         }
+                    } else {
+                        rod = true
                     }
                 }
-            } else if (getHealth(mc.thePlayer, healthFromScoreboard, absorption) <= escapeHealthThreshold) {
-                // use rod for escaping when health is low.
-                rod = true
-            } else if (!facingEnemy) {
-                // Rod anyway, spam it.
-                rod = true
             }
+        } else if (getHealth(mc.thePlayer, healthFromScoreboard, absorption) <= escapeHealthThreshold) {
+            // use rod for escaping when health is low.
+            rod = true
+        } else if (!facingEnemy) {
+            // Rod anyway, spam it.
+            rod = true
+        }
 
-            if (rod && pushTimer.hasTimePassed(pushDelay)) {
-                // Check if player has rod in hand
-                if (mc.thePlayer.heldItem?.item != Items.fishing_rod) {
-                    // Check if player has rod in hotbar
-                    val rod = findRod(36, 45)
+        if (rod && pushTimer.hasTimePassed(pushDelay)) {
+            // Check if player has rod in hand
+            if (mc.thePlayer.heldItem?.item != Items.fishing_rod) {
+                // Check if player has rod in hotbar
+                val rod = findRod(36, 45)
 
-                    if (rod == -1) {
-                        // There is no rod in hotbar
-                        return
-                    }
-
-                    // Switch to rod
-                    switchBack = mc.thePlayer.inventory.currentItem
-
-                    mc.thePlayer.inventory.currentItem = rod - 36
-                    mc.playerController.syncCurrentPlayItem()
+                if (rod == -1) {
+                    // There is no rod in hotbar
+                    return
                 }
 
-                rod()
+                // Switch to rod
+                switchBack = mc.thePlayer.inventory.currentItem
+
+                mc.thePlayer.inventory.currentItem = rod - 36
+                mc.playerController.syncCurrentPlayItem()
             }
+
+            rod()
         }
     }
+}
+
+/**
+ * Check if there is a player in the given range
+ */
+private fun isPlayerInRange(range: Float): Boolean {
+    val player = mc.thePlayer ?: return false
+
+    return mc.theWorld.playerEntities.any {
+        it != player && player.getDistanceToEntityBox(it) <= range
+    }
+}
+
 
     /**
      * Use rod

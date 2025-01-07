@@ -136,6 +136,7 @@ object LiquidBounce {
             registerListener(WaitMsUtils)
 
             SysUtils().copyToFontDir("HarmonyOS_Sans_SC_Bold.ttf")
+            SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
             // Load client fonts
             loadFonts()
 

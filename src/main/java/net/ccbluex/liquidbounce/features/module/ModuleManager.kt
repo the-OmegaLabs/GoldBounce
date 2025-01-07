@@ -250,10 +250,9 @@ object ModuleManager : Listenable {
             HitBubbles,
             FireFlies,
             ItemsDetector,
-            DynamicLand,
-            AppleSkin,
             Zoom,
-            RawInput
+            RawInput,
+            MoreKB
         )
 
         InventoryManager.startCoroutine()

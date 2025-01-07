@@ -30,6 +30,7 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.chestStealerCur
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.chestStealerLastSlot
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.countSpaceInInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.hasSpaceInInventory
+import net.ccbluex.liquidbounce.utils.inventory.enchantments
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.*
@@ -138,132 +139,85 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
     }
 
     suspend fun stealFromChest() {
-        if (!handleEvents())
-            return
+        if (!handleEvents()) return
 
         val thePlayer = mc.thePlayer ?: return
+        val screen = mc.currentScreen as? GuiChest ?: return
 
-        val screen = mc.currentScreen ?: return
+        if (!shouldOperate()) return  // 只有当操作条件满足时，才开始偷取物品
 
-        if (screen !is GuiChest || !shouldOperate())
-            return
-
-        // Check if chest isn't a custom gui
-        if (chestTitle && Blocks.chest.localizedName !in (screen.lowerChestInventory ?: return).name)
-            return
-
-        progress = 0f
-
+        // 等待开始延迟
         delay(startDelay.toLong())
 
-        debug("Stealing items..")
+        debug("Stealing items...")
 
-        // Go through the chest multiple times, till there are no useful items anymore
-        while (true) {
-            if (!shouldOperate())
-                return
-
-            if (!hasSpaceInInventory())
-                return
-
+        // 循环直到没有可偷的物品
+        while (shouldOperate() && hasSpaceInInventory()) {
             var hasTaken = false
 
             val itemsToSteal = getItemsToSteal()
 
-            run scheduler@{
-                itemsToSteal.forEachIndexed { index, (slot, stack, sortableTo) ->
-                    // Wait for NoMove or cancel click
-                    if (!shouldOperate()) {
-                        TickScheduler += { SilentHotbar.resetSlot() }
-                        chestStealerCurrentSlot = -1
-                        chestStealerLastSlot = -1
-                        return
-                    }
+            itemsToSteal.forEachIndexed { index, (slot, stack, sortableTo) ->
+                if (!shouldOperate() || !hasSpaceInInventory()) return@forEachIndexed
 
-                    if (!hasSpaceInInventory()) {
-                        chestStealerCurrentSlot = -1
-                        chestStealerLastSlot = -1
-                        return@scheduler
-                    }
+                hasTaken = true
+                chestStealerCurrentSlot = slot  // 标记当前操作的槽位
 
-                    hasTaken = true
+                // 计算延迟
+                val stealingDelay = if (smartDelay && index + 1 < itemsToSteal.size) {
+                    val dist = squaredDistanceOfSlots(slot, itemsToSteal[index + 1].index)
+                    val trueDelay = sqrt(dist.toDouble()) * multiplier
+                    randomDelay(trueDelay.toInt(), trueDelay.toInt() + 20)
+                } else {
+                    randomDelay(minDelay, maxDelay)
+                }
 
-                    // Set current slot being stolen for highlighting
-                    chestStealerCurrentSlot = slot
+                // 如果启用调试，输出调试信息
+                if (itemStolenDebug) debug("Item: ${stack.displayName.lowercase()} | Slot: $slot | Delay: ${stealingDelay}ms")
 
-                    val stealingDelay = if (smartDelay && index + 1 < itemsToSteal.size) {
-                        val dist = squaredDistanceOfSlots(slot, itemsToSteal[index + 1].index)
-                        val trueDelay = sqrt(dist.toDouble()) * multiplier
-                        randomDelay(trueDelay.toInt(), trueDelay.toInt() + 20)
-                    } else {
-                        randomDelay(minDelay, maxDelay)
-                    }
+                // 执行点击任务
+                TickScheduler.scheduleClick(slot, sortableTo ?: 0, if (sortableTo != null) 2 else 1) {
+                    progress = (index + 1) / itemsToSteal.size.toFloat()
 
-                    if (itemStolenDebug) debug("item: ${stack.displayName.lowercase()} | slot: $slot | delay: ${stealingDelay}ms")
+                    if (!AutoArmor.canEquipFromChest()) return@scheduleClick
 
-                    // If target is sortable to a hotbar slot, steal and sort it at the same time, else shift + left-click
-                    TickScheduler.scheduleClick(slot, sortableTo ?: 0, if (sortableTo != null) 2 else 1) {
-                        progress = (index + 1) / itemsToSteal.size.toFloat()
-
-                        if (!AutoArmor.canEquipFromChest())
-                            return@scheduleClick
-
-                        val item = stack.item
-
-                        if (item !is ItemArmor || thePlayer.inventory.armorInventory[getArmorPosition(stack) - 1] != null)
-                            return@scheduleClick
-
-                        // TODO: should the stealing be suspended until the armor gets equipped and some delay on top of that, maybe toggleable?
-                        // Try to equip armor piece from hotbar 1 tick after stealing it
+                    val item = stack.item
+                    if (item is ItemArmor && thePlayer.inventory.armorInventory[getArmorPosition(stack) - 1] == null) {
+                        // 尝试装备盔甲
                         TickScheduler += {
                             val hotbarStacks = thePlayer.inventory.mainInventory.take(9)
-
-                            // Can't get index of stack instance, because it is different even from the one returned from windowClick()
                             val newIndex = hotbarStacks.indexOfFirst { it?.getIsItemStackEqual(stack) == true }
 
-                            if (newIndex != -1)
-                                AutoArmor.equipFromHotbarInChest(newIndex, stack)
+                            if (newIndex != -1) AutoArmor.equipFromHotbarInChest(newIndex, stack)
                         }
                     }
-
-                    delay(stealingDelay.toLong())
-
-                    if (simulateShortStop && Math.random() > 0.75) {
-                        val minDelays = randomDelay(150, 300)
-                        val maxDelays = randomDelay(minDelays, 500)
-                        val randomDelay = randomDelay(minDelays, maxDelays).toLong()
-
-                        delay(randomDelay)
-                    }
                 }
+
+                delay(stealingDelay.toLong())
             }
 
-            // If no clicks were sent in the last loop stop searching
             if (!hasTaken) {
                 progress = 1f
                 delay(closeDelay.toLong())
-
                 TickScheduler += { SilentHotbar.resetSlot() }
                 break
             }
 
-            // Wait till all scheduled clicks were sent
+            // 等待所有调度任务完成
             waitUntil(TickScheduler::isEmpty)
-
-            // Before closing the chest, check all items once more, whether server hadn't cancelled some of the actions.
-            stacks = thePlayer.openContainer.inventory
+            stacks = thePlayer.openContainer.inventory  // 更新库存
         }
 
-        // Wait before the chest gets closed (if it gets closed out of tick loop it could throw npe)
+        // 关闭箱子
         TickScheduler.scheduleAndSuspend {
             chestStealerCurrentSlot = -1
             chestStealerLastSlot = -1
             thePlayer.closeScreen()
             progress = null
-
             debug("Chest closed")
         }
     }
+
 
     private fun squaredDistanceOfSlots(from: Int, to: Int): Int {
         fun getCoords(slot: Int): IntArray {
@@ -285,55 +239,33 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
 
     private fun getItemsToSteal(): MutableList<ItemTakeRecord> {
         val sortBlacklist = BooleanArray(9)
-
         var spaceInInventory = countSpaceInInventory()
 
-        val itemsToSteal = stacks.dropLast(36)
+        // 只遍历一次库存并缓存结果
+        val itemsToSteal = stacks.dropLast(36) // 只处理箱子的前几个槽位（不包括玩家背包）
             .mapIndexedNotNullTo(ArrayList(32)) { index, stack ->
                 stack ?: return@mapIndexedNotNullTo null
 
-                if (index in TickScheduler) return@mapIndexedNotNullTo null
+                if (index in TickScheduler) return@mapIndexedNotNullTo null  // 跳过已调度的槽位
 
                 val mergeableCount = mc.thePlayer.inventory.mainInventory.sumOf { otherStack ->
-                    otherStack ?: return@sumOf 0
-
-                    if (otherStack.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(stack, otherStack))
-                        otherStack.maxStackSize - otherStack.stackSize
-                    else 0
+                    otherStack?.takeIf { it.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(stack, otherStack) }
+                        ?.let { it.maxStackSize - it.stackSize } ?: 0
                 }
 
-                val canMerge = mergeableCount > 0
-                val canFullyMerge = mergeableCount >= stack.stackSize
+                // 如果没有空间且无法合并，跳过当前物品
+                if (mergeableCount == 0 && spaceInInventory <= 0) return@mapIndexedNotNullTo null
 
-                // Clicking this item wouldn't take it from chest or merge it
-                if (!canMerge && spaceInInventory <= 0) return@mapIndexedNotNullTo null
-
-                // If stack can be merged without occupying any additional slot, do not take stack limits into account
-                // TODO: player could theoretically already have too many stacks in inventory before opening the chest so no more should even get merged
-                // TODO: if it can get merged but would also need another slot, it could simulate 2 clicks, one which maxes out the stack in inventory and second that puts excess items back
-                if (InventoryCleaner.handleEvents() && !isStackUseful(stack, stacks, noLimits = canFullyMerge))
-                    return@mapIndexedNotNullTo null
+                // 检查物品是否应该被处理
+                if (InventoryCleaner.handleEvents() && !isStackUseful(stack, stacks, noLimits = mergeableCount >= stack.stackSize)) return@mapIndexedNotNullTo null
 
                 var sortableTo: Int? = null
-
-                // If stack can get merged, do not try to sort it, normal shift + left-click will merge it
-                if (!canMerge && InventoryCleaner.handleEvents() && InventoryCleaner.sort) {
+                if (InventoryCleaner.handleEvents() && mergeableCount<=0) {
+                    // 如果物品不能合并，尝试找到一个适合的热键槽
                     for (hotbarIndex in 0..8) {
-                        if (sortBlacklist[hotbarIndex])
-                            continue
-
-                        if (!canBeSortedTo(hotbarIndex, stack.item))
-                            continue
-
+                        if (!canBeSortedTo(hotbarIndex, stack.item)) continue
                         val hotbarStack = stacks.getOrNull(stacks.size - 9 + hotbarIndex)
-
-                        // If occupied hotbar slot isn't already sorted or isn't strictly best, sort to it
-                        if (!canBeSortedTo(hotbarIndex, hotbarStack?.item) || !isStackUseful(
-                                hotbarStack,
-                                stacks,
-                                strictlyBest = true
-                            )
-                        ) {
+                        if (hotbarStack == null || canBeSortedTo(hotbarIndex, hotbarStack.item)) {
                             sortableTo = hotbarIndex
                             sortBlacklist[hotbarIndex] = true
                             break
@@ -341,31 +273,28 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                     }
                 }
 
-                // If stack gets fully merged, no slot in inventory gets occupied
-                if (!canFullyMerge) spaceInInventory--
+                // 如果不能完全合并，减少可用空间
+                if (mergeableCount < stack.stackSize) spaceInInventory--
 
                 ItemTakeRecord(index, stack, sortableTo)
-            }.also { it ->
-                if (randomSlot)
-                    it.shuffle()
+            }.also { list ->
+                if (randomSlot) list.shuffle() // 随机化物品顺序
 
-                // Prioritise armor pieces with lower priority, so that as many pieces can get equipped from hotbar after chest gets closed
-                it.sortByDescending { it.stack.item is ItemArmor }
-
-                // Prioritize items that can be sorted
-                it.sortByDescending { it.sortableToSlot != null }
-
-                // Fully prioritise armor pieces when it is possible to equip armor while in chest
-                if (AutoArmor.canEquipFromChest())
-                    it.sortByDescending { it.stack.item is ItemArmor }
+                // 优先处理装备和可排序的物品
+                list.sortByDescending { it.stack.item is ItemArmor }
+                if (AutoArmor.canEquipFromChest()) {
+                    list.sortByDescending { it.stack.item is ItemArmor }
+                }
 
                 if (smartOrder) {
-                    sortBasedOnOptimumPath(it)
+                    sortBasedOnOptimumPath(list)
                 }
             }
 
         return itemsToSteal
     }
+
+
 
     private fun sortBasedOnOptimumPath(itemsToSteal: MutableList<ItemTakeRecord>) {
         for (i in itemsToSteal.indices) {
@@ -390,30 +319,22 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
     // Progress bar
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
-        if (!progressBar || mc.currentScreen !is GuiChest)
-            return
-
-        val progress = progress ?: return
+        if (!progressBar || mc.currentScreen !is GuiChest || progress == null) return
 
         val (scaledWidth, scaledHeight) = ScaledResolution(mc)
-
         val minX = scaledWidth * 0.3f
         val maxX = scaledWidth * 0.7f
         val minY = scaledHeight * 0.75f
         val maxY = minY + 10f
 
-        easingProgress += (progress - easingProgress) / 6f * event.partialTicks
+        easingProgress += (progress!! - easingProgress) / 6f * event.partialTicks
 
+        // 只在进度变化时渲染
         drawRect(minX - 2, minY - 2, maxX + 2, maxY + 2, Color(200, 200, 200).rgb)
         drawRect(minX, minY, maxX, maxY, Color(50, 50, 50).rgb)
-        drawRect(
-            minX,
-            minY,
-            minX + (maxX - minX) * easingProgress,
-            maxY,
-            Color.HSBtoRGB(easingProgress / 5, 1f, 1f) or 0xFF0000
-        )
+        drawRect(minX, minY, minX + (maxX - minX) * easingProgress, maxY, Color.HSBtoRGB(easingProgress / 5, 1f, 1f) or 0xFF0000)
     }
+
 
     @EventTarget
     fun onPacket(event: PacketEvent) {
@@ -422,22 +343,19 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 receivedId = null
                 progress = null
             }
-
             is S30PacketWindowItems -> {
-                // Chests never have windowId 0
-                if (packet.func_148911_c() == 0)
-                    return
+                if (packet.func_148911_c() == 0) return
 
                 if (receivedId != packet.func_148911_c()) {
                     debug("Chest opened with ${stacks.size} items")
                 }
 
                 receivedId = packet.func_148911_c()
-
-                stacks = packet.itemStacks.toList()
+                stacks = packet.itemStacks.toList()  // 更新物品列表
             }
         }
     }
+
 
     private fun debug(message: String) {
         if (chestDebug == "Off") return

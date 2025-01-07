@@ -19,7 +19,11 @@ import net.minecraft.util.*
  *
  * @param targetEntity Attacked entity
  */
-class AttackEvent(val targetEntity: Entity?) : Event()
+class AttackEvent(val targetEntity: Entity?) : Event(){
+    fun getTheTargetEntity(): Entity? {
+        return targetEntity
+    }
+}
 
 /**
  * Called when minecraft get bounding box of block

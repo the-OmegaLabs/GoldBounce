@@ -50,9 +50,8 @@ object HUD : MinecraftInstance() {
     fun setDefault() {
         elements.clear()
 
-        addElement(Text.defaultClientTitle())
+        addElement(Image.defaultClientLogo())
         addElement(Text.defaultBlockCount())
-        addElement(TabGUI())
         addElement(Arraylist())
         addElement(ScoreboardElement())
         addElement(Armor())

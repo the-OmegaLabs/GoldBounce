@@ -9,7 +9,11 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.event.MoveEvent
 import net.ccbluex.liquidbounce.event.PacketEvent
-import net.ccbluex.liquidbounce.utils.extensions.*
+import net.ccbluex.liquidbounce.utils.extensions.isMoving
+import net.ccbluex.liquidbounce.utils.extensions.stopXZ
+import net.ccbluex.liquidbounce.utils.extensions.toDegreesF
+import net.ccbluex.liquidbounce.utils.extensions.toRadiansD
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.util.Vec3
 import kotlin.math.cos
@@ -30,7 +34,12 @@ object MovementUtils : MinecraftInstance(), Listenable {
         get() = mc.thePlayer?.run { motionX != .0 || motionY != .0 || motionZ != .0 } == true
 
     var airTicks = 0
-
+    fun isMoving(): Boolean {
+        return isMoving(mc.thePlayer)
+    }
+    fun isMoving(player: EntityLivingBase?): Boolean {
+        return player != null && (player.moveForward != 0f || player.moveStrafing != 0f)
+    }
     @JvmOverloads
     fun strafe(
         speed: Float = this.speed, stopWhenNoInput: Boolean = false, moveEvent: MoveEvent? = null,

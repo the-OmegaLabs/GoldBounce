@@ -6,6 +6,7 @@
 package net.ccbluex.liquidbounce.ui.client.hud.element.elements
 
 import com.google.gson.JsonElement
+import net.ccbluex.liquidbounce.file.FileManager
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
@@ -39,6 +40,16 @@ class Image : Element() {
 
             image.x = 0.0
             image.y = 0.0
+
+            return image
+        }
+        fun defaultClientLogo(): Image {
+            val image = Image()
+
+            image.x = 63.0
+            image.y = 72.0
+            image.scale = 0.35F
+            image.setImage(File(FileManager.dir,"logo_large.png"))
 
             return image
         }
