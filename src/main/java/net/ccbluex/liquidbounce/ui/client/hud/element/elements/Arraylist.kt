@@ -46,7 +46,7 @@ class Arraylist(
 
     private val textColorMode by choices("Text-Color", arrayOf("Custom", "Random", "Rainbow", "Gradient"), "Custom")
     private val textColors = ColorSettingsInteger(this, "Text", withAlpha = false)
-    { textColorMode == "Custom" }.with(0, 111, 255)
+    { textColorMode == "Custom" }.with(255, 255, 0)
 
     private val gradientTextSpeed by float("Text-Gradient-Speed", 1f, 0.5f..10f)
     { textColorMode == "Gradient" }
