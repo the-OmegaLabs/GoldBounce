@@ -24,7 +24,7 @@ class Keystrokes : Element(2.0, 123.0) {
     private val rectRainbow by boolean("Rectangle-Rainbow", false)
     private val rectColors = ColorSettingsInteger(this, "Rectangle", zeroAlphaCheck = true).with(a = 150)
     private val pressRainbow by boolean("Press-Rainbow", false)
-    private val pressColors = ColorSettingsInteger(this, "Press", zeroAlphaCheck = true).with(Color.BLUE)
+    private val pressColors = ColorSettingsInteger(this, "Press", zeroAlphaCheck = true).with(Color.YELLOW)
 
     private var shadow by boolean("Text-Shadow", true)
     private val font by font("Font", Fonts.font40)
