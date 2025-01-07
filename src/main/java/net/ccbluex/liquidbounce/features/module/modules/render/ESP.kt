@@ -249,7 +249,7 @@ object ESP : Module("ESP", Category.RENDER, hideModule = false) {
                     return Color.RED
 
                 if (entity is EntityPlayer && entity.isClientFriend())
-                    return Color.BLUE
+                    return Color.YELLOW
 
                 if (colorTeam) {
                     val chars = (entity.displayName ?: return@run).formattedText.toCharArray()
