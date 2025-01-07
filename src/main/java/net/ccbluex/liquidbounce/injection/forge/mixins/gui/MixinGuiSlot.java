@@ -258,7 +258,7 @@ public abstract class MixinGuiSlot implements IMixinGuiSlot {
 
                 RenderUtils.INSTANCE.drawRoundedRect(i1 + 2, k, j1 - 1, k + l + 1, new Color(0, 0, 0, 100).getRGB(), 2F);
 
-                RenderUtils.INSTANCE.drawRoundedBorder(i1 + 2, k + l + 1, j1 - 1, k + l + 1, 3F, Color.BLUE.getRGB(), 0F);
+                RenderUtils.INSTANCE.drawRoundedBorder(i1 + 2, k + l + 1, j1 - 1, k + l + 1, 3F, Color.YELLOW.getRGB(), 0F);
             }
 
             this.drawSlot(j, p_drawSelectionBox_1_, k, l, p_drawSelectionBox_3_, p_drawSelectionBox_4_);
