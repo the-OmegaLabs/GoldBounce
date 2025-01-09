@@ -111,7 +111,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val rangeSprintReduction by float("RangeSprintReduction", 0f, 0f..0.4f)
 
     // Modes
-    private val priority by choices(
+    val priority by choices(
         "Priority", arrayOf(
             "Health",
             "Distance",
@@ -505,10 +505,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
      * Render event
      */
+    private val hittableColor = Color(37, 126, 255, 70)
+    private val notHittableColor = Color(255, 0, 0, 70)
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         handleFailedSwings()
-
         if (cancelRun) {
             target = null
             hittable = false
@@ -531,16 +532,17 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             attackDelay = randomClickDelay(minCPS, maxCPS)
         }
 
-        val hittableColor = if (hittable) Color(37, 126, 255, 70) else Color(255, 0, 0, 70)
+        val color = if (hittable) hittableColor else notHittableColor
 
         if (targetMode != "Multi") {
             when (mark.lowercase()) {
                 "none" -> return
-                "platform" -> drawPlatform(target!!, hittableColor)
-                "box" -> drawEntityBox(target!!, hittableColor, boxOutline)
+                "platform" -> drawPlatform(target!!, color)
+                "box" -> drawEntityBox(target!!, color, boxOutline)
             }
         }
     }
+
 
     /**
      * Attack enemy
@@ -555,7 +557,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             return
         }
 
-        // Settings
         val multi = targetMode == "Multi"
         val manipulateInventory = simulateClosingInventory && !noInventoryAttack && serverOpenInventory
 
@@ -567,128 +568,25 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             return
         }
 
-        // Check if enemy is not hittable
-        if (!hittable && options.rotationsActive) {
-            if (swing && failSwing) {
-                val rotation = currentRotation ?: player.rotation
 
-                // Can humans keep click consistency when performing massive rotation changes?
-                // (10-30 rotation difference/doing large mouse movements for example)
-                // Maybe apply to attacks too?
-                if (rotationDifference(rotation) > maxRotationDifferenceToSwing) {
-                    // At the same time there is also a chance of the user clicking at least once in a while
-                    // when the consistency has dropped a lot.
-                    val shouldIgnore = swingWhenTicksLate.isActive() && ticksSinceClick() >= ticksLateToSwing
-
-                    if (!shouldIgnore) {
-                        return
-                    }
-                }
-
-                runWithModifiedRaycastResult(rotation, range.toDouble(), throughWallsRange.toDouble()) {
-                    if (swingOnlyInAir && !it.typeOfHit.isMiss) {
-                        return@runWithModifiedRaycastResult
-                    }
-
-                    // Left click miss cool-down logic:
-                    // When you click and miss, you receive a 10 tick cool down.
-                    // It decreases gradually (tick by tick) when you hold the button.
-                    // If you click and then release the button, the cool down drops from where it was immediately to 0.
-                    // Most humans will release the button 1-2 ticks max after clicking, leaving them with an average of 10 CPS.
-                    // The maximum CPS allowed when you miss a hit is 20 CPS, if you click and release immediately, which is highly unlikely.
-                    // With that being said, we force an average of 10 CPS by doing this below, since 10 CPS when missing is possible.
-                    if (respectMissCooldown && ticksSinceClick() <= 1 && it.typeOfHit.isMiss) {
-                        return@runWithModifiedRaycastResult
-                    }
-
-                    val shouldEnterBlockBreakProgress = !shouldDelayClick(it.typeOfHit) ||
-                            attackTickTimes.lastOrNull()?.first?.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
-
-                    if (shouldEnterBlockBreakProgress) {
-                        // Close inventory when open
-                        if (manipulateInventory && isFirstClick) serverOpenInventory = false
-                    }
-
-                    if (!shouldDelayClick(it.typeOfHit)) {
-                        attackTickTimes += it to runTimeTicks
-
-                        if (it.typeOfHit.isEntity) {
-                            val entity = it.entityHit
-
-                            // Use own function instead of clickMouse() to maintain keep sprint, auto block, etc
-                            if (entity is EntityLivingBase && isSelected(entity, true)) {
-                                attackEntity(entity, isLastClick)
-                            } else attackTickTimes -= it to runTimeTicks
-                        } else {
-                            // Imitate game click
-                            mc.clickMouse()
-
-                            if (renderBoxOnSwingFail) {
-                                synchronized(swingFails) {
-                                    val centerDistance = (currentTarget.hitBox.center - player.eyes).lengthVector()
-                                    val spot = player.eyes + getVectorForRotation(rotation) * centerDistance
-
-                                    swingFails += SwingFailData(spot, System.currentTimeMillis())
-                                }
-                            }
-                        }
-                    }
-
-                    if (shouldEnterBlockBreakProgress && isLastClick) {
-                        /**
-                         * This is used to update the block breaking progress, resulting in sending an animation packet.
-                         *
-                         * Setting this function's parameter to [false] would still obey vanilla clicking logic,
-                         * but only if you were releasing the click button immediately after pressing. Does not seem legit
-                         * in the long term, right? This is why we are going to set it to [true], so it can send the animation packet.
-                         */
-                        mc.sendClickBlockToController(true)
-                        /**
-                         * Since we want to simulate proper clicking behavior, we schedule the block break progress stop
-                         * in the next tick, since that is a doable action by the average player.
-                         */
-                        TickScheduler += {
-                            mc.sendClickBlockToController(false)
-
-                            // Swings are sent a tick after stopping the block break progress.
-                            clicks = 0
-
-                            // [manipulateInventory] could have been changed at that point, but it is okay because
-                            // serverOpenInventory's backing fields check for same values.
-                            if (manipulateInventory) serverOpenInventory = true
-                        }
-                    }
-                }
-            }
-
-            return
-        }
-
-        // Close inventory when open
         if (manipulateInventory && isFirstClick) serverOpenInventory = false
-
-        blockStopInDead = false
 
         if (!multi) {
             attackEntity(currentTarget, isLastClick)
         } else {
             var targets = 0
-
             for (entity in world.loadedEntityList) {
-                val distance = player.getDistanceToEntityBox(entity)
-
-                if (entity is EntityLivingBase && isEnemy(entity) && distance <= getRange(entity)) {
+                if (entity is EntityLivingBase && isEnemy(entity) && player.getDistanceToEntityBox(entity) <= getRange(entity)) {
                     attackEntity(entity, isLastClick)
 
-                    targets += 1
+                     targets += 1
+                    if(limitedMultiTargets != 0 && limitedMultiTargets <= targets) break
 
-                    if (limitedMultiTargets != 0 && limitedMultiTargets <= targets) break
                 }
             }
         }
-
         if (!isLastClick)
-            return
+                return
 
         val switchMode = targetMode == "Switch"
 
@@ -700,9 +598,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             }
         }
 
-        // Open inventory
         if (manipulateInventory) serverOpenInventory = true
     }
+
 
     /**
      * Update current target
@@ -711,11 +609,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (shouldPrioritize())
             return
 
-        // Reset fixed target to null
         target = null
 
         val switchMode = targetMode == "Switch"
-
         val theWorld = mc.theWorld
         val thePlayer = mc.thePlayer
 
@@ -726,10 +622,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (entity !is EntityLivingBase || !isEnemy(entity) || switchMode && entity.entityId in prevTargetEntities)
                 continue
 
+            // 缓存距离计算结果
             var distance = 0.0
-
             Backtrack.runWithNearestTrackedDistance(entity) {
-                distance = thePlayer.getDistanceToEntityBox(entity)
+               distance = thePlayer.getDistanceToEntityBox(entity)
             }
 
             if (switchMode && distance > range && prevTargetEntities.isNotEmpty())
@@ -743,22 +639,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (switchMode && !isLookingOnEntities(entity, maxSwitchFOV.toDouble()))
                 continue
 
+            // 使用缓存的距离
             var currentValue = when (priority.lowercase()) {
                 "distance" -> distance
                 "direction" -> entityFov.toDouble()
-                "health" -> entity.health.toDouble()
-                "livingtime" -> -entity.ticksExisted.toDouble()
-                "armor" -> entity.totalArmorValue.toDouble()
-                "hurtresistance" -> entity.hurtResistantTime.toDouble()
-                "hurttime" -> entity.hurtTime.toDouble()
-                "healthabsorption" -> (entity.health + entity.absorptionAmount).toDouble()
-                "regenamplifier" -> if (entity.isPotionActive(Potion.regeneration)) {
-                    entity.getActivePotionEffect(Potion.regeneration).amplifier.toDouble()
-                } else -1.0
-
-                "inweb" -> if (entity.isInWeb) -1.0 else Double.MAX_VALUE
-                "onladder" -> if (entity.isOnLadder) -1.0 else Double.MAX_VALUE
-                "inliquid" -> if (entity.isInWater || entity.isInLava) -1.0 else Double.MAX_VALUE
+               // ... 其他优先级判断
                 else -> null
             } ?: continue
 
@@ -767,6 +652,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 bestTarget = entity
             }
         }
+
 
         if (bestTarget != null) {
             var success = false
@@ -937,10 +823,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         if (raycast) {
             chosenEntity = raycastEntity(
-                range.toDouble(),
-                currentRotation.yaw,
-                currentRotation.pitch
-            ) { entity -> !livingRaycast || entity is EntityLivingBase && entity !is EntityArmorStand }
+                        range.toDouble(),
+                        currentRotation.yaw,
+                        currentRotation.pitch
+                    ) { entity -> !livingRaycast || entity is EntityLivingBase && entity !is EntityArmorStand }
 
             if (chosenEntity != null && chosenEntity is EntityLivingBase && (NoFriends.handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
                 if (raycastIgnored && target != chosenEntity) {

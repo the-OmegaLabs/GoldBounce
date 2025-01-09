@@ -38,6 +38,7 @@ import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.entity.EntityLiving.getArmorPosition
 import net.minecraft.init.Blocks
+import net.minecraft.init.Items
 import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C0DPacketCloseWindow
@@ -144,14 +145,10 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
         val thePlayer = mc.thePlayer ?: return
         val screen = mc.currentScreen as? GuiChest ?: return
 
-        if (!shouldOperate()) return  // 只有当操作条件满足时，才开始偷取物品
-
-        // 等待开始延迟
+        if (!shouldOperate()) return
         delay(startDelay.toLong())
 
         debug("Stealing items...")
-
-        // 循环直到没有可偷的物品
         while (shouldOperate() && hasSpaceInInventory()) {
             var hasTaken = false
 
@@ -161,9 +158,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 if (!shouldOperate() || !hasSpaceInInventory()) return@forEachIndexed
 
                 hasTaken = true
-                chestStealerCurrentSlot = slot  // 标记当前操作的槽位
-
-                // 计算延迟
+                chestStealerCurrentSlot = slot
                 val stealingDelay = if (smartDelay && index + 1 < itemsToSteal.size) {
                     val dist = squaredDistanceOfSlots(slot, itemsToSteal[index + 1].index)
                     val trueDelay = sqrt(dist.toDouble()) * multiplier
@@ -171,11 +166,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 } else {
                     randomDelay(minDelay, maxDelay)
                 }
-
-                // 如果启用调试，输出调试信息
                 if (itemStolenDebug) debug("Item: ${stack.displayName.lowercase()} | Slot: $slot | Delay: ${stealingDelay}ms")
-
-                // 执行点击任务
                 TickScheduler.scheduleClick(slot, sortableTo ?: 0, if (sortableTo != null) 2 else 1) {
                     progress = (index + 1) / itemsToSteal.size.toFloat()
 
@@ -183,7 +174,6 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
 
                     val item = stack.item
                     if (item is ItemArmor && thePlayer.inventory.armorInventory[getArmorPosition(stack) - 1] == null) {
-                        // 尝试装备盔甲
                         TickScheduler += {
                             val hotbarStacks = thePlayer.inventory.mainInventory.take(9)
                             val newIndex = hotbarStacks.indexOfFirst { it?.getIsItemStackEqual(stack) == true }
@@ -202,13 +192,9 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 TickScheduler += { SilentHotbar.resetSlot() }
                 break
             }
-
-            // 等待所有调度任务完成
             waitUntil(TickScheduler::isEmpty)
             stacks = thePlayer.openContainer.inventory  // 更新库存
         }
-
-        // 关闭箱子
         TickScheduler.scheduleAndSuspend {
             chestStealerCurrentSlot = -1
             chestStealerLastSlot = -1
@@ -240,8 +226,6 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
     private fun getItemsToSteal(): MutableList<ItemTakeRecord> {
         val sortBlacklist = BooleanArray(9)
         var spaceInInventory = countSpaceInInventory()
-
-        // 只遍历一次库存并缓存结果
         val itemsToSteal = stacks.dropLast(36) // 只处理箱子的前几个槽位（不包括玩家背包）
             .mapIndexedNotNullTo(ArrayList(32)) { index, stack ->
                 stack ?: return@mapIndexedNotNullTo null
@@ -253,15 +237,10 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                         ?.let { it.maxStackSize - it.stackSize } ?: 0
                 }
 
-                // 如果没有空间且无法合并，跳过当前物品
                 if (mergeableCount == 0 && spaceInInventory <= 0) return@mapIndexedNotNullTo null
-
-                // 检查物品是否应该被处理
                 if (InventoryCleaner.handleEvents() && !isStackUseful(stack, stacks, noLimits = mergeableCount >= stack.stackSize)) return@mapIndexedNotNullTo null
-
                 var sortableTo: Int? = null
                 if (InventoryCleaner.handleEvents() && mergeableCount<=0) {
-                    // 如果物品不能合并，尝试找到一个适合的热键槽
                     for (hotbarIndex in 0..8) {
                         if (!canBeSortedTo(hotbarIndex, stack.item)) continue
                         val hotbarStack = stacks.getOrNull(stacks.size - 9 + hotbarIndex)
@@ -272,20 +251,16 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                         }
                     }
                 }
-
-                // 如果不能完全合并，减少可用空间
                 if (mergeableCount < stack.stackSize) spaceInInventory--
 
                 ItemTakeRecord(index, stack, sortableTo)
             }.also { list ->
                 if (randomSlot) list.shuffle() // 随机化物品顺序
-
-                // 优先处理装备和可排序的物品
                 list.sortByDescending { it.stack.item is ItemArmor }
                 if (AutoArmor.canEquipFromChest()) {
                     list.sortByDescending { it.stack.item is ItemArmor }
                 }
-
+                list.sortByDescending { it.stack.item == Items.slime_ball && it.stack.hasTagCompound() && it.stack.tagCompound.hasKey("ench") }
                 if (smartOrder) {
                     sortBasedOnOptimumPath(list)
                 }

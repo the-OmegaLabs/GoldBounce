@@ -252,7 +252,9 @@ object ModuleManager : Listenable {
             ItemsDetector,
             Zoom,
             RawInput,
-            MoreKB
+            MoreKB,
+            HoldRight,
+            LegitScaffold
         )
 
         InventoryManager.startCoroutine()

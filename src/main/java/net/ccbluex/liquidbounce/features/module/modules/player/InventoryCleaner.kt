@@ -689,6 +689,12 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
         stack: ItemStack?, stacks: List<ItemStack?>, entityStacksMap: Map<ItemStack, EntityItem>?,
         ignoreLimits: Boolean, strictlyBest: Boolean,
     ): Boolean {
+        if (stack != null) {
+            if (stack.item == Blocks.tnt) return true
+            if (stack.item == Items.slime_ball && stack.hasTagCompound() && stack.tagCompound.hasKey("ench")) {
+                return true
+            }
+        }
         if (!isSuitableBlock(stack)) return false
 
         // Skip checks if there is no stack limit set and when you are not strictly searching for best option

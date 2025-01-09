@@ -13,6 +13,7 @@ import net.ccbluex.liquidbounce.features.module.modules.combat.TickBase;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.AbortBreaking;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.MultiActions;
 import net.ccbluex.liquidbounce.features.module.modules.world.FastPlace;
+import net.ccbluex.liquidbounce.features.module.modules.world.LegitScaffold;
 import net.ccbluex.liquidbounce.file.FileManager;
 import net.ccbluex.liquidbounce.injection.forge.SplashProgressLock;
 import net.ccbluex.liquidbounce.ui.client.GuiClientConfiguration;
@@ -236,10 +237,11 @@ public abstract class MixinMinecraft {
         CPSCounter.INSTANCE.registerClick(CPSCounter.MouseButton.RIGHT);
 
         final FastPlace fastPlace = FastPlace.INSTANCE;
-        if (!fastPlace.handleEvents()) return;
+        final LegitScaffold legit = LegitScaffold.INSTANCE;
+        if (!fastPlace.handleEvents() || !legit.handleEvents()) return;
 
         // Don't spam-click when the player isn't holding blocks
-        if (fastPlace.getOnlyBlocks() && (thePlayer.getHeldItem() == null || !(thePlayer.getHeldItem().getItem() instanceof ItemBlock)))
+        if ((fastPlace.getOnlyBlocks() || legit.getOnlyBlocks()) && (thePlayer.getHeldItem() == null || !(thePlayer.getHeldItem().getItem() instanceof ItemBlock)))
             return;
 
         if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
@@ -249,7 +251,7 @@ public abstract class MixinMinecraft {
             // Doesn't prevent spam-clicking anvils, crafting tables, ... (couldn't figure out a non-hacky way)
             if (blockState.getBlock().hasTileEntity(blockState)) return;
             // Return if not facing a block
-        } else if (fastPlace.getFacingBlocks()) return;
+        } else if (fastPlace.getFacingBlocks() || legit.getFacingBlocks()) return;
 
         rightClickDelayTimer = fastPlace.getSpeed();
     }
