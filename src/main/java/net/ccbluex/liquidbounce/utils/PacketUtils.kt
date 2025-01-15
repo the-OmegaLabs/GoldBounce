@@ -16,6 +16,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.Packet
 import net.minecraft.network.play.INetHandlerPlayClient
+import net.minecraft.network.play.INetHandlerPlayServer
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.server.*
 import net.minecraft.util.Vec3
@@ -95,7 +96,6 @@ object PacketUtils : MinecraftInstance(), Listenable {
             }
         }
     }
-
     @JvmStatic
     fun sendPacket(packet: Packet<*>, triggerEvent: Boolean = true) {
         if (triggerEvent) {
