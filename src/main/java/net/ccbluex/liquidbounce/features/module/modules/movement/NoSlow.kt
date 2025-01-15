@@ -135,8 +135,8 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false, hideM
                 "intave" -> {
                     if (event.eventState == EventState.PRE) {
                         sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP))
+                        }
                     }
-                }
             }
         }
 

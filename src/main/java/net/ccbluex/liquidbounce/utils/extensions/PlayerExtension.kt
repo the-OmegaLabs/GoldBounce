@@ -7,15 +7,15 @@ package net.ccbluex.liquidbounce.utils.extensions
 
 import net.ccbluex.liquidbounce.file.FileManager.friendsConfig
 import net.ccbluex.liquidbounce.injection.implementations.IMixinEntity
-import net.ccbluex.liquidbounce.utils.CPSCounter
-import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
-import net.ccbluex.liquidbounce.utils.MovementUtils
+import net.ccbluex.liquidbounce.utils.attack.CPSCounter
+import net.ccbluex.liquidbounce.utils.block.state
+import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.SilentHotbar
+import net.ccbluex.liquidbounce.utils.MovementUtils
+import net.ccbluex.liquidbounce.utils.render.ColorUtils.stripColor
 import net.ccbluex.liquidbounce.utils.Rotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.getFixedSensitivityAngle
-import net.ccbluex.liquidbounce.utils.SilentHotbar
-import net.ccbluex.liquidbounce.utils.block.BlockUtils.getState
-import net.ccbluex.liquidbounce.utils.render.ColorUtils.stripColor
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -133,6 +133,9 @@ val Entity.lastTickPos: Vec3
 val EntityLivingBase?.isMoving: Boolean
     get() = this?.run { moveForward != 0F || moveStrafing != 0F } == true
 
+val Entity.isInLiquid: Boolean
+    get() = isInWater || isInLava
+
 fun Entity.setPosAndPrevPos(currPos: Vec3, prevPos: Vec3 = currPos, lastTickPos: Vec3? = null) {
     setPosition(currPos.xCoord, currPos.yCoord, currPos.zCoord)
     prevPosX = prevPos.xCoord
@@ -173,9 +176,9 @@ operator fun EntityPlayerSP.plusAssign(value: Float) {
     fixedSensitivityPitch += value
 }
 
-fun Entity.interpolatedPosition(start: Vec3) = Vec3(
+fun Entity.interpolatedPosition(start: Vec3, extraHeight: Float? = null) = Vec3(
     start.xCoord + (posX - start.xCoord) * mc.timer.renderPartialTicks,
-    start.yCoord + (posY - start.yCoord) * mc.timer.renderPartialTicks,
+    start.yCoord + (posY - start.yCoord) * mc.timer.renderPartialTicks + (extraHeight ?: 0f),
     start.zCoord + (posZ - start.zCoord) * mc.timer.renderPartialTicks
 )
 
@@ -193,6 +196,17 @@ fun EntityPlayerSP.stop() {
     stopY()
 }
 
+/**
+ * Its sole purpose is to prevent duplicate sprint state updates.
+ */
+infix fun EntityLivingBase.setSprintSafely(new: Boolean) {
+    if (new == isSprinting) {
+        return
+    }
+
+    isSprinting = new
+}
+
 // Modified mc.playerController.onPlayerRightClick() that sends correct stack in its C08
 fun EntityPlayerSP.onPlayerRightClick(
     clickPos: BlockPos, side: EnumFacing, clickVec: Vec3,
@@ -205,7 +219,10 @@ fun EntityPlayerSP.onPlayerRightClick(
     if (clickPos !in worldObj.worldBorder)
         return false
 
-    val (facingX, facingY, facingZ) = (clickVec - clickPos.toVec()).toFloatTriple()
+    val facingX = (clickVec.xCoord - clickPos.x.toDouble()).toFloat()
+    val facingY = (clickVec.yCoord - clickPos.y.toDouble()).toFloat()
+    val facingZ = (clickVec.zCoord - clickPos.z.toDouble()).toFloat()
+
 
     val sendClick = {
         sendPacket(C08PacketPlayerBlockPlacement(clickPos, side.index, stack, facingX, facingY, facingZ))
@@ -221,7 +238,7 @@ fun EntityPlayerSP.onPlayerRightClick(
     if (item?.onItemUseFirst(stack, this, worldObj, clickPos, side, facingX, facingY, facingZ) == true)
         return true
 
-    val blockState = getState(clickPos)
+    val blockState = clickPos.state
 
     // If click had activated a block, send click and return true
     if ((!isSneaking || item == null || item.doesSneakBypassUse(worldObj, clickPos, this))

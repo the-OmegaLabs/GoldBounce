@@ -54,6 +54,7 @@ dependencies {
         exclude module: "log4j-core"
         exclude module: "slf4j-api"
     }
+    implementation("javax.vecmath:vecmath:1.5.2")
 
     annotationProcessor("org.spongepowered:mixin:0.7.11-SNAPSHOT")
 

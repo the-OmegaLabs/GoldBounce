@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.minecraft.entity.EntityLivingBase
 import java.awt.Color
 import java.util.regex.Pattern
+import kotlin.math.abs
 
 object ColorUtils {
     /** Array of the special characters that are allowed in any text drawing of Minecraft.  */
@@ -148,5 +149,20 @@ object ColorUtils {
         val green = (g * healthRatio).toInt()
 
         return Color(red, green, b, a)
+    }
+    fun fade(colorSettings: ColorSettingsInteger, speed: Int, count: Int): Color {
+        val color = colorSettings.color()
+
+        return fade(color, speed, count)
+    }
+
+    fun fade(color: Color, index: Int, count: Int): Color {
+        val hsb = FloatArray(3)
+        Color.RGBtoHSB(color.red, color.green, color.blue, hsb)
+        var brightness =
+            abs(((System.currentTimeMillis() % 2000L).toFloat() / 1000.0f + index.toFloat() / count.toFloat() * 2.0f) % 2.0f - 1.0f)
+        brightness = 0.5f + 0.5f * brightness
+        hsb[2] = brightness % 2.0f
+        return Color(Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]))
     }
 }

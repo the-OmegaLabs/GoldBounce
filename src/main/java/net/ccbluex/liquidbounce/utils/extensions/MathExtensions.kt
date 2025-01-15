@@ -14,10 +14,7 @@ import net.minecraft.block.Block
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.entity.Entity
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.Vec3
-import net.minecraft.util.Vec3i
+import net.minecraft.util.*
 import javax.vecmath.Vector2f
 import kotlin.math.roundToInt
 
@@ -95,6 +92,8 @@ val RenderManager.renderPos
 
 fun Vec3.toFloatTriple() = Triple(xCoord.toFloat(), yCoord.toFloat(), zCoord.toFloat())
 
+fun Double.ceilInt() = MathHelper.ceiling_double_int(this)
+fun Double.floorInt() = MathHelper.floor_double(this)
 fun Float.toRadians() = this * 0.017453292f
 fun Float.toRadiansD() = toRadians().toDouble()
 fun Float.toDegrees() = this * 57.29578f
@@ -112,7 +111,8 @@ fun Double.toRadiansF() = toRadians().toFloat()
 fun Double.toDegrees() = this * 57.295779513
 fun Double.toDegreesF() = toDegrees().toFloat()
 fun Double.withGCD() = (this / getFixedAngleDelta()).roundToInt() * getFixedAngleDelta().toDouble()
-
+fun Float.ceilInt() = MathHelper.ceiling_float_int(this)
+fun Float.floorInt() = MathHelper.floor_float(this)
 /**
  * Provides: (step is 0.1 by default)
  * ```
