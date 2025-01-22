@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
-import cn.stars.reversal.module.impl.render.AppleSkin
 import net.ccbluex.liquidbounce.event.EventManager.registerListener
 import net.ccbluex.liquidbounce.event.EventManager.unregisterListener
 import net.ccbluex.liquidbounce.event.EventTarget
@@ -254,7 +253,8 @@ object ModuleManager : Listenable {
             RawInput,
             MoreKB,
             HoldRight,
-            LegitScaffold
+            LegitScaffold,
+            BetterRotation
         )
 
         InventoryManager.startCoroutine()

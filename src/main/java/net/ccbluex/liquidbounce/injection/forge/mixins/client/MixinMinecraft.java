@@ -241,7 +241,7 @@ public abstract class MixinMinecraft {
         if (!fastPlace.handleEvents() || !legit.handleEvents()) return;
 
         // Don't spam-click when the player isn't holding blocks
-        if ((fastPlace.getOnlyBlocks() || legit.getOnlyBlocks()) && (thePlayer.getHeldItem() == null || !(thePlayer.getHeldItem().getItem() instanceof ItemBlock)))
+        if (fastPlace.getOnlyBlocks() && (thePlayer.getHeldItem() == null || !(thePlayer.getHeldItem().getItem() instanceof ItemBlock)))
             return;
 
         if (objectMouseOver != null && objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
@@ -251,7 +251,7 @@ public abstract class MixinMinecraft {
             // Doesn't prevent spam-clicking anvils, crafting tables, ... (couldn't figure out a non-hacky way)
             if (blockState.getBlock().hasTileEntity(blockState)) return;
             // Return if not facing a block
-        } else if (fastPlace.getFacingBlocks() || legit.getFacingBlocks()) return;
+        } else if (fastPlace.getFacingBlocks()) return;
 
         rightClickDelayTimer = fastPlace.getSpeed();
     }

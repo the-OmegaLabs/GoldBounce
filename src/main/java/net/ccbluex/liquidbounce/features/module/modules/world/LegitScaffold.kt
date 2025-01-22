@@ -1,80 +1,175 @@
 package net.ccbluex.liquidbounce.features.module.modules.world
 
-import net.ccbluex.liquidbounce.event.*
-import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.player.Eagle
-import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
-import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.*
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.Gui
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.minecraft.client.settings.GameSettings
-import net.minecraft.init.Blocks
-import net.minecraft.init.Blocks.air
-import net.minecraft.item.ItemBlock
+import net.minecraft.entity.player.EntityPlayer
+import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.Category
+import net.ccbluex.liquidbounce.features.module.ModuleManager
+import net.ccbluex.liquidbounce.value.*
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.MathHelper
+import net.minecraft.util.AxisAlignedBB
+import net.minecraft.util.MovingObjectPosition
+import net.ccbluex.liquidbounce.utils.timing.MSTimer
+import net.minecraft.item.ItemBlock
 
 object LegitScaffold : Module("LegitScaffold", Category.WORLD) {
-    private val sneakDelay by int("SneakDelay", 0, 0..100)
-    private val onlyWhenLookingDown by boolean("OnlyWhenLookingDown", false)
-    private val lookDownThreshold by float("LookDownThreshold", 45f, 0f..90f) { onlyWhenLookingDown }
-    val speed by int("Speed", 0, 0..4)
-    val onlyBlocks by boolean("OnlyBlocks", true)
-    val facingBlocks by boolean("OnlyWhenFacingBlocks", true)
-    private val sneakTimer = MSTimer()
-    private var sneakOn = false
-    override fun onEnable() {
-        super.onEnable()
-        // 模拟右键按下
-        mc.gameSettings.keyBindUseItem.pressed = true
-    }
+
+    private val killAuraModule = ModuleManager.getModule("KillAura")
+    private val timer = MSTimer()
+    private var setYaw2 = 0f
+    private var checkType = "?"
+    val rotationMode = "Simulate"
 
     override fun onDisable() {
-        super.onDisable()
-        // 释放右键
-        mc.gameSettings.keyBindUseItem.pressed = false
-        if (mc.thePlayer == null)
-            return
-
-        LegitScaffold.sneakOn = false
-
-        if (!GameSettings.isKeyDown(mc.gameSettings.keyBindSneak))
-            mc.gameSettings.keyBindSneak.pressed = false
+        mc.gameSettings.keyBindLeft.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindLeft)
+        mc.gameSettings.keyBindRight.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindRight)
+        timer.reset()
     }
-
     @EventTarget
-    fun onUpdate(event: UpdateEvent) {
-        // 确保右键一直被按下
-        mc.gameSettings.keyBindUseItem.pressed = true
-        val thePlayer = mc.thePlayer ?: return
-
-        if (thePlayer.onGround && getBlock(BlockPos(thePlayer).down()) == air) {
-            val shouldSneak = !LegitScaffold.onlyWhenLookingDown || thePlayer.rotationPitch >= LegitScaffold.lookDownThreshold
-
-            if (shouldSneak && !GameSettings.isKeyDown(mc.gameSettings.keyBindSneak)) {
-                if (LegitScaffold.sneakTimer.hasTimePassed(LegitScaffold.sneakDelay)) {
-                    mc.gameSettings.keyBindSneak.pressed = true
-                    LegitScaffold.sneakTimer.reset()
-                    LegitScaffold.sneakOn = false
-                }
-            } else {
-                mc.gameSettings.keyBindSneak.pressed = false
-            }
-
-            LegitScaffold.sneakOn = true
-        } else {
-            if (LegitScaffold.sneakOn) {
-                mc.gameSettings.keyBindSneak.pressed = false
-                LegitScaffold.sneakOn = false
-            }
+    fun onUpdate(event:UpdateEvent) {
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            return
         }
 
-        if (!LegitScaffold.sneakOn && mc.currentScreen !is Gui) mc.gameSettings.keyBindSneak.pressed =
-            GameSettings.isKeyDown(mc.gameSettings.keyBindSneak)
+        when (rotationMode) {
+            "Simulate" -> {
+                if (isFacingDirection(EnumFacing.EAST)) {
+                    checkType = "EAST"
+                    setYaw2 = -90f
+                } else if (isFacingDirection(EnumFacing.WEST)) {
+                    checkType = "WEST"
+                    setYaw2 = 90f
+                } else if (isFacingDirection(EnumFacing.SOUTH)) {
+                    checkType = "SOUTH"
+                    setYaw2 = 0f
+                } else if (isFacingDirection(EnumFacing.NORTH)) {
+                    checkType = "NORTH"
+                    setYaw2 = 180f
+                }
+                val offsetResult = isPlayerOnBlockEdge(mc.thePlayer)
+                var delay = 140
+                val heldItem = mc.thePlayer.getCurrentEquippedItem()
+                if (heldItem != null && heldItem.item is ItemBlock && mc.gameSettings.keyBindBack.pressed && mc.gameSettings.keyBindUseItem.pressed && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                    mc.thePlayer.rotationYawHead = mc.thePlayer.rotationYaw
+                    mc.thePlayer.rotationPitch = mc.thePlayer.rotationPitch
+                    if (lookDownCheck()) {
+                        setPitch(79.5085f)
+                        if (mc.thePlayer.rotationYaw != setYaw2) {
+                            mc.thePlayer.rotationYaw = setYaw2
+                        }
+                        if (mc.gameSettings.keyBindJump.pressed) {
+                            delay = 30
+                            resetMoveKeys()
+                        }
+                        if (timer.hasTimePassed(delay)) {
+                            when (offsetResult) {
+                                "L" -> {
+                                    mc.gameSettings.keyBindLeft.pressed = true
+                                    mc.gameSettings.keyBindRight.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindRight)
+                                    timer.reset()
+                                }
+                                "R" -> {
+                                    mc.gameSettings.keyBindRight.pressed = true
+                                    mc.gameSettings.keyBindLeft.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindLeft)
+                                    timer.reset()
+                                }
+                            }
+                        }
+                    } else {
+                        // Adjust pitch based on yaw
+                        if (mc.thePlayer.rotationYaw in -75.2..-13.2) {
+                            mc.thePlayer.rotationYaw = -45f
+                            setPitch(75.3243f)
+                        }
+                        if (mc.thePlayer.rotationYaw in 14.2..77.2) {
+                            mc.thePlayer.rotationYaw = 45f
+                            setPitch(75.3243f)
+                        }
+                        if (mc.thePlayer.rotationYaw in 103.2..167.2) {
+                            mc.thePlayer.rotationYaw = 135f
+                            setPitch(75.3243f)
+                        }
+                        if (mc.thePlayer.rotationYaw in -166.2..-105.2) {
+                            mc.thePlayer.rotationYaw = -135f
+                            setPitch(75.3243f)
+                        }
+                    }
+                } else {
+                    resetMoveKeys()
+                    timer.reset()
+                }
+            }
+        }
+    }
 
+    private fun setPitch(pitch: Float) {
+        if (mc.thePlayer.rotationPitch != pitch) {
+            mc.thePlayer.rotationPitch = pitch
+        }
+    }
+
+    private fun resetMoveKeys() {
+        if (mc.gameSettings.keyBindLeft.pressed) {
+            mc.gameSettings.keyBindLeft.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindLeft)
+        }
+        if (mc.gameSettings.keyBindRight.pressed) {
+            mc.gameSettings.keyBindRight.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindRight)
+        }
+        if (mc.gameSettings.keyBindSneak.pressed) {
+            mc.gameSettings.keyBindSneak.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindSneak)
+        }
+    }
+
+    private fun lookDownCheck(): Boolean {
+        return mc.thePlayer.rotationPitch in 78.0..83.5085
+    }
+
+    private fun isPlayerOnBlockEdge(player: EntityPlayer): String {
+        val playerBB = player.entityBoundingBox
+        val blockPos = BlockPos(player.posX, Math.floor(player.posY - 0.01), player.posZ)
+        val blockBB = AxisAlignedBB(blockPos.x.toDouble(), blockPos.y.toDouble(), blockPos.z.toDouble(), blockPos.x.toDouble() + 1, blockPos.y.toDouble() + 1, blockPos.z.toDouble() + 1)
+        val threshold = 0.1
+        var offset = "?"
+        if (Math.abs(playerBB.minY - blockBB.maxY) < threshold) {
+            when (checkType) {
+                "WEST" -> {
+                    val blockCenterZ = blockPos.z.toDouble() + 0.5
+                    offset = if (player.posZ > blockCenterZ) "R" else "L"
+                }
+                "SOUTH" -> {
+                    val blockCenterX = blockPos.x.toDouble() + 0.5
+                    offset = if (player.posX > blockCenterX) "R" else "L"
+                }
+                "NORTH" -> {
+                    val blockCenterX = blockPos.x.toDouble() + 0.5
+                    offset = if (player.posX < blockCenterX) "R" else "L"
+                }
+                "EAST" -> {
+                    val blockCenterZ = blockPos.z.toDouble() + 0.5
+                    offset = if (player.posZ < blockCenterZ) "R" else "L"
+                }
+            }
+        }
+        return offset
+    }
+
+    private fun isFacingDirection(direction: EnumFacing): Boolean {
+        val yaw = (mc.thePlayer.rotationYaw % 360 + 360) % 360
+        val facing = EnumFacing.fromAngle(yaw.toDouble())
+        return facing == direction
+    }
+
+    private fun getClosestEntity(): EntityPlayer? {
+        val filteredEntities = mutableListOf<EntityPlayer>()
+        for (entity in mc.theWorld.loadedEntityList) {
+            if (entity is EntityPlayer && entity != mc.thePlayer) {
+                filteredEntities.add(entity)
+            }
+        }
+        filteredEntities.sortBy { mc.thePlayer.getDistanceToEntity(it) }
+        return filteredEntities.lastOrNull()
     }
 }
