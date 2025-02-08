@@ -254,7 +254,8 @@ object ModuleManager : Listenable {
             MoreKB,
             HoldRight,
             LegitScaffold,
-            BetterRotation
+            BetterRotation,
+            ACDetect
         )
 
         InventoryManager.startCoroutine()
