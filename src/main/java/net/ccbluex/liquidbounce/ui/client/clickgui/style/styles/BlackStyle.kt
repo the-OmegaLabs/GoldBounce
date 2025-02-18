@@ -31,11 +31,12 @@ import kotlin.math.roundToInt
 
 @SideOnly(Side.CLIENT)
 object BlackStyle : Style() {
-    override fun drawPanel(mouseX: Int, mouseY: Int, panel: Panel) {
-        drawBorderedRect(
-            panel.x, panel.y - 3, panel.x + panel.width, panel.y + 17, 3, Color(20, 20, 20).rgb, Color(20, 20, 20).rgb
-        )
 
+    override fun drawPanel(mouseX: Int, mouseY: Int, panel: Panel) {
+        drawRect(panel.x.toFloat(), panel.y-3f, panel.x+panel.width.toFloat(), panel.y+17f,
+            Color(30, 30, 30, 180).rgb)
+        drawRect(panel.x.toFloat(), panel.y+17f, panel.x+panel.width.toFloat(),
+            panel.y+24f+panel.fade, Color(30, 30, 30, 180).rgb)
         if (panel.fade > 0) {
             drawBorderedRect(
                 panel.x,
