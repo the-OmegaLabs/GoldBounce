@@ -50,7 +50,7 @@ configurations {
 }
 
 dependencies {
-    include("org.spongepowered:mixin:0.8.5") {
+    include("org.spongepowered:mixin:0.8") {
         transitive = false
         exclude module: "guava"
         exclude module: "commons-io"
@@ -61,12 +61,11 @@ dependencies {
     }
     implementation("javax.vecmath:vecmath:1.5.2")
 
-    annotationProcessor("org.spongepowered:mixin:0.8.5")
+    annotationProcessor("org.spongepowered:mixin:0.8")
 
     include "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     include "com.jagrosh:DiscordIPC:0.4"
-
     include("com.github.CCBlueX:Elixir:1.2.6") {
         exclude module: "kotlin-stdlib"
         exclude module: "authlib"
@@ -80,6 +79,8 @@ dependencies {
     include fileTree(include: ["*.jar"], dir: "libs")
     include("org.knowm.xchart:xchart:3.8.8")
     include "org.projectlombok:lombok:1.18.24"
+    include "com.google.code.gson:gson:2.10.1"
+    include "org.ow2.asm:asm:9.2"
 }
 
 shadowJar {
