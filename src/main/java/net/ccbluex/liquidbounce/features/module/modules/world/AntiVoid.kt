@@ -1,372 +1,374 @@
-/*
- * LiquidBounce++ Hacked Client
- * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
- * https://github.com/PlusPlusMC/LiquidBouncePlusPlus/
- */
+
 package net.ccbluex.liquidbounce.features.module.modules.world
 
-//import net.ccbluex.liquidbounce.features.module.modules.world.Tower;
 import net.ccbluex.liquidbounce.LiquidBounce
-import net.ccbluex.liquidbounce.event.*
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.PacketEvent
+import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.WorldEvent
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.features.module.modules.movement.Fly
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
+import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils
-import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
-import net.ccbluex.liquidbounce.utils.skid.lbpp.NewFallingPlayer
-import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextDouble
-import net.ccbluex.liquidbounce.value.BoolValue
-import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.ListValue
+import net.ccbluex.liquidbounce.utils.block.BlockUtils
+import net.ccbluex.liquidbounce.utils.misc.FallingPlayer
 import net.minecraft.block.BlockAir
 import net.minecraft.network.play.client.C03PacketPlayer
-import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
-import net.minecraft.network.play.client.C03PacketPlayer.C06PacketPlayerPosLook
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
-import org.lwjgl.opengl.GL11
-import java.util.*
-import kotlin.math.abs
 
-object AntiVoid : Module("AntiVoid",Category.WORLD) {
-    val voidDetectionAlgorithm: ListValue = ListValue("Detect-Method", arrayOf("Collision", "Predict"), "Collision")
-    val setBackModeValue: ListValue = ListValue(
-        "SetBack-Mode",
-        arrayOf(
-            "Teleport",
-            "FlyFlag",
-            "IllegalPacket",
-            "IllegalTeleport",
-            "StopMotion",
-            "Position",
-            "Edit",
-            "SpoofBack"
-        ),
-        "Teleport"
-    )
-    val maxFallDistSimulateValue: IntegerValue =
-        IntegerValue("Predict-CheckFallDistance", 255, 0..255) {
-            voidDetectionAlgorithm.get().equals("predict", ignoreCase = true)
+object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
+    private val modeValue = ListValue("Mode", arrayOf("Blink", "TPBack", "MotionFlag", "PacketFlag", "GroundSpoof", "OldHypixel", "Jartex", "OldCubecraft", "Packet", "Watchdog", "Vulcan", "Freeze"), "Blink")
+    private val maxFallDistValue = FloatValue("MaxFallDistance", 20F, 1F..10F)
+    private val resetMotionValue = BoolValue("ResetMotion", false) { modeValue.equals("Blink") }
+    private val startFallDistValue = FloatValue("BlinkStartFallDistance", 5F,0F..2F ) { modeValue.equals("Blink") }
+    private val autoScaffoldValue = BoolValue("BlinkAutoScaffold", true) { modeValue.equals("Blink") }
+    private val motionflagValue = FloatValue("MotionFlag-MotionY",5.0F, 0.0F..1.0F ) { modeValue.equals("MotionFlag") }
+    private val voidOnlyValue = BoolValue("OnlyVoid", true)
+
+    private val packetCache = ArrayList<C03PacketPlayer>()
+    private var blink = false
+    private var canBlink = false
+    private var canCancel = false
+    private var canSpoof = false
+    private var tried = false
+    private var flagged = false
+
+    private var posX = 0.0
+    private var posY = 0.0
+    private var posZ = 0.0
+    private var motionX = 0.0
+    private var motionY = 0.0
+    private var motionZ = 0.0
+    private var lastRecY = 0.0
+    private var x = 0.0
+    private var y = 0.0
+    private var z = 0.0
+
+    override fun onEnable() {
+        canCancel = false
+        blink = false
+        canBlink = false
+        canSpoof = false
+        if(mc.thePlayer != null) {
+            lastRecY = mc.thePlayer.posY
+        } else {
+            lastRecY = 0.0
         }
-    val maxFindRangeValue: IntegerValue = IntegerValue("Predict-MaxFindRange", 60, 0..255) {
-        voidDetectionAlgorithm.get().equals("predict", ignoreCase = true)
-    }
-    val illegalDupeValue: IntegerValue = IntegerValue("Illegal-Dupe", 1, 1..5 ) {
-        setBackModeValue.get().lowercase(Locale.getDefault()).contains("illegal")
-    }
-    val setBackFallDistValue: FloatValue = FloatValue("Max-FallDistance", 5f, 0f..55f)
-    val resetFallDistanceValue: BoolValue = BoolValue("Reset-FallDistance", true)
-    val renderTraceValue: BoolValue = BoolValue("Render-Trace", true)
-    val scaffoldValue: BoolValue = BoolValue("AutoScaffold", true)
-    val noFlyValue: BoolValue = BoolValue("NoFly", true)
+        tried = false
+        flagged = false
+        if (modeValue.equals("Freeze")) {
+            if (mc.thePlayer == null) {
+                return
+            }
 
-    private var detectedLocation: BlockPos? = BlockPos.ORIGIN
-    private var lastX = 0.0
-    private var lastY = 0.0
-    private var lastZ = 0.0
-    private var lastFound = 0.0
-    private var shouldRender = false
-    private var shouldStopMotion = false
-    private var shouldEdit = false
-
-    private val positions = LinkedList<DoubleArray>()
+            x = mc.thePlayer.posX
+            y = mc.thePlayer.posY
+            z = mc.thePlayer.posZ
+            motionX = mc.thePlayer.motionX
+            motionY = mc.thePlayer.motionY
+            motionZ = mc.thePlayer.motionZ
+        }
+    }
 
     @EventTarget
-    fun onUpdate(event: UpdateEvent?) {
-        if (noFlyValue.get() && LiquidBounce.moduleManager.getModule(Fly::class.java).state) return
+    fun onWorld(event: WorldEvent) {
+        if(lastRecY == 0.0) {
+            lastRecY = mc.thePlayer.posY
+        }
+    }
 
-        detectedLocation = null
+    @EventTarget
+    fun onUpdate(event: UpdateEvent) {
+        if (mc.thePlayer.onGround) {
+            tried = false
+            flagged = false
+        }
 
-        if (voidDetectionAlgorithm.get().equals("collision", ignoreCase = true)) {
-            if (mc.thePlayer.onGround && getBlock(
-                    BlockPos(
-                        mc.thePlayer.posX,
-                        mc.thePlayer.posY - 1.0,
-                        mc.thePlayer.posZ
-                    )
-                ) !is BlockAir
-            ) {
-                lastX = mc.thePlayer.prevPosX
-                lastY = mc.thePlayer.prevPosY
-                lastZ = mc.thePlayer.prevPosZ
+        when (modeValue.get().lowercase()) {
+            "freeze" -> {
+                mc.thePlayer.motionX = 0.0
+                mc.thePlayer.motionY = 0.0
+                mc.thePlayer.motionZ = 0.0
+                mc.thePlayer.setPositionAndRotation(x, y, z, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch)
+
+            }
+            "groundspoof" -> {
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    canSpoof = mc.thePlayer.fallDistance > maxFallDistValue.get()
+                }
             }
 
-            shouldRender = renderTraceValue.get() && !MovementUtils.isBlockUnder()
-
-            shouldStopMotion = false
-            shouldEdit = false
-            if (!MovementUtils.isBlockUnder()) {
-                if (mc.thePlayer.fallDistance >= setBackFallDistValue.get()) {
-                    shouldStopMotion = true
-                    when (setBackModeValue.get()) {
-                        "IllegalTeleport" -> {
-                            mc.thePlayer.setPositionAndUpdate(lastX, lastY, lastZ)
-                            var i = 0
-                            while (i < illegalDupeValue.get()) {
-                                PacketUtils.sendPacket(
-                                    C04PacketPlayerPosition(
-                                        mc.thePlayer.posX,
-                                        mc.thePlayer.posY - 1E+159,
-                                        mc.thePlayer.posZ,
-                                        false
-                                    )
-                                )
-                                i++
-                            }
-                        }
-
-                        "IllegalPacket" -> {
-                            var i = 0
-                            while (i < illegalDupeValue.get()) {
-                                PacketUtils.sendPacket(
-                                    C04PacketPlayerPosition(
-                                        mc.thePlayer.posX,
-                                        mc.thePlayer.posY - 1E+159,
-                                        mc.thePlayer.posZ,
-                                        false
-                                    )
-                                )
-                                i++
-                            }
-                        }
-
-                        "Teleport" -> mc.thePlayer.setPositionAndUpdate(lastX, lastY, lastZ)
-                        "FlyFlag" -> mc.thePlayer.motionY = 0.0
-                        "StopMotion" -> {
-                            val oldFallDist = mc.thePlayer.fallDistance
-                            mc.thePlayer.motionY = 0.0
-                            mc.thePlayer.fallDistance = oldFallDist
-                        }
-
-                        "Position" -> PacketUtils.sendPacket(
-                            C06PacketPlayerPosLook(
-                                mc.thePlayer.posX,
-                                mc.thePlayer.posY + nextDouble(6.0, 10.0),
-                                mc.thePlayer.posZ,
-                                mc.thePlayer.rotationYaw,
-                                mc.thePlayer.rotationPitch,
-                                false
-                            )
-                        )
-
-                        "Edit", "SpoofBack" -> shouldEdit = true
+            "vulcan" -> {
+                if (mc.thePlayer.onGround && BlockUtils.getBlock(BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ)) !is BlockAir) {
+                    posX = mc.thePlayer.prevPosX
+                    posY = mc.thePlayer.prevPosY
+                    posZ = mc.thePlayer.prevPosZ
+                }
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    if (mc.thePlayer.fallDistance > maxFallDistValue.get() && !tried) {
+                        mc.thePlayer.setPosition(mc.thePlayer.posX, posY, mc.thePlayer.posZ)
+                        mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, false))
+                        mc.thePlayer.setPosition(posX, posY, posZ)
+                        mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, true))
+                        mc.thePlayer.fallDistance = 0F
+                        MovementUtils.resetMotion(true)
+                        tried = true
                     }
-                    if (resetFallDistanceValue.get() && !setBackModeValue.get()
-                            .equals("StopMotion", ignoreCase = true)
-                    ) mc.thePlayer.fallDistance = 0f
-
-                    if (scaffoldValue.get() && !LiquidBounce.moduleManager.getModule(Scaffold::class.java).state) LiquidBounce.moduleManager.getModule(
-                        Scaffold::class.java
-                    ).state = true
-
-                    /*if (towerValue.get() && !LiquidBounce.moduleManager.getModule(Tower.class).getState())
-                        LiquidBounce.moduleManager.getModule(Tower.class).setState(true);*/
                 }
             }
-        } else {
-            if (mc.thePlayer.onGround && getBlock(
-                    BlockPos(
-                        mc.thePlayer.posX,
-                        mc.thePlayer.posY - 1.0,
-                        mc.thePlayer.posZ
-                    )
-                ) !is BlockAir
-            ) {
-                lastX = mc.thePlayer.prevPosX
-                lastY = mc.thePlayer.prevPosY
-                lastZ = mc.thePlayer.prevPosZ
-            }
 
-            shouldStopMotion = false
-            shouldEdit = false
-            shouldRender = false
-
-            if (!mc.thePlayer.onGround && !mc.thePlayer.isOnLadder && !mc.thePlayer.isInWater) {
-                val NewFallingPlayer: NewFallingPlayer = NewFallingPlayer(mc.thePlayer)
-
-                try {
-                    detectedLocation = NewFallingPlayer.findCollision(maxFindRangeValue.get())
-                } catch (e: Exception) {
-                    // do nothing. i hate errors
-                }
-
-                val currentDetectedLocation = detectedLocation
-                if (currentDetectedLocation != null && abs(mc.thePlayer.posY - currentDetectedLocation.y.toDouble()) +
-                    mc.thePlayer.fallDistance <= maxFallDistSimulateValue.get()
-                ) {
-                    lastFound = mc.thePlayer.fallDistance.toDouble()
-                }
-
-                shouldRender = renderTraceValue.get() && detectedLocation == null
-
-                if (mc.thePlayer.fallDistance - lastFound > setBackFallDistValue.get()) {
-                    shouldStopMotion = true
-                    when (setBackModeValue.get()) {
-                        "IllegalTeleport" -> {
-                            mc.thePlayer.setPositionAndUpdate(lastX, lastY, lastZ)
-                            var i = 0
-                            while (i < illegalDupeValue.get()) {
-                                PacketUtils.sendPacket(
-                                    C04PacketPlayerPosition(
-                                        mc.thePlayer.posX,
-                                        mc.thePlayer.posY - 1E+159,
-                                        mc.thePlayer.posZ,
-                                        false
-                                    )
-                                )
-                                i++
-                            }
-                        }
-
-                        "IllegalPacket" -> {
-                            var i = 0
-                            while (i < illegalDupeValue.get()) {
-                                PacketUtils.sendPacket(
-                                    C04PacketPlayerPosition(
-                                        mc.thePlayer.posX,
-                                        mc.thePlayer.posY - 1E+159,
-                                        mc.thePlayer.posZ,
-                                        false
-                                    )
-                                )
-                                i++
-                            }
-                        }
-
-                        "Teleport" -> mc.thePlayer.setPositionAndUpdate(lastX, lastY, lastZ)
-                        "FlyFlag" -> mc.thePlayer.motionY = 0.0
-                        "StopMotion" -> {
-                            val oldFallDist = mc.thePlayer.fallDistance
-                            mc.thePlayer.motionY = 0.0
-                            mc.thePlayer.fallDistance = oldFallDist
-                        }
-
-                        "Position" -> PacketUtils.sendPacket(
-                            C06PacketPlayerPosLook(
-                                mc.thePlayer.posX,
-                                mc.thePlayer.posY + nextDouble(6.0, 10.0),
-                                mc.thePlayer.posZ,
-                                mc.thePlayer.rotationYaw,
-                                mc.thePlayer.rotationPitch,
-                                false
-                            )
-                        )
-
-                        "Edit", "SpoofBack" -> shouldEdit = true
+            "motionflag" -> {
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    if (mc.thePlayer.fallDistance > maxFallDistValue.get() && !tried) {
+                        mc.thePlayer.motionY += motionflagValue.get()
+                        mc.thePlayer.fallDistance = 0.0F
+                        tried = true
                     }
-                    if (resetFallDistanceValue.get() && !setBackModeValue.get()
-                            .equals("StopMotion", ignoreCase = true)
-                    ) mc.thePlayer.fallDistance = 0f
+                }
+            }
 
-                    if (scaffoldValue.get() && !LiquidBounce.moduleManager.getModule(Scaffold::class.java).state) LiquidBounce.moduleManager.getModule(
-                        Scaffold::class.java
-                    ).state = true
+            "packetflag" -> {
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    if (mc.thePlayer.fallDistance > maxFallDistValue.get() && !tried) {
+                        mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX + 1, mc.thePlayer.posY + 1, mc.thePlayer.posZ + 1, false))
+                        tried = true
+                    }
+                }
+            }
 
-                    /*if (towerValue.get() && !LiquidBounce.moduleManager.getModule(Tower.class).getState())
-                        LiquidBounce.moduleManager.getModule(Tower.class).setState(true);*/
+            "tpback" -> {
+                if (mc.thePlayer.onGround && BlockUtils.getBlock(BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ)) !is BlockAir) {
+                    posX = mc.thePlayer.prevPosX
+                    posY = mc.thePlayer.prevPosY
+                    posZ = mc.thePlayer.prevPosZ
+                }
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    if (mc.thePlayer.fallDistance > maxFallDistValue.get() && !tried) {
+                        mc.thePlayer.setPositionAndUpdate(posX, posY, posZ)
+                        mc.thePlayer.fallDistance = 0F
+                        mc.thePlayer.motionX = 0.0
+                        mc.thePlayer.motionY = 0.0
+                        mc.thePlayer.motionZ = 0.0
+                        tried = true
+                    }
+                }
+            }
+
+            "jartex" -> {
+                canSpoof = false
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    if (mc.thePlayer.fallDistance> maxFallDistValue.get() && mc.thePlayer.posY < lastRecY + 0.01 && mc.thePlayer.motionY <= 0 && !mc.thePlayer.onGround && !flagged) {
+                        mc.thePlayer.motionY = 0.0
+                        mc.thePlayer.motionZ *= 0.838
+                        mc.thePlayer.motionX *= 0.838
+                        canSpoof = true
+                    }
+                }
+                lastRecY = mc.thePlayer.posY
+            }
+
+            "oldcubecraft" -> {
+                canSpoof = false
+                if (!voidOnlyValue.get() || checkVoid()) {
+                    if (mc.thePlayer.fallDistance> maxFallDistValue.get() && mc.thePlayer.posY < lastRecY + 0.01 && mc.thePlayer.motionY <= 0 && !mc.thePlayer.onGround && !flagged) {
+                        mc.thePlayer.motionY = 0.0
+                        mc.thePlayer.motionZ = 0.0
+                        mc.thePlayer.motionX = 0.0
+                        mc.thePlayer.jumpMovementFactor = 0.00f
+                        canSpoof = true
+                        if (!tried) {
+                            tried = true
+                            mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(mc.thePlayer.posX, (32000.0).toDouble(), mc.thePlayer.posZ, false))
+                        }
+                    }
+                }
+                lastRecY = mc.thePlayer.posY
+            }
+            
+            "packet" -> { 
+                if (checkVoid()) {
+                    canCancel = true
+                }
+                    
+                if (canCancel) {
+                    if (mc.thePlayer.onGround) {
+                        for (packet in packetCache) {
+                            mc.netHandler.addToSendQueue(packet)
+                        }
+                        packetCache.clear()
+                    }
+                    canCancel = false
+                }
+            }
+
+            "blink" -> {
+                if (!blink) {
+                    val collide = FallingPlayer(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, 0.0, 0.0, 0.0, 0F, 0F, 0F).findCollision(60)
+                    if (canBlink && (collide == null || (mc.thePlayer.posY - collide.pos.y)> startFallDistValue.get())) {
+                        posX = mc.thePlayer.posX
+                        posY = mc.thePlayer.posY
+                        posZ = mc.thePlayer.posZ
+                        motionX = mc.thePlayer.motionX
+                        motionY = mc.thePlayer.motionY
+                        motionZ = mc.thePlayer.motionZ
+
+                        packetCache.clear()
+                        blink = true
+                    }
+
+                    if (mc.thePlayer.onGround) {
+                        canBlink = true
+                    }
+                } else {
+                    if (mc.thePlayer.fallDistance> maxFallDistValue.get()) {
+                        mc.thePlayer.setPositionAndUpdate(posX, posY, posZ)
+                        if (resetMotionValue.get()) {
+                            mc.thePlayer.motionX = 0.0
+                            mc.thePlayer.motionY = 0.0
+                            mc.thePlayer.motionZ = 0.0
+                            mc.thePlayer.jumpMovementFactor = 0.00f
+                        } else {
+                            mc.thePlayer.motionX = motionX
+                            mc.thePlayer.motionY = motionY
+                            mc.thePlayer.motionZ = motionZ
+                            mc.thePlayer.jumpMovementFactor = 0.00f
+                        }
+
+                        if (autoScaffoldValue.get()) {
+                            LiquidBounce.moduleManager[Scaffold::class.java].state = true
+                        }
+
+                        packetCache.clear()
+                        blink = false
+                        canBlink = false
+                    } else if (mc.thePlayer.onGround) {
+                        blink = false
+
+                        for (packet in packetCache) {
+                            mc.netHandler.addToSendQueue(packet)
+                        }
+                    }
                 }
             }
         }
+    }
 
-        if (shouldRender) synchronized(positions) {
-            positions.add(doubleArrayOf(mc.thePlayer.posX, mc.thePlayer.entityBoundingBox.minY, mc.thePlayer.posZ))
+    private fun checkVoid(): Boolean {
+        var i = (-(mc.thePlayer.posY-1.4857625)).toInt()
+        var dangerous = true
+        while (i <= 0) {
+            dangerous = mc.theWorld.getCollisionBoxes(mc.thePlayer.entityBoundingBox.offset(mc.thePlayer.motionX * 0.5, i.toDouble(), mc.thePlayer.motionZ * 0.5)).isEmpty()
+            i++
+            if (!dangerous) break
         }
-        else synchronized(positions) {
-            positions.clear()
-        }
+        return dangerous
     }
 
     @EventTarget
     fun onPacket(event: PacketEvent) {
-        if (noFlyValue.get() && LiquidBounce.moduleManager.getModule(Fly::class.java).state) return
+        val packet = event.packet
 
-        if (setBackModeValue.get()
-                .equals("StopMotion", ignoreCase = true) && event.packet is S08PacketPlayerPosLook
-        ) mc.thePlayer.fallDistance = 0f
+        when (modeValue.get().lowercase()) {
+            "watchdog" -> {
+                if (packet is C03PacketPlayer) {
+                    if (mc.thePlayer.onGround) {
+                        posX = mc.thePlayer.posX
+                        posY = mc.thePlayer.posY
+                        posZ = mc.thePlayer.posZ
+                        for (packet in packetCache) {
+                            mc.netHandler.addToSendQueue(packet)
+                        }
+                        packetCache.clear()
+                    } else {
+                        event.cancelEvent()
+                        packetCache.add(packet)
+                        if (mc.thePlayer.fallDistance > maxFallDistValue.get()) {
+                            PacketUtils.sendPacket(C03PacketPlayer.C04PacketPlayerPosition(posX, posY + 0.1, posZ, false))
+                        }
+                    }
+                }
+            }
+            "blink" -> {
+                if (blink && (packet is C03PacketPlayer)) {
+                    packetCache.add(packet)
+                    event.cancelEvent()
+                }
+            }
+            
+            "packet" -> {
+                if (canCancel && (packet is C03PacketPlayer)) {
+                    packetCache.add(packet)
+                    event.cancelEvent()
+                }
+                
+                if (packet is S08PacketPlayerPosLook) {
+                    packetCache.clear()
+                    canCancel = false
+                }
+            }
 
-        if (setBackModeValue.get().equals("Edit", ignoreCase = true) && shouldEdit && event.packet is C03PacketPlayer) {
-            event.packet.y += 100.0
-            shouldEdit = false
-        }
+            "groundspoof" -> {
+                if (canSpoof && (packet is C03PacketPlayer)) {
+                    packet.onGround = true
+                }
+            }
 
-        if (setBackModeValue.get()
-                .equals("SpoofBack", ignoreCase = true) && shouldEdit && event.packet is C03PacketPlayer
-        ) {
-            val packetPlayer = event.packet
-            packetPlayer.x = lastX
-            packetPlayer.y = lastY
-            packetPlayer.z = lastZ
-            packetPlayer.isMoving = false
-            shouldEdit = false
+            "jartex" -> {
+                if (canSpoof && (packet is C03PacketPlayer)) {
+                    packet.onGround = true
+                }
+                if (canSpoof && (packet is S08PacketPlayerPosLook)) {
+                    flagged = true
+                }
+            }
+
+            "oldcubecraft" -> {
+                if (canSpoof && (packet is C03PacketPlayer)) {
+                    if (packet.y < 1145.141919810) event.cancelEvent()
+                }
+                if (canSpoof && (packet is S08PacketPlayerPosLook)) {
+                    flagged = true
+                }
+            }
+
+            "oldhypixel" -> {
+                if (packet is S08PacketPlayerPosLook && mc.thePlayer.fallDistance> 3.125) mc.thePlayer.fallDistance = 3.125f
+
+                if (packet is C03PacketPlayer) {
+                    if (voidOnlyValue.get() && mc.thePlayer.fallDistance >= maxFallDistValue.get() && mc.thePlayer.motionY <= 0 && checkVoid()) {
+                        packet.y += 11.0
+                    }
+                    if (!voidOnlyValue.get() && mc.thePlayer.fallDistance >= maxFallDistValue.get()) packet.y += 11.0
+                }
+            }
+            "freeze" -> {
+                if (event.packet is C03PacketPlayer) {
+                    event.cancelEvent()
+                }
+                if (event.packet is S08PacketPlayerPosLook) {
+                    x = event.packet.x
+                    y = event.packet.y
+                    z = event.packet.z
+                    motionX = 0.0
+                    motionY = 0.0
+                    motionZ = 0.0
+                }
+            }
         }
     }
-
-    @EventTarget
-    fun onMove(event: MoveEvent) {
-        if (noFlyValue.get() && LiquidBounce.moduleManager.getModule(Fly::class.java).state) return
-
-        if (setBackModeValue.get().equals("StopMotion", ignoreCase = true) && shouldStopMotion) {
-            event.zero()
-        }
-    }
-
-    @EventTarget
-    fun onRender3D(event: Render3DEvent?) {
-        if (noFlyValue.get() && LiquidBounce.moduleManager.getModule(Fly::class.java).state) return
-
-        if (shouldRender) synchronized(positions) {
-            GL11.glPushMatrix()
-            GL11.glDisable(GL11.GL_TEXTURE_2D)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-            GL11.glEnable(GL11.GL_LINE_SMOOTH)
-            GL11.glEnable(GL11.GL_BLEND)
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
-            mc.entityRenderer.disableLightmap()
-            GL11.glLineWidth(1f)
-            GL11.glBegin(GL11.GL_LINE_STRIP)
-            GL11.glColor4f(1f, 1f, 0.1f, 1f)
-            val renderPosX = mc.renderManager.viewerPosX
-            val renderPosY = mc.renderManager.viewerPosY
-            val renderPosZ = mc.renderManager.viewerPosZ
-
-            for (pos in positions) GL11.glVertex3d(pos[0] - renderPosX, pos[1] - renderPosY, pos[2] - renderPosZ)
-
-            GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
-            GL11.glEnd()
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
-            GL11.glDisable(GL11.GL_LINE_SMOOTH)
-            GL11.glDisable(GL11.GL_BLEND)
-            GL11.glEnable(GL11.GL_TEXTURE_2D)
-            GL11.glPopMatrix()
-        }
-    }
-
     override fun onDisable() {
-        reset()
-        super.onDisable()
-    }
+        if (modeValue.equals("Freeze")) {
+            mc.thePlayer.motionX = motionX
+            mc.thePlayer.motionY = motionY
+            mc.thePlayer.motionZ = motionZ
+            mc.thePlayer.setPositionAndRotation(x, y, z, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch)
 
-    override fun onEnable() {
-        reset()
-        super.onEnable()
+        }
     }
 
     override val tag: String
-        get() = setBackModeValue.get()
-
-    private fun reset() {
-        detectedLocation = null
-        lastFound = 0.0
-        lastZ = lastFound
-        lastY = lastZ
-        lastX = lastY
-        shouldRender = false
-        shouldStopMotion = shouldRender
-        synchronized(positions) {
-            positions.clear()
-        }
-    }
+        get() = modeValue.get()
 }

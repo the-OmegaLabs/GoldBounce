@@ -1,23 +1,16 @@
-/*
- * FDPClient Hacked Client
- * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge by LiquidBounce.
- * https://github.com/SkidderMC/FDPClient/
- */
+
 package net.ccbluex.liquidbounce.features.module.modules.player
 
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.PacketEvent
 import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.event.WorldEvent
-import net.ccbluex.liquidbounce.script.api.global.Chat
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.Category
+import net.ccbluex.liquidbounce.utils.chat
+import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.BoolValue
-import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.ListValue
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.init.Items
 import net.minecraft.network.play.client.C03PacketPlayer
@@ -28,19 +21,18 @@ import net.minecraft.potion.Potion
 import net.minecraft.util.MathHelper
 import java.util.*
 
-object GApple : Module(name = "Gapple", category = Category.PLAYER) {
+object GApple : Module(name = "GApple",  category = Category.PLAYER) {
 
     private val modeValue = ListValue("Mode", arrayOf("Auto", "LegitAuto", "Legit", "Head"), "Auto")
-    private val percent = FloatValue("HealthPercent", 75.0f, 1.0f..100.0f)
-    private val min = IntegerValue("MinDelay", 75, 1..5000)
-    private val max = IntegerValue("MaxDelay", 125, 1..5000)
-    private val regenSec = FloatValue("MinRegenSec", 4.6f, 0.0f..10.0f)
+    private val percent = FloatValue("HealthPercent", 1.0f,75.0f..100.0f,  )
+    private val min = IntegerValue("MinDelay", 5000,1..75)
+    private val max = IntegerValue("MaxDelay", 5000,1..125)
+    private val regenSec = FloatValue("MinRegenSec",10.0f, 0.0f..4.6f)
     private val groundCheck = BoolValue("OnlyOnGround", false)
     private val waitRegen = BoolValue("WaitRegen", true)
     private val invCheck = BoolValue("InvCheck", false)
     private val absorpCheck = BoolValue("NoAbsorption", true)
-    private val fastEatValue = BoolValue("FastEat", false) { modeValue.equals("LegitAuto") || modeValue.equals("Legit") }
-    private val eatDelayValue = IntegerValue("FastEatDelay", 14, 0..35){ fastEatValue.get() }
+    private val AlertValue = BoolValue("Alert", false)
     val timer = MSTimer()
     private var eating = -1
     var delay = 0
@@ -89,7 +81,7 @@ object GApple : Module(name = "Gapple", category = Category.PLAYER) {
                             mc.netHandler.addToSendQueue(C03PacketPlayer(mc.thePlayer.onGround))
                         }
                         mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-                        Chat.print("§c[GoldBounce] §3Gapple eaten")
+                        if (AlertValue.get()) chat("Gapple eaten")
                         tryHeal = false
                         timer.reset()
                         delay = MathHelper.getRandomIntegerInRange(Random(), min.get(), max.get())
@@ -109,10 +101,7 @@ object GApple : Module(name = "Gapple", category = Category.PLAYER) {
                         }
                         mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
                         eating = 0
-                    } else if (eating > 35 || (fastEatValue.get() && eating > eatDelayValue.get())) {
-	      		repeat(35 - eating) {
-                            mc.netHandler.addToSendQueue(C03PacketPlayer(mc.thePlayer.onGround))
-                        }
+                    } else if (eating > 35) {
                         mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
                         timer.reset()
                         tryHeal = false
@@ -134,10 +123,7 @@ object GApple : Module(name = "Gapple", category = Category.PLAYER) {
                         }
                         mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
                         eating = 0
-                    } else if (eating > 35 || (fastEatValue.get() && eating > eatDelayValue.get())) {
-			repeat(35 - eating) {
-                            mc.netHandler.addToSendQueue(C03PacketPlayer(mc.thePlayer.onGround))
-                        }
+                    } else if (eating > 35) {
                         timer.reset()
                         tryHeal = false
                         delay = MathHelper.getRandomIntegerInRange(Random(), min.get(), max.get())
@@ -172,8 +158,7 @@ object GApple : Module(name = "Gapple", category = Category.PLAYER) {
                 return
             }
             mc.thePlayer.inventory.currentItem = prevSlot
-	    eating = -1
-            prevSlot = -1
+            prevSlot = -1;
             switchBack = false
         }
 
