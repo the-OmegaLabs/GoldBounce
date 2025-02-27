@@ -77,7 +77,7 @@ object Fucker : Module("Fucker", Category.WORLD, hideModule = false) {
     private val colorBlue by int("B", 0, 0..255) { blockProgress }
 
     private val ignoreOwnBed by boolean("IgnoreOwnBed", true)
-    private val ownBedDist by int("MaxBedDistance", 16, 1..32) { ignoreOwnBed }
+    private val ownBedDist by int("MaxBedDistance", 32, 1..32) { ignoreOwnBed }
 
     /**
      * VALUES

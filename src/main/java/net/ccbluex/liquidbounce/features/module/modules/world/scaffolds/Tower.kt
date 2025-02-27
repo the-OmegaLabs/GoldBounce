@@ -11,6 +11,7 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.Speed
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold.searchMode
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold.shouldGoDown
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
+import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.getBlock
@@ -24,6 +25,7 @@ import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.init.Blocks.air
 import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
+import net.minecraft.potion.Potion
 import net.minecraft.stats.StatList
 import net.minecraft.util.BlockPos
 import kotlin.math.truncate
@@ -44,11 +46,15 @@ object Tower : MinecraftInstance(), Listenable {
             "AAC3.3.9",
             "AAC3.6.4",
             "Vulcan2.9.0",
-            "Pulldown"
+            "Pulldown",
+            "BlocksMC"
         ),
         "None"
     )
-
+    val blocksmcMotion = FloatValue("BlocksMC-Motion", 0.42f, 0.1f..1f) { towerModeValues.get() == "BlocksMC" }
+    val blocksmcAirDrag = FloatValue("BlocksMC-AirDrag", 0.98f, 0.9f..1f) { towerModeValues.get() == "BlocksMC" }
+    val blocksmcSpeedEffect =
+        FloatValue("BlocksMC-SpeedEffect-Multiplier", 1.2f, 1f..2f) { towerModeValues.get() == "BlocksMC" }
     val stopWhenBlockAboveValues = boolean("StopWhenBlockAbove", false) { towerModeValues.get() != "None" }
 
     val onJumpValues = boolean("TowerOnJump", true) { towerModeValues.get() != "None" }
@@ -144,6 +150,30 @@ object Tower : MinecraftInstance(), Listenable {
     private fun fakeJump() {
         mc.thePlayer?.isAirBorne = true
         mc.thePlayer?.triggerAchievement(StatList.jumpStat)
+    }
+
+    private fun handleBlocksMCMode() {
+        val player = mc.thePlayer!!
+        if (player.onGround) {
+            player.motionY = blocksmcMotion.get().toDouble()
+            MovementUtils.strafe()
+        } else {
+            val speedMultiplier = if (player.isPotionActive(Potion.moveSpeed))
+                blocksmcSpeedEffect.get()
+            else
+                1.0f
+
+            player.motionX *= blocksmcAirDrag.get().toDouble()
+            player.motionZ *= blocksmcAirDrag.get().toDouble()
+            MovementUtils.strafe(speedMultiplier)
+        }
+        if (player.posY % 1 < 0.1 && !player.onGround) {
+            player.setPosition(
+                player.posX,
+                player.posY.toInt().toDouble(),
+                player.posZ
+            )
+        }
     }
 
     /**
@@ -285,6 +315,8 @@ object Tower : MinecraftInstance(), Listenable {
                 player.motionY = -0.5
                 player.setPosition(player.posX + 0.035, player.posY, player.posZ)
             }
+
+            "blocksmc" -> handleBlocksMCMode()
         }
     }
 

@@ -19,7 +19,7 @@ import net.minecraft.util.ResourceLocation
 /**
  * TACO TACO TACO!!
  */
-@ElementInfo(name = "Polar Bear", priority = 1)
+@ElementInfo(name = "Cockroach", priority = 1)
 class Taco(x: Double = 2.0, y: Double = 441.0) : Element(x = x, y = y) {
 
     private val frameSpeed by float("frameSpeed", 50f, 0f..200f)
@@ -42,7 +42,40 @@ class Taco(x: Double = 2.0, y: Double = 441.0) : Element(x = x, y = y) {
         ResourceLocation("liquidbounce/taco/10.png"),
         ResourceLocation("liquidbounce/taco/11.png"),
         ResourceLocation("liquidbounce/taco/12.png"),
-        ResourceLocation("liquidbounce/taco/13.png")
+        ResourceLocation("liquidbounce/taco/13.png"),
+        ResourceLocation("liquidbounce/taco/14.png"),
+        ResourceLocation("liquidbounce/taco/15.png"),
+        ResourceLocation("liquidbounce/taco/16.png"),
+        ResourceLocation("liquidbounce/taco/17.png"),
+        ResourceLocation("liquidbounce/taco/18.png"),
+        ResourceLocation("liquidbounce/taco/19.png"),
+        ResourceLocation("liquidbounce/taco/20.png"),
+        ResourceLocation("liquidbounce/taco/21.png"),
+        ResourceLocation("liquidbounce/taco/22.png"),
+        ResourceLocation("liquidbounce/taco/23.png"),
+        ResourceLocation("liquidbounce/taco/24.png"),
+        ResourceLocation("liquidbounce/taco/25.png"),
+        ResourceLocation("liquidbounce/taco/26.png"),
+        ResourceLocation("liquidbounce/taco/27.png"),
+        ResourceLocation("liquidbounce/taco/28.png"),
+        ResourceLocation("liquidbounce/taco/29.png"),
+        ResourceLocation("liquidbounce/taco/30.png"),
+        ResourceLocation("liquidbounce/taco/31.png"),
+        ResourceLocation("liquidbounce/taco/32.png"),
+        ResourceLocation("liquidbounce/taco/33.png"),
+        ResourceLocation("liquidbounce/taco/34.png"),
+        ResourceLocation("liquidbounce/taco/35.png"),
+        ResourceLocation("liquidbounce/taco/36.png"),
+        ResourceLocation("liquidbounce/taco/37.png"),
+        ResourceLocation("liquidbounce/taco/38.png"),
+        ResourceLocation("liquidbounce/taco/39.png"),
+        ResourceLocation("liquidbounce/taco/40.png"),
+        ResourceLocation("liquidbounce/taco/41.png"),
+        ResourceLocation("liquidbounce/taco/42.png"),
+        ResourceLocation("liquidbounce/taco/43.png"),
+        ResourceLocation("liquidbounce/taco/44.png"),
+        ResourceLocation("liquidbounce/taco/45.png"),
+        ResourceLocation("liquidbounce/taco/46.png")
     )
 
     override fun drawElement(): Border {
