@@ -97,7 +97,7 @@ object RandomUtils {
         val fillerCount = maxLength - baseName.length
 
         //Adds random prefix and suffix made up from filler characters.
-        return StringBuilder(random(fillerCount, FILLER_CHARS)).insert(nextInt(0, fillerCount), baseName).toString()
+        return StringBuilder("gbounce"+random(fillerCount, FILLER_CHARS)).insert(nextInt(0, fillerCount), baseName).toString()
     }
 
     //Randomly converts "leetable" characters, skips first and last.

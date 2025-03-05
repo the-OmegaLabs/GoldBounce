@@ -33,7 +33,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         var particles = false
         var stylisedAlts = true
         var unformattedAlts = false
-        var altsLength = 16
+        var altsLength = 4
 
         fun updateClientWindow() {
             if (enabledClientTitle) {
