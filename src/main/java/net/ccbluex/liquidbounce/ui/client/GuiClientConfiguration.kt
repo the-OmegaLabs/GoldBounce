@@ -38,7 +38,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle(clientTitle)
+                Display.setTitle("Augustus b91")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }
