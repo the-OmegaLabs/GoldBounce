@@ -36,7 +36,7 @@ object ColorUtils {
     }
 
     fun stripColor(input: String): String = COLOR_PATTERN.matcher(input).replaceAll("")
-
+    fun Color.withAlpha(a: Int) = Color(red, green, blue, a)
     fun translateAlternateColorCodes(textToTranslate: String): String {
         val chars = textToTranslate.toCharArray()
 

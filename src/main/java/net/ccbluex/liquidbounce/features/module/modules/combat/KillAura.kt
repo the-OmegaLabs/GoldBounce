@@ -34,6 +34,7 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
+import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawEntityBox
@@ -144,13 +145,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val onDestroyBlock by boolean("OnDestroyBlock", false)
 
     // AutoBlock
-    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake"), "Packet")
-    private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" }
+    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco"), "Packet")
+    private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
     private val unblockMode by choices(
         "UnblockMode",
         arrayOf("Stop", "Switch", "Empty"),
         "Stop"
-    ) { autoBlock == "Packet" }
+    ) { (autoBlock == "Packet") ||(autoBlock == "QuickMarco") }
     private val releaseAutoBlock by boolean("ReleaseAutoBlock", true)
     { autoBlock !in arrayOf("Off", "Fake") }
     val forceBlockRender by boolean("ForceBlockRender", true)
@@ -343,7 +344,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Swing fails
     private val swingFails = mutableListOf<SwingFailData>()
-
+    var slotChangeAutoBlock = false
     /**
      * Disable kill aura module
      */
@@ -721,7 +722,15 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && isLastClick || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
         }
-
+        if (autoBlock != "Off" && slotChangeAutoBlock && (!blinked || !BlinkUtils.isBlinking)) {
+            if(autoBlock == "QuickMarco"){
+                sendOffHandUseItem()
+            }else if (autoBlock == "Packet") {
+                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+            }
+            slotChangeAutoBlock = false
+//            chat("发送防砍包")
+        }
         resetLastAttackedTicks()
     }
 
