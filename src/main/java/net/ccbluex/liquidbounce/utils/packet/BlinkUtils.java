@@ -1,6 +1,6 @@
 package net.ccbluex.liquidbounce.utils.packet;
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance;
-import net.ccbluex.liquidbounce.utils.client.PacketUtils;
+import net.ccbluex.liquidbounce.utils.PacketUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S00PacketKeepAlive;
@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class BlinkUtils implements MinecraftInstance {
+public class BlinkUtils extends MinecraftInstance {
     public static final BlinkUtils INSTANCE = new BlinkUtils();
     public static boolean blinking = false;
 
@@ -241,8 +241,4 @@ public class BlinkUtils implements MinecraftInstance {
             packets.add(new S00PacketKeepAlive()); //这玩意就拿来做个标记。
     }
 
-    @Override
-    public @NotNull Minecraft getMc() {
-        return Minecraft.getMinecraft();
-    }
 }

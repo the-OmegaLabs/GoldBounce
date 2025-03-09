@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce
 
+import de.florianmichael.viamcp.ViaMCP
 import kotlinx.coroutines.launch
 import net.ccbluex.liquidbounce.api.ClientUpdate.gitInfo
 import net.ccbluex.liquidbounce.api.loadSettings
@@ -117,7 +118,8 @@ object LiquidBounce {
             TrayUtils().start()
             // Load languages
             loadLanguages()
-
+            ViaMCP.create();
+            ViaMCP.INSTANCE.initAsyncSlider(); // For top left aligned slider
             // Register listeners
             registerListener(RotationUtils)
             registerListener(ClientFixes)

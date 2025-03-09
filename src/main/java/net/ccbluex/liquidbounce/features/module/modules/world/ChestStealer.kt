@@ -195,13 +195,13 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
             waitUntil(TickScheduler::isEmpty)
             stacks = thePlayer.openContainer.inventory  // 更新库存
         }
-        TickScheduler.scheduleAndSuspend {
+        TickScheduler.scheduleAndSuspend ({
             chestStealerCurrentSlot = -1
             chestStealerLastSlot = -1
             thePlayer.closeScreen()
             progress = null
             debug("Chest closed")
-        }
+        })
     }
 
 
