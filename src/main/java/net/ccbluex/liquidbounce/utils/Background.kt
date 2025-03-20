@@ -48,7 +48,7 @@ abstract class Background(val backgroundFile: File) {
 
 class ImageBackground(backgroundFile: File) : Background(backgroundFile) {
 
-    private val resourceLocation = ResourceLocation("${CLIENT_NAME.lowercase()}/background.png")
+    private val resourceLocation = ResourceLocation("liquidbounce/background.png")
 
     override fun initBackground() {
         mc.addScheduledTask {
