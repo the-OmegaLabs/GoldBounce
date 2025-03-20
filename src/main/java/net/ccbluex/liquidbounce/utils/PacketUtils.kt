@@ -20,11 +20,25 @@ import net.minecraft.network.play.INetHandlerPlayServer
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.server.*
 import net.minecraft.util.Vec3
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 
 object PacketUtils : MinecraftInstance(), Listenable {
 
-    val queuedPackets = Queues.newArrayDeque<Packet<*>>()
+    // 替换原有 queuedPackets 声明
+    val queuedPackets = ArrayDeque<Packet<*>>()
+    private val queueLock = ReentrantLock()
+
+    // 替换顶层函数为对象方法
+    fun schedulePacketProcess(element: Packet<*>) = queueLock.withLock {
+        queuedPackets.add(element)
+    }
+
+    fun schedulePacketProcess(elements: Collection<Packet<*>>) = queueLock.withLock {
+        queuedPackets.addAll(elements)
+    }
+
 
     @EventTarget(priority = 2)
     fun onTick(event: GameTickEvent) {
@@ -76,17 +90,17 @@ object PacketUtils : MinecraftInstance(), Listenable {
 
     @EventTarget(priority = -5)
     fun onGameLoop(event: GameLoopEvent) {
-        synchronized(queuedPackets) {
+        queueLock.withLock {
             queuedPackets.removeAll {
                 handlePacket(it)
                 val packetEvent = PacketEvent(it, EventState.RECEIVE)
                 FakeLag.onPacket(packetEvent)
                 Velocity.onPacket(packetEvent)
-
                 true
             }
         }
     }
+
 
     @EventTarget(priority = -1)
     fun onDisconnect(event: WorldEvent) {
@@ -237,14 +251,12 @@ var C03PacketPlayer.pos
         z = value.zCoord
     }
 
+@Deprecated("Use PacketUtils.schedulePacketProcess", ReplaceWith("PacketUtils.schedulePacketProcess(packet)"))
 fun schedulePacketProcess(packet: Packet<*>) {
-    synchronized(PacketUtils.queuedPackets) {
-        PacketUtils.queuedPackets.add(packet)
-    }
+    PacketUtils.schedulePacketProcess(packet)
 }
 
+@Deprecated("Use PacketUtils.schedulePacketProcess", ReplaceWith("PacketUtils.schedulePacketProcess(packets)"))
 fun schedulePacketProcess(packets: Collection<Packet<*>>) {
-    synchronized(PacketUtils.queuedPackets) {
-        PacketUtils.queuedPackets.addAll(packets)
-    }
+    PacketUtils.schedulePacketProcess(packets)
 }

@@ -15,7 +15,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Side
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.render.AnimationUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
-import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
+import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.minecraft.client.renderer.GlStateManager.resetColor
 import org.lwjgl.opengl.GL11.glColor4f
 import java.awt.Color
@@ -63,8 +63,17 @@ class Notifications(x: Double = 0.0, y: Double = 30.0, scale: Float = 1F,
 
 // Default delay set to 60F
 class Notification(private val message: String, private val delay: Float = 60F) {
+    companion object {
+        private const val MAX_LINE_WIDTH = 200
+        private const val LINE_HEIGHT = 12
+        private const val PADDING = 8
+        private const val CORNER_RADIUS = 4
+    }
     var x = 0F
     var textLength = 0
+    var lines = listOf<String>()
+    var height = 0F
+    var width = 0F
 
     private var stay = 0F
     private var fadeStep = 0F
@@ -76,52 +85,93 @@ class Notification(private val message: String, private val delay: Float = 60F) 
     enum class FadeState { IN, STAY, OUT, END }
 
     init {
-        textLength = Fonts.font35.getStringWidth(message)
+        processMessage()
     }
 
     /**
      * Draw notification
      */
-    fun drawNotification(offsetY: Float) {
-        resetColor()
-        glColor4f(1f, 1f, 1f, 1f)
+    private fun processMessage() {
+            val words = message.split(" ")
+            val currentLine = StringBuilder()
+            lines = mutableListOf()
 
-        // Draw notification
-        drawRect(-x + 8 + textLength, offsetY, -x, offsetY - 20F, Color.BLACK.rgb)
-        drawRect(-x, offsetY, -x - 5, offsetY - 20F, Color(255, 255, 0).rgb)
-        Fonts.font35.drawString(message, -x + 4, offsetY - 14F, Int.MAX_VALUE)
+            for (word in words) {
+                val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
+                val testWidth = Fonts.font35.getStringWidth(testLine)
 
-        // Animation
-        val delta = deltaTime
-        val width = textLength + 8F
-
-        when (fadeState) {
-            FadeState.IN -> {
-                if (x < width) {
-                    x = AnimationUtils.easeOut(fadeStep, width) * width
-                    fadeStep += delta / 4F
+                if (testWidth > MAX_LINE_WIDTH && currentLine.isNotEmpty()) {
+                    (lines as MutableList).add(currentLine.toString())
+                    currentLine.clear().append(word)
+                } else {
+                    currentLine.append(if (currentLine.isEmpty()) word else " $word")
                 }
-                if (x >= width) {
-                    fadeState = FadeState.STAY
-                    x = width
-                    fadeStep = width
-                }
-
-                stay = delay
+            }
+            if (currentLine.isNotEmpty()) {
+                (lines as MutableList).add(currentLine.toString())
             }
 
-            FadeState.STAY -> if (stay > 0)
-                stay -= delta
-            else
-                fadeState = FadeState.OUT
+            // 计算尺寸
+            width = (lines.maxOf { Fonts.font35.getStringWidth(it) } + PADDING * 2).toFloat()
+            height = (lines.size * LINE_HEIGHT + PADDING).toFloat()
+        }
+fun drawNotification(offsetY: Float) {
+            val alpha = when (fadeState) {
+                FadeState.IN -> fadeStep / width
+                FadeState.OUT -> 1 - fadeStep / width
+                else -> 1F
+            }.coerceIn(0F, 1F)
 
-            FadeState.OUT -> if (x > 0) {
-                x = AnimationUtils.easeOut(fadeStep, width) * width
-                fadeStep -= delta / 4F
-            } else
-                fadeState = FadeState.END
+            // 背景
+            RenderUtils.drawRoundedRect(
+                -x, offsetY - height,
+                -x + width, offsetY,
+                CORNER_RADIUS,
+                Color(40, 40, 40, (200 * alpha).toInt()).rgb.toFloat()
+            )
 
-            FadeState.END -> HUD.removeNotification(this)
+            // 进度条
+            val progressWidth = if (fadeState == FadeState.STAY)
+                width * (stay / delay) else width
+            RenderUtils.drawRoundedRect(
+                -x, offsetY - 2,
+                -x + progressWidth, offsetY,
+                1,
+                Color(255, 204, 0, (220 * alpha).toInt()).rgb.toFloat()
+            )
+
+            // 文字
+            lines.forEachIndexed { index, line ->
+                Fonts.font35.drawString(
+                    line,
+                    -x + PADDING,
+                    offsetY - height + PADDING + index * LINE_HEIGHT,
+                    Color(255, 255, 255, (255 * alpha).toInt()).rgb,
+                    false
+                )
+            }
+
+            // 动画逻辑
+            val delta = deltaTime
+            when (fadeState) {
+                FadeState.IN -> {
+                    x = AnimationUtils.easeOut(fadeStep, width) * width
+                    fadeStep += delta / 4F
+                    if (x >= width) {
+                        fadeState = FadeState.STAY
+                        stay = delay
+                    }
+                }
+                FadeState.STAY -> {
+                    stay -= delta
+                    if (stay <= 0) fadeState = FadeState.OUT
+                }
+                FadeState.OUT -> {
+                    x = AnimationUtils.easeOut(fadeStep, width) * width
+                    fadeStep -= delta / 4F
+                    if (x <= 0) fadeState = FadeState.END
+                }
+                else -> {}
+            }
         }
     }
-}

@@ -36,7 +36,6 @@ import kotlin.math.atan
 object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
 
     private val visibilityCheck by boolean("VisibilityCheck", false)
-    private val onlyAimbot by boolean("OnlyAimbot", false)
     private val infiniteRange by boolean("InfiniteRange", false)
     private val range by float("Range", 16F, 1F..32767F)
     private val horizontalAim by boolean("HorizontalAim", true)
@@ -166,22 +165,6 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
 
             if (random.nextBoolean()) {
                 thePlayer.fixedSensitivityPitch += ((random.nextGaussian() - 0.5f) * pitchJitterMultiplier).toFloat()
-            }
-        }
-
-        // Auto Right Click
-        if (!onlyAimbot && mc.currentScreen == null && !mc.playerController.isHittingBlock) {
-            if (AutoClicker.handleEvents()) {
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastClick.get() >= 50L) { // 50ms for 20 CPS
-                    if (clickCount.get() < 20) {
-                        mc.playerController.attackEntity(thePlayer, entity)
-                        clickCount.incrementAndGet()
-                        lastClick.set(currentTime)
-                    } else {
-                        clickCount.set(0)
-                    }
-                }
             }
         }
     }

@@ -1,30 +1,39 @@
 package net.ccbluex.liquidbounce.features.module.modules.player
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
+import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.autoBlock
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.slotChangeAutoBlock
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance
+import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.StuckUtils
 import net.ccbluex.liquidbounce.utils.packet.BlinkUtils
+import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Items
 import net.minecraft.network.play.client.*
 import net.minecraft.util.BlockPos
+import net.minecraft.util.ResourceLocation
+import net.minecraftforge.fml.common.Mod.EventHandler
 import net.minecraftforge.fml.common.gameevent.TickEvent
 
-object GApple : Module("Gapple",Category.PLAYER) {
+object GApple : Module("GApple",Category.PLAYER) {
     private val heal by int("health", 20, 0..40)
     private val sendDelay by int("SendDelay",3,1..10)
     private val sendOnceTicks = 1;
     private val stuck by boolean("Stuck",false)
     private val stopMove by boolean("StopMove",false)
 
-    var noCancelC02 = false//
-    var noC02 = false//这俩玩意本来是备着花雨庭更新grim搞得，结果就是他一直不更新，然后目前lastest Grim也绕不过。
+    var noCancelC02 by boolean("NoCancelC02", false)
+    var noC02 by boolean("NoC02", false) //这俩玩意本来是备着花雨庭更新grim搞得，结果就是他一直不更新，然后目前lastest Grim也绕不过。
 
     private val autoGapple by boolean("AutoGapple", false)
 
@@ -62,6 +71,7 @@ object GApple : Module("Gapple",Category.PLAYER) {
         if (stuck) {
             StuckUtils.stopStuck()
         }
+
     }
     @EventTarget
     fun onTick(event:TickEvent){
@@ -74,7 +84,7 @@ object GApple : Module("Gapple",Category.PLAYER) {
                 slot = InventoryUtils.findItem(36, 45, Items.golden_apple)!!
 
                 if (slot != -1) {
-                    slot = slot - 36
+                    slot -= 36
                 }
             }
 
@@ -127,7 +137,11 @@ object GApple : Module("Gapple",Category.PLAYER) {
                         ).stack
                     ), false
                 )
-                sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -2, -1), 255, null, 0.0f, 0.0f, 0.0f), false)
+                if (ViaLoadingBase.getInstance().targetVersion.newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
+                    sendPacket(
+                        C08PacketPlayerBlockPlacement(BlockPos(-1, -2, -1), 255, null, 0.0f, 0.0f, 0.0f), false
+                    )
+                }
                 BlinkUtils.stopBlink()
                 println("Stop!")
 //                chat("吃完了")
@@ -139,7 +153,7 @@ object GApple : Module("Gapple",Category.PLAYER) {
                     slot = InventoryUtils.findItem(36, 45, Items.golden_apple) ?: -1;
 
                     if (slot != -1) {
-                        slot -= 36
+                        slot = slot - 36
                     }
                 } else {
                     state = false

@@ -11,6 +11,7 @@ import net.ccbluex.liquidbounce.event.*;
 import net.ccbluex.liquidbounce.features.module.modules.combat.AutoClicker;
 import net.ccbluex.liquidbounce.features.module.modules.combat.TickBase;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.AbortBreaking;
+import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.MultiActions;
 import net.ccbluex.liquidbounce.features.module.modules.world.FastPlace;
 import net.ccbluex.liquidbounce.features.module.modules.world.LegitScaffold;
@@ -179,6 +180,7 @@ public abstract class MixinMinecraft {
     @Inject(method = "runTick", at = @At("TAIL"))
     private void injectEndTickEvent(CallbackInfo ci) {
         EventManager.INSTANCE.callEvent(new TickEndEvent());
+        Disabler.INSTANCE.releasePost();
     }
 
     @Inject(method = "runTick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;joinPlayerCounter:I", ordinal = 0))

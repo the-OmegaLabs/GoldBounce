@@ -13,6 +13,7 @@ import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.block.BlockUtils
+import net.ccbluex.liquidbounce.utils.extensions.floorInt
 import net.ccbluex.liquidbounce.utils.misc.FallingPlayer
 import net.minecraft.block.BlockAir
 import net.minecraft.network.play.client.C03PacketPlayer
@@ -20,8 +21,13 @@ import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
 
 object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
-    private val modeValue = ListValue("Mode", arrayOf("Blink", "TPBack", "MotionFlag", "PacketFlag", "GroundSpoof", "OldHypixel", "Jartex", "OldCubecraft", "Packet", "Watchdog", "Vulcan", "Freeze"), "Blink")
+    private val modeValue = ListValue("Mode", arrayOf("Blink", "TPBack", "MotionFlag", "PacketFlag", "GroundSpoof",
+        "OldHypixel", "Jartex", "OldCubecraft", "Packet", "Watchdog", "Vulcan", "Freeze", "NCPBounce", "MatrixGlide",
+        "VerusTeleport", "AACFlag", "VelocityCancel"), "Blink")
     private val maxFallDistValue = FloatValue("MaxFallDistance", 20F, 1F..10F)
+    private val checkDepthValue = IntegerValue("CheckDepth", 5, 3..10) { !modeValue.equals("Freeze") }
+    private val glideSpeedValue = FloatValue("GlideSpeed", 0.2f, 0.05f..1f) { modeValue.equals("MatrixGlide") }
+    private val teleportHeightValue = FloatValue("TeleportHeight", 1.5f, 0f..5f) { modeValue.equals("VerusTeleport") }
     private val resetMotionValue = BoolValue("ResetMotion", false) { modeValue.equals("Blink") }
     private val startFallDistValue = FloatValue("BlinkStartFallDistance", 5F,0F..2F ) { modeValue.equals("Blink") }
     private val autoScaffoldValue = BoolValue("BlinkAutoScaffold", true) { modeValue.equals("Blink") }
@@ -187,12 +193,12 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
                 }
                 lastRecY = mc.thePlayer.posY
             }
-            
-            "packet" -> { 
+
+            "packet" -> {
                 if (checkVoid()) {
                     canCancel = true
                 }
-                    
+
                 if (canCancel) {
                     if (mc.thePlayer.onGround) {
                         for (packet in packetCache) {
@@ -203,9 +209,49 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
                     canCancel = false
                 }
             }
-
+            "ncpbounce" -> {
+                if (checkVoid() && mc.thePlayer.fallDistance > maxFallDistValue.get()) {
+                    mc.thePlayer.motionY = 0.42 + (0.1 * mc.thePlayer.fallDistance.coerceAtMost(5f))
+                    mc.thePlayer.fallDistance = 0f
+                }
+            }
+            "matrixglide" -> {
+                if (checkVoid()) {
+                    mc.thePlayer.motionY = -glideSpeedValue.get().toDouble()
+                    mc.thePlayer.jumpMovementFactor = glideSpeedValue.get() * 0.6f
+                }
+            }
+            "verusteleport" -> {
+                if (checkVoid() && mc.thePlayer.fallDistance > maxFallDistValue.get()) {
+                    mc.thePlayer.setPositionAndUpdate(
+                        mc.thePlayer.posX, 
+                        mc.thePlayer.posY + teleportHeightValue.get(), 
+                        mc.thePlayer.posZ
+                    )
+                    mc.thePlayer.fallDistance = 0f
+                }
+            }
+            "aacflag" -> {
+                if (checkVoid() && mc.thePlayer.ticksExisted % 3 == 0) {
+                    PacketUtils.sendPacket(
+                        C03PacketPlayer.C04PacketPlayerPosition(
+                            mc.thePlayer.posX,
+                            mc.thePlayer.posY + 1e-6,
+                            mc.thePlayer.posZ,
+                            false
+                        )
+                    )
+                }
+            }
+            "velocitycancel" -> {
+                if (checkVoid() && mc.thePlayer.fallDistance > maxFallDistValue.get()) {
+                    mc.thePlayer.motionY = 0.0
+                    mc.thePlayer.setPosition(mc.thePlayer.posX, mc.thePlayer.posY.floorInt().toDouble(), mc.thePlayer.posZ)
+                }
+            }
             "blink" -> {
                 if (!blink) {
+                    val safe = checkSafeLanding()
                     val collide = FallingPlayer(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, 0.0, 0.0, 0.0, 0F, 0F, 0F).findCollision(60)
                     if (canBlink && (collide == null || (mc.thePlayer.posY - collide.pos.y)> startFallDistValue.get())) {
                         posX = mc.thePlayer.posX
@@ -266,7 +312,20 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
         }
         return dangerous
     }
-
+    private fun checkSafeLanding(): Boolean {
+        val fallingPlayer = FallingPlayer(
+            mc.thePlayer.posX,
+            mc.thePlayer.posY,
+            mc.thePlayer.posZ,
+            mc.thePlayer.motionX,
+            mc.thePlayer.motionY,
+            mc.thePlayer.motionZ,
+            mc.thePlayer.rotationYaw,
+            mc.thePlayer.moveStrafing,
+            mc.thePlayer.moveForward
+        )
+        return fallingPlayer.findCollision(20) != null
+    }
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val packet = event.packet
@@ -297,13 +356,13 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
                     event.cancelEvent()
                 }
             }
-            
+
             "packet" -> {
                 if (canCancel && (packet is C03PacketPlayer)) {
                     packetCache.add(packet)
                     event.cancelEvent()
                 }
-                
+
                 if (packet is S08PacketPlayerPosLook) {
                     packetCache.clear()
                     canCancel = false

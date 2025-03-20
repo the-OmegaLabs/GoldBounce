@@ -104,16 +104,49 @@ object GORageTriggerBot : Module("GORageTriggerBot", Category.COMBAT, hideModule
     }
 
     private fun isTargetInCrosshair(target: EntityLivingBase, player: EntityPlayer): Boolean {
-        // This checks if the target is in the player's crosshair
-        val playerYaw = player.rotationYaw
-        val playerPitch = player.rotationPitch
-        val targetPosition = Vec3(target.posX, target.posY, target.posZ)
+        // 获取玩家眼睛位置（更精确的视角起点）
+        val playerPos = player.getPositionEyes(1f)
+        // 获取目标眼睛位置（更精确的命中点）
+        val targetPos = Vec3(
+            target.posX,
+            target.posY + target.eyeHeight,
+            target.posZ
+        )
 
-        // We check if the target is close enough to the player's viewing direction
-        val targetVector = targetPosition.subtract(player.positionVector)
-        val angle = Math.acos(targetVector.normalize().dotProduct(player.getLookVec()))
+        // 计算相对位置向量
+        val deltaX = targetPos.xCoord - playerPos.xCoord
+        val deltaY = targetPos.yCoord - playerPos.yCoord
+        val deltaZ = targetPos.zCoord - playerPos.zCoord
 
-        // You can adjust the angle threshold here to determine how precise the target has to be
-        return angle < Math.toRadians(5.0) // 5 degree tolerance
-    }
-}
+        // 计算水平距离（XZ平面投影）
+        val horizontalDist = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
+
+        // 计算目标方向的yaw角度（水平方向）
+        val yawToTarget = Math.toDegrees(Math.atan2(deltaZ, deltaX)).toFloat() - 90.0f
+
+        // 规范化角度到-180～180范围
+        val normalizedYaw = (yawToTarget % 360.0f).let {
+            when {
+                it > 180.0f -> it - 360.0f
+                it < -180.0f -> it + 360.0f
+                else -> it
+            }
+        }
+
+        // 计算目标方向的pitch角度（垂直方向）
+        val pitchToTarget = -Math.toDegrees(Math.atan2(deltaY, horizontalDist)).toFloat()
+
+        // 计算角度差异
+        val yawDiff = Math.abs(normalizedYaw - player.rotationYaw)
+        val pitchDiff = Math.abs(pitchToTarget - player.rotationPitch)
+
+        // 处理角度环绕问题（比如从-180到180的跳跃）
+        val wrappedYawDiff = if (yawDiff > 180.0f) 360.0f - yawDiff else yawDiff
+
+        // 设置角度阈值（可根据需要调整，2度更精准）
+        val yawThreshold = 2.0f
+        val pitchThreshold = 2.0f
+
+        // 双重角度校验
+        return wrappedYawDiff <= yawThreshold && pitchDiff <= pitchThreshold
+    }}

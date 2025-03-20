@@ -46,8 +46,8 @@ class GuiMainMenu : GuiScreen() {
             3F
         )
 
-        Fonts.fontBold180.drawCenteredString("Augustus", width / 2F, height / 8F, 16433213, true)
-        Fonts.font35.drawCenteredString("b91", width / 2F + 148, height / 8F + Fonts.font35.fontHeight, 0xffffff, true)
+        Fonts.fontBold180.drawCenteredString("金振口服液", width / 2F, height / 8F, 16433213, true)
+        Fonts.font35.drawCenteredString("b07", width / 2F + 148, height / 8F + Fonts.font35.fontHeight, 0xffffff, true)
 
         super.drawScreen(mouseX, mouseY, partialTicks)
     }
