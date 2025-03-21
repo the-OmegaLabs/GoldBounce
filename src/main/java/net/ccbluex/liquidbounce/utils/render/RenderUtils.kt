@@ -6,24 +6,29 @@
 package net.ccbluex.liquidbounce.utils.render
 
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.ImageUtils
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.GLAllocation
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.*
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.util.*
+import javax.vecmath.Vector3d
+import javax.vecmath.Vector4d
 import kotlin.math.*
-import net.ccbluex.liquidbounce.utils.ImageUtils
-import net.minecraft.client.renderer.GlStateManager
-import org.lwjgl.opengl.GL11
 
 public object RenderUtils : MinecraftInstance() {
     public val glCapMap = mutableMapOf<Int, Boolean>()
