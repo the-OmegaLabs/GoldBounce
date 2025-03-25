@@ -14,16 +14,22 @@ import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.block.BlockUtils
 import net.ccbluex.liquidbounce.utils.extensions.floorInt
+import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.misc.FallingPlayer
 import net.minecraft.block.BlockAir
+import net.minecraft.entity.Entity
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.init.Items
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
+import net.minecraft.world.WorldSettings
+import kotlin.text.get
 
 object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
     private val modeValue = ListValue("Mode", arrayOf("Blink", "TPBack", "MotionFlag", "PacketFlag", "GroundSpoof",
         "OldHypixel", "Jartex", "OldCubecraft", "Packet", "Watchdog", "Vulcan", "Freeze", "NCPBounce", "MatrixGlide",
-        "VerusTeleport", "AACFlag", "VelocityCancel"), "Blink")
+        "VerusTeleport", "AACFlag", "VelocityCancel", "SearchPearl"), "Blink")
     private val maxFallDistValue = FloatValue("MaxFallDistance", 20F, 1F..10F)
     private val checkDepthValue = IntegerValue("CheckDepth", 5, 3..10) { !modeValue.equals("Freeze") }
     private val glideSpeedValue = FloatValue("GlideSpeed", 0.2f, 0.05f..1f) { modeValue.equals("MatrixGlide") }
@@ -41,7 +47,7 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
     private var canSpoof = false
     private var tried = false
     private var flagged = false
-
+    private var freeze = false
     private var posX = 0.0
     private var posY = 0.0
     private var posZ = 0.0
@@ -106,7 +112,20 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
                     canSpoof = mc.thePlayer.fallDistance > maxFallDistValue.get()
                 }
             }
+            "searchpearl" -> {
+                if (mc.currentScreen != null || mc.playerController.currentGameType == WorldSettings.GameType.SPECTATOR
+                    || mc.playerController.currentGameType == WorldSettings.GameType.CREATIVE) return
+                val entity = getClosestEntity()
+                val distance = if (entity != null) mc.thePlayer.getDistanceToEntity(entity) else 0F
+                freeze = distance > 4 || entity == null
 
+                val pearl = InventoryUtils.findItem(36, 45, Items.ender_pearl)
+                if (mc.thePlayer.fallDistance > maxFallDistValue.get() && pearl?.let { (it - 36) > -1 } == true) {
+                    if (!voidOnlyValue.get() || checkVoid()) {
+                        pearl.let { mc.thePlayer.inventory.currentItem = it - 36 }
+                    }
+                }
+            }
             "vulcan" -> {
                 if (mc.thePlayer.onGround && BlockUtils.getBlock(BlockPos(mc.thePlayer.posX, mc.thePlayer.posY - 1.0, mc.thePlayer.posZ)) !is BlockAir) {
                     posX = mc.thePlayer.prevPosX
@@ -301,7 +320,20 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
             }
         }
     }
-
+    private fun getClosestEntity(): Entity? {
+        val filteredEntities = mutableListOf<Entity>()
+        for (entity in mc.theWorld.loadedEntityList) {
+            if (entity is EntityPlayer && entity !== mc.thePlayer) {
+                filteredEntities.add(entity)
+            }
+        }
+        filteredEntities.sortWith(
+            compareBy(
+                { mc.thePlayer.getDistanceToEntity(it) },
+                { mc.thePlayer.getDistanceToEntity(it) })
+        )
+        return filteredEntities.lastOrNull()
+    }
     private fun checkVoid(): Boolean {
         var i = (-(mc.thePlayer.posY-1.4857625)).toInt()
         var dangerous = true

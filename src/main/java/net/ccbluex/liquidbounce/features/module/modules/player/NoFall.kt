@@ -27,6 +27,9 @@ import net.minecraft.util.AxisAlignedBB.fromBounds
 import net.minecraft.util.BlockPos
 
 object NoFall : Module("NoFall", Category.PLAYER, hideModule = false) {
+    private var needSpoof = false
+    private var packetModify = false
+    private var packet1Count = 0
     private val noFallModes = arrayOf(
 
         // Main
@@ -53,6 +56,7 @@ object NoFall : Module("NoFall", Category.PLAYER, hideModule = false) {
         // Other Server
         Spartan,
         CubeCraft,
+        VerusNofall
     )
 
     private val modes = noFallModes.map { it.modeName }.toTypedArray()
@@ -93,6 +97,9 @@ object NoFall : Module("NoFall", Category.PLAYER, hideModule = false) {
 
     override fun onEnable() {
         modeModule.onEnable()
+        needSpoof = false
+        packetModify = false
+        packet1Count = 0
     }
 
     override fun onDisable() {
