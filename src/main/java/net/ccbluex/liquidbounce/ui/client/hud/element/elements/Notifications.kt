@@ -86,31 +86,9 @@ class Notification(private val message: String, private val delay: Float = 60F) 
         resetColor()
         glColor4f(1f, 1f, 1f, 1f)
 
-        // Render blur background
-        RenderUtils.renderBlurBackground(-x + textLength + 8, offsetY - 20, -x, offsetY, 8f)
-        
-        // Draw gradient border
-        RenderUtils.drawGradientBorder(
-            -x + textLength + 8, offsetY - 20, 
-            -x, offsetY,
-            2f,
-            Color(255, 215, 0).rgb to Color(255, 87, 34).rgb,
-            0.6f
-        )
-        
-        // Draw notification content
-        Fonts.font35.drawString(message, -x + 8, offsetY - 14F, Int.MAX_VALUE)
-        
-        // Draw particle effect
-        if (fadeState == FadeState.OUT) {
-            RenderUtils.drawParticles(
-                -x + textLength + 8, offsetY - 20,
-                -x, offsetY,
-                Color(255, 215, 0).rgb,
-                deltaTime
-            )
-        }
-
+        drawRect(-x + 8 + textLength, offsetY, -x, offsetY - 20F, Color.BLACK.rgb)
+        drawRect(-x, offsetY, -x - 5, offsetY - 20F, Color(255, 255, 0).rgb)
+        Fonts.font35.drawString(message, -x + 4, offsetY - 14F, Int.MAX_VALUE)
         // Animation
         val delta = deltaTime
         val width = textLength + 8F
