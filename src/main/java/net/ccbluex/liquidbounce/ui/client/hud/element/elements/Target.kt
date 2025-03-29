@@ -18,6 +18,7 @@ import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawScaledCustomSizeModalRect
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtil
 import net.ccbluex.liquidbounce.value.*
@@ -32,6 +33,7 @@ import java.awt.Color
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -54,13 +56,10 @@ class Target : Element() {
         get() = alphaBorder > 0 || alphaBackground > 0 || alphaText > 0
 
     private var delayCounter = 0
-     // 新增配置选项
     private val mode by choices("Mode", arrayOf("New", "Classic", "Classic2", "Hide"), "New")
     private val roundedValue by boolean("Rounded", false)
     private val followTarget by boolean("Follow Target", false)
     private var resetPos by boolean("Reset Position", false)
-
-    // 原有配置选项
     private val textRed by int("Text-R", 255, 0..255)
     private val textGreen by int("Text-G", 255, 0..255)
     private val textBlue by int("Text-B", 255, 0..255)
@@ -68,11 +67,6 @@ class Target : Element() {
     private val absorption by boolean("Absorption", true)
     private val healthFromScoreboard by boolean("HealthFromScoreboard", true)
     private val vanishDelay by int("VanishDelay", 300, 0..500)
-    // 在配置选项区域添加
-    private val showDistance by boolean("ShowDistance", true) { mode == "Classic2" }
-    private val verticalHealth by boolean("VerticalHealth", true) { mode == "Classic2" }
-
-    // 新增状态变量
     private var posX = -1.0
     private var posY = -1.0
     private var ticksSinceAttack = 0
@@ -206,9 +200,21 @@ class Target : Element() {
             // 左侧垂直血条
             val barHeight = (40 * healthPercent).toInt()
             RenderUtils.drawRoundedRect(5f, 5f, 8f, 40f, 2, Color(80, 80, 80).rgb.toFloat())
-            RenderUtils.drawRoundedRect(5f, 5f + (40 - barHeight), 8f, barHeight.toFloat(), 2,
-                ColorUtil.interpolateColor(Color.RED, Color.GREEN, healthPercent).toFloat()
-            )
+            // 动态粒子效果
+            val particleTime = System.currentTimeMillis() % 2000 / 2000f
+            val particleCount = (10 * (1 - abs(particleTime - 0.5) * 2)).toInt()
+            repeat(particleCount) {
+                val offsetX = (5 + 8 + 2 + it * 3).toFloat()
+                val offsetY = 5f + (40 - barHeight) + barHeight * particleTime
+                val particleColor = ColorUtils.rainbow((particleTime * 360 + it * 30).toLong())
+                drawRoundedRect(offsetX, offsetY, 2f, 2f, 1, particleColor.rgb.toFloat())
+            }
+
+            // 抗锯齿处理
+            glEnable(GL_TEXTURE_2D)
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
             // 玩家信息
             mc.netHandler.getPlayerInfo(player.uniqueID)?.let {
@@ -228,12 +234,21 @@ class Target : Element() {
     }
 
      private fun renderNewMode() {
-        (target as? EntityPlayer)?.let { player ->
+        target?.let { player ->
             val healthPercent = getHealth(target!!, healthFromScoreboard, absorption) / target!!.maxHealth
             val color = ColorUtils.rainbow()
 
-            // 背景
-            RenderUtils.drawRoundedRect(0f, 0f, 162f, 40f, 10, Color(0, 0, 0, 150).rgb.toFloat())
+            RenderUtils.drawRoundedRect(0f, 0f, 162f, 40f, 10, Color(30, 30, 30, 180).rgb.toFloat())
+            val borderProgress = (System.currentTimeMillis() % 2000) / 2000f
+            val borderColor = ColorUtil.interpolateColor(
+                ColorUtils.rainbow((borderProgress * 360).toLong()),
+                ColorUtils.rainbow(((borderProgress + 0.5f) % 1f * 360).toLong()),
+                MathHelper.sin(borderProgress * Math.PI.toFloat() * 2).coerceIn(0.4f, 0.6f)
+            )
+            
+            RenderUtil.drawRoundedRectBorder(38f, 21f, 137f, 34f, 4f, Color(borderColor).darker().rgb, 3f)
+            RenderUtil.drawRoundedRectBorder(39f, 22f, 136f, 33f, 3f, Color(60, 60, 60, 200).rgb, 2f)
+            RenderUtil.drawRoundedRectBorder(40f, 23f, 40f + 95f, 32f, 3f, Color(Color(borderColor).red, Color(borderColor).green, Color(borderColor).blue, 180).rgb, 1.5f)
 
             // 皮肤
             mc.netHandler.getPlayerInfo(player.uniqueID)?.let {

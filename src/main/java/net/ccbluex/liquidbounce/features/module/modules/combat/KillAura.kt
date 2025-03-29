@@ -33,6 +33,7 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.toRotation
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
+import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -217,6 +218,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         false
     ) { raycastValue.isActive() && options.rotationsActive }
     private val livingRaycast by boolean("LivingRayCast", true) { raycastValue.isActive() && options.rotationsActive }
+
+    // 新增转头模拟选项
+    private val smoothRotation by boolean("SmoothRotation", true) { options.rotationsActive }
+    private val randomRotation by boolean("RandomRotation", false) { options.rotationsActive }
 
     // Hit delay
     private val useHitDelay by boolean("UseHitDelay", false)
@@ -678,7 +683,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      * Check if [entity] is selected as enemy with current target options and other modules
      */
     private fun isEnemy(entity: Entity?): Boolean {
-        return isSelected(entity, true)
+        return isSelected(entity, true) && (entity !is EntityArmorStand) // 例如忽略盔甲架
     }
 
     /**
@@ -802,7 +807,25 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             return false
         }
 
-        setTargetRotation(rotation, options = options)
+        // 新增平滑转头和随机转头逻辑
+        if (smoothRotation) {
+            val currentRotation = currentRotation ?: mc.thePlayer.rotation
+            val yawDifference = rotation.yaw - currentRotation.yaw
+            val pitchDifference = rotation.pitch - currentRotation.pitch
+            val yawStep = yawDifference / 10
+            val pitchStep = pitchDifference / 10
+
+            for (i in 0 until 10) {
+                setTargetRotation(Rotation(currentRotation.yaw + yawStep * i, currentRotation.pitch + pitchStep * i), options = options)
+                Thread.sleep(50) // 模拟平滑转头
+            }
+        } else if (randomRotation) {
+            val randomYaw = rotation.yaw + RandomUtils.nextDouble(-5.0, 5.0)
+            val randomPitch = rotation.pitch + RandomUtils.nextDouble(-5.0, 5.0)
+            setTargetRotation(Rotation(randomYaw.toFloat(), randomPitch.toFloat()), options = options)
+        } else {
+            setTargetRotation(rotation, options = options)
+        }
 
         player.setPosAndPrevPos(currPos, oldPos)
 

@@ -23,6 +23,7 @@ import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14
+import org.lwjgl.opengl.GL20
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
@@ -67,6 +68,7 @@ public object RenderUtils : MinecraftInstance() {
         quickDrawRect(-7.3f, -20.3f, -4f, -20f)
         glEndList()
     }
+
 
     fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean) {
         val renderManager = mc.renderManager
