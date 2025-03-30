@@ -90,13 +90,7 @@ class Notification(private val message: String, private val delay: Float = 60F) 
         drawRect(-x, offsetY, -x - 5, offsetY - 20F, Color(255, 255, 0).rgb)
         Fonts.font35.drawString(message, -x + 4, offsetY - 14F, Int.MAX_VALUE)
         // Animation
-        val delta = deltaTime
-        val width = textLength + 8F
-
-        when (fadeState) {
-            FadeState.IN -> {
-                if (x < width) {
-                    x = AnimationUtils.easeOut(fadeStep, width) * width
+        val delta = deltaTimet(fadeStep, width) * width
                     fadeStep += delta / 4F
                 }
                 if (x >= width) {
