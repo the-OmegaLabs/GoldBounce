@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
+import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
@@ -14,6 +15,7 @@ import net.ccbluex.liquidbounce.lang.translation
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Arraylist
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notifications
 import net.ccbluex.liquidbounce.utils.ClassUtils
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
@@ -108,11 +110,17 @@ open class Module constructor(
             if (!isStarting) {
                 synchronized(mc.soundHandler) {
                     mc.soundHandler.playSound(
-                        PositionedSoundRecord.create(ResourceLocation("random.click"), 1F)
+                        PositionedSoundRecord.create(
+                            ResourceLocation(
+                                "liquidbounce",
+                                if (value) "sounds/enable.wav" else "sounds/disable.wav"
+                            ),
+                            1F
+                        )
                     )
                 }
                 addNotification(
-                    Notification(translation("notification.module" + if (value) "Enabled" else "Disabled", getName()))
+                    Notification(getName(),2000F,if (value) "启用了" else "禁用了", if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS)
                 )
             }
 

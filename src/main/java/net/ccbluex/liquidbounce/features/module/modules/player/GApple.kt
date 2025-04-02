@@ -37,7 +37,7 @@ object GApple : Module("GApple", Category.PLAYER) {
     private val noC02 by BoolValue("NoC02", false)
 
     // State
-    private var eating = false
+    var eating = false
     private var movingPackets = 0
     private var slot = -1
     private val packets = LinkedList<Packet<*>>()
