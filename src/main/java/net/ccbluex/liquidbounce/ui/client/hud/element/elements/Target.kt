@@ -6,6 +6,8 @@
 package net.ccbluex.liquidbounce.ui.client.hud.element.elements
 
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
+import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
+import net.ccbluex.liquidbounce.features.module.modules.misc.Teams
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.utils.skid.slack.RenderUtil
@@ -13,6 +15,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.EntityUtils
 import net.ccbluex.liquidbounce.utils.EntityUtils.getHealth
 import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
@@ -74,9 +77,26 @@ class Target : Element() {
     private val decimalFormat = DecimalFormat("##0.00", DecimalFormatSymbols(Locale.ENGLISH))
     private var easingHealth = 0F
     private var lastTarget: EntityLivingBase? = null
-    fun getTargetEntity(): EntityLivingBase{
-        val target = KillAura.target ?: if (delayCounter >= vanishDelay) mc.thePlayer else lastTarget ?: mc.thePlayer
-        return target as EntityLivingBase
+    private fun isValidTarget(entity: EntityLivingBase?): Boolean {
+        if (entity == null) return false
+
+        // 使用Target模块的过滤逻辑
+        return when {
+            entity !is EntityPlayer -> EntityUtils.targetMobs ||
+                EntityUtils.targetAnimals
+            else -> EntityUtils.targetPlayer &&
+                    !Teams.isInYourTeam(entity) &&
+                    !AntiBot.isBot(entity)
+        }
+    }
+    fun getTargetEntity(): EntityLivingBase {
+        val baseTarget = KillAura.target ?: lastTarget ?: mc.thePlayer
+        return if (isValidTarget(baseTarget) || baseTarget == mc.thePlayer) {
+            baseTarget
+        } else {
+            lastTarget = null
+            mc.thePlayer
+        }
     }
     override fun drawElement(): Border {
         assumeNonVolatile = true
@@ -106,10 +126,14 @@ class Target : Element() {
         return Border(posX.toFloat(), posY.toFloat(), 162f, 50f)
     }
 
-    // 修改updateTarget()
     private fun updateTarget() {
         ticksSinceAttack++
-        target = ((KillAura.target as? EntityPlayer) ?: if (ticksSinceAttack > 20) null else lastTarget) as EntityPlayer?
+
+        // 获取KillAura目标并验证有效性
+        val auraTarget = KillAura.target
+        val currentTarget = if (isValidTarget(auraTarget)) auraTarget else null
+
+        target = currentTarget as? EntityPlayer
         target?.let { lastTarget = it }
     }
 

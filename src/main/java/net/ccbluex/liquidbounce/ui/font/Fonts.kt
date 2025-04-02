@@ -37,6 +37,9 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Harmony Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
+    @FontDetails(fontName = "notification60", fontSize = 30)
+    lateinit var notification60: GameFontRenderer;
+
     private val CUSTOM_FONT_RENDERERS = hashMapOf<FontInfo, FontRenderer>()
 
     fun loadFonts() {
@@ -47,6 +50,7 @@ object Fonts : MinecraftInstance() {
         font35 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 35))
         font40 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 40))
         fontBold180 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 180))
+        notification60 = GameFontRenderer(getFont("iconnovo.ttf", 30))
         try {
             CUSTOM_FONT_RENDERERS.clear()
             val fontsFile = File(fontsDir, "fonts.json")
