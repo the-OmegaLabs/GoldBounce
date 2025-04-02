@@ -54,6 +54,7 @@ import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import net.ccbluex.liquidbounce.utils.client.SysUtils
+import op.wawa.opacketfix.features.hytpacket.PacketManager
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
@@ -110,6 +111,7 @@ object LiquidBounce {
      * Execute if client will be started
      */
     fun startClient() {
+        PacketManager().init()
         isStarting = true
 
         LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
