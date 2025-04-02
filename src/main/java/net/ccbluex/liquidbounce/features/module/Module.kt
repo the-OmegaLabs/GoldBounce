@@ -108,12 +108,13 @@ open class Module constructor(
 
             // Play sound and add notification
             if (!isStarting) {
+                val soundPath = if (value) "sound/enable" else "sound/disable"
                 synchronized(mc.soundHandler) {
                     mc.soundHandler.playSound(
                         PositionedSoundRecord.create(
                             ResourceLocation(
                                 "liquidbounce",
-                                if (value) "sounds/enable.wav" else "sounds/disable.wav"
+                                soundPath
                             ),
                             1F
                         )

@@ -1,0 +1,12 @@
+{
+  "enable": {
+    "sounds": [
+      "liquidbounce:sound/enable"
+    ]
+  },
+  "disable": {
+    "sounds": [
+      "liquidbounce:sound/disable"
+    ]
+  }
+}
