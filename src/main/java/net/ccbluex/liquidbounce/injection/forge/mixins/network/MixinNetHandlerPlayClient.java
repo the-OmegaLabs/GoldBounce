@@ -14,6 +14,7 @@ import net.ccbluex.liquidbounce.features.module.modules.player.Blink;
 import net.ccbluex.liquidbounce.features.special.ClientFixes;
 import net.ccbluex.liquidbounce.ui.client.hud.HUD;
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification;
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notifications;
 import net.ccbluex.liquidbounce.utils.ClientUtils;
 import net.ccbluex.liquidbounce.utils.PacketUtils;
 import net.ccbluex.liquidbounce.utils.Rotation;
@@ -80,7 +81,7 @@ public abstract class MixinNetHandlerPlayClient {
                 if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                     chat("Cancelled too strong TNT explosion motion");
                 } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                    HUD.INSTANCE.addNotification(new Notification("Cancelled too strong TNT explosion motion", 1000F));
+                    HUD.INSTANCE.addNotification(new Notification("Cancelled too strong TNT explosion motion", 1000F, "提示", Notifications.SeverityType.INFO));
                 }
                 ci.cancel();
             }
@@ -97,7 +98,7 @@ public abstract class MixinNetHandlerPlayClient {
                 if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                     chat("Cancelled too strong TNT explosion strength");
                 } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                    HUD.INSTANCE.addNotification(new Notification("Cancelled too strong TNT explosion strength", 1000F));
+                    HUD.INSTANCE.addNotification(new Notification("Cancelled too strong TNT explosion strength", 1000F, "提示", Notifications.SeverityType.INFO));
                 }
                 ci.cancel();
             }
@@ -114,7 +115,7 @@ public abstract class MixinNetHandlerPlayClient {
                 if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                     chat("Cancelled too big TNT explosion radius");
                 } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                    HUD.INSTANCE.addNotification(new Notification("Cancelled too big TNT explosion radius", 1000F));
+                    HUD.INSTANCE.addNotification(new Notification("Cancelled too big TNT explosion radius",1000F, "提示", Notifications.SeverityType.INFO));
                 }
                 ci.cancel();
             }
@@ -127,7 +128,7 @@ public abstract class MixinNetHandlerPlayClient {
             if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                 chat("Limited too many particles");
             } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                HUD.INSTANCE.addNotification(new Notification("Limited too many particles", 1000F));
+                HUD.INSTANCE.addNotification(new Notification("Limited too many particles",1000F, "提示", Notifications.SeverityType.INFO));
             }
             return 100;
         }
@@ -140,7 +141,7 @@ public abstract class MixinNetHandlerPlayClient {
             if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                 chat("Limited too fast particles speed");
             } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                HUD.INSTANCE.addNotification(new Notification("Limited too fast particles speed", 1000F));
+                HUD.INSTANCE.addNotification(new Notification("Limited too fast particles speed",1000F, "提示", Notifications.SeverityType.INFO));
             }
             return 5f;
         }
@@ -158,7 +159,7 @@ public abstract class MixinNetHandlerPlayClient {
                     if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                         chat("Limited too many arrows spawned");
                     } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                        HUD.INSTANCE.addNotification(new Notification("Limited too many arrows spawned", 1000F));
+                        HUD.INSTANCE.addNotification(new Notification("Limited too many arrows spawned", 1000F, "提示", Notifications.SeverityType.INFO));
                     }
                     return -1;
                 }
@@ -171,7 +172,7 @@ public abstract class MixinNetHandlerPlayClient {
                     if (AntiExploit.INSTANCE.getWarn().equals("Chat")) {
                         chat("Limited too many items dropped");
                     } else if (AntiExploit.INSTANCE.getWarn().equals("Notification")) {
-                        HUD.INSTANCE.addNotification(new Notification("Limited too many items dropped", 1000F));
+                        HUD.INSTANCE.addNotification(new Notification("Limited too many items dropped", 1000F, "提示", Notifications.SeverityType.INFO));
                     }
                     return -1;
                 }

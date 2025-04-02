@@ -9,7 +9,6 @@ import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.glGetFloat
-import org.lwjgl.opengl.GL11.glGetFloatv
 import org.lwjgl.util.vector.Matrix4f
 import org.lwjgl.util.vector.Vector2f
 import org.lwjgl.util.vector.Vector3f
@@ -20,7 +19,7 @@ object WorldToScreen : MinecraftInstance() {
     fun getMatrix(matrix: Int): Matrix4f {
         val floatBuffer = BufferUtils.createFloatBuffer(16)
 
-        glGetFloatv(matrix, floatBuffer)
+        glGetFloat(matrix, floatBuffer)
         floatBuffer.flip()  // 确保缓冲区准备就绪
 
         return Matrix4f().load(floatBuffer) as Matrix4f
