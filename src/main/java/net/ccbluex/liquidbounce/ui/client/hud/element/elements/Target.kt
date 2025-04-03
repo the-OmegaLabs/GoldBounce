@@ -59,7 +59,11 @@ class Target : Element() {
         get() = alphaBorder > 0 || alphaBackground > 0 || alphaText > 0
 
     private var delayCounter = 0
-    private val mode by choices("Mode", arrayOf("New", "Classic", "Classic2", "Hide"), "New")
+    private val mode by choices("Mode", arrayOf("New", "Classic", "Classic2", "Legacy", "Hide"), "New")
+    private val targetHudXPos by float("X-Offset", 0f, -200f..200f) {mode=="Legacy"}
+    private val targetHudYPos by float("Y-Offset", 0f, -200f..200f) {mode=="Legacy"}
+    private val healthColorMode by choices("HealthColor", arrayOf("Dynamic", "Static"), "Dynamic")  {mode=="Legacy"}
+
     private val roundedValue by boolean("Rounded", false)
     private val followTarget by boolean("Follow Target", false)
     private var resetPos by boolean("Reset Position", false)
@@ -119,11 +123,17 @@ class Target : Element() {
             "classic" -> renderClassicMode()
             "classic2" -> renderClassic2Mode()
             "new" -> renderNewMode()
+            "legacy" -> renderLegacyMode()
         }
 
         glPopMatrix()
 
         return Border(posX.toFloat(), posY.toFloat(), 162f, 50f)
+    }
+    private fun updateAnim(targetHealth: Float) {
+        val animationSpeed = 0.3f
+        easingHealth += (targetHealth - easingHealth) * animationSpeed
+        easingHealth = easingHealth.coerceIn(0f, targetHealth.coerceAtLeast(0f))
     }
 
     private fun updateTarget() {
@@ -213,6 +223,80 @@ class Target : Element() {
             )
         }
     }
+    private fun renderLegacyMode() {
+        val sr = ScaledResolution(mc)
+        val xPos = (sr.scaledWidth / 2f) - 214f + targetHudXPos
+        val yPos = (sr.scaledHeight / 2f) - 90f + targetHudYPos
+        val color = target?.let {
+            if (it.hurtTime > 0) Color(
+                255,
+                (255 + -(target!!.hurtTime * 20)).coerceAtMost(255),
+                (255 + -(target!!.hurtTime * 20)).coerceAtMost(255)
+            ) else Color.WHITE
+        }
+        getTargetEntity().takeIf { it != mc.thePlayer }?.let { entity ->
+            // 生命值计算逻辑
+            val decimalFormat = DecimalFormat("##0.0", DecimalFormatSymbols(Locale.ENGLISH))
+            val healthString = decimalFormat.format(entity.health)
+
+            // 动态更新渐变动画
+            if (easingHealth < 0 || easingHealth > entity.maxHealth || abs(easingHealth - entity.health) < 0.01) {
+                easingHealth = entity.health
+            }
+            updateAnim(entity.health)
+
+            // 主背景绘制
+            drawRoundedRect(xPos - 3f, yPos + 1f, 117f, 38.5f, 4, Color(0, 0, 0, 120).rgb.toFloat())
+
+            // 动态血条颜色计算
+            val healthColor = when(healthColorMode) {
+                "Dynamic" -> {
+                    var colorValue = 91
+                    repeat(8) { colorValue += entity.health.toInt() }
+                    Color(245, colorValue.coerceAtMost(255), 1)
+                }
+                else -> Color(245, 150, 1) // 静态颜色
+            }
+
+            // 血条绘制
+            val healthLength = (entity.health / entity.maxHealth).coerceIn(0f, 1f)
+            drawRoundedRect(
+                xPos + 36f,
+                yPos + 26.5f,
+                (36f + (easingHealth / entity.maxHealth) * 74f),
+                9.5f,
+                3,
+                healthColor.rgb.toFloat()
+            )
+
+            // 文字渲染
+            Fonts.font40.drawString(
+                healthString,
+                xPos + 64.5f,
+                yPos + 27f,
+                healthColor.rgb,
+                false
+            )
+
+            // 头像框
+            drawRoundedRect(xPos - 1f, yPos + 3f, 34f, 34f, 4, Color(0, 0, 0).rgb.toFloat())
+
+            // 头像绘制
+            mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+                color?.let { it1 -> drawHead(it.locationSkin, xPos.toInt(), yPos.toInt() + 4, 32, 32, it1) }
+            } ?: run {
+                arrayOf("No", "Image", "Found").forEachIndexed { index, text ->
+                    Fonts.font35.drawString(
+                        text,
+                        xPos + 5f - (index * 2f),
+                        yPos + 10f + (index * 9f),
+                        Color(120, 120, 120).rgb
+                    )
+                }
+            }
+        }
+    }
+
     private fun renderClassic2Mode() {
         target?.let { player ->
             val healthPercent = getHealth(player, healthFromScoreboard, absorption) / player.maxHealth

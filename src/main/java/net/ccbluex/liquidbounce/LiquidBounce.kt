@@ -117,6 +117,8 @@ object LiquidBounce {
         LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
 
         try {
+
+
             TrayUtils().start()
             // Load languages
             loadLanguages()

@@ -28,6 +28,9 @@ import net.ccbluex.liquidbounce.value.boolean
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
+import net.minecraft.client.audio.ISound
+import java.util.Base64
+import java.io.ByteArrayInputStream
 import java.util.concurrent.CopyOnWriteArraySet
 
 open class Module constructor(
@@ -111,16 +114,12 @@ open class Module constructor(
                 val soundPath = if (value) "sound/enable" else "sound/disable"
                 synchronized(mc.soundHandler) {
                     mc.soundHandler.playSound(
-                        PositionedSoundRecord.create(
-                            ResourceLocation(
-                                "liquidbounce",
-                                soundPath
-                            ),
-                            1F
-                        )
+                        PositionedSoundRecord.create(ResourceLocation("random.click"), 1F)
                     )
                 }
                 addNotification(
+//                    Notification(getName(),2000F, ResourceLocation("liquidbounce", soundPath).resourcePath, if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS)
+
                     Notification(getName(),2000F,if (value) "启用了" else "禁用了", if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS)
                 )
             }

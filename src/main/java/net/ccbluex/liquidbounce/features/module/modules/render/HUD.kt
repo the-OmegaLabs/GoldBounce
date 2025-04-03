@@ -75,7 +75,7 @@ object HUD : Module("HUD", Category.RENDER, defaultInArray = false, gameDetectin
         if (state && blur && !mc.entityRenderer.isShaderActive && event.guiScreen != null &&
             !(event.guiScreen is GuiChat || event.guiScreen is GuiHudDesigner)
         ) mc.entityRenderer.loadShader(
-            ResourceLocation(CLIENT_NAME.lowercase() + "/blur.json")
+            ResourceLocation("liquidbounce/blur.json")
         ) else if (mc.entityRenderer.shaderGroup != null &&
             "liquidbounce/blur.json" in mc.entityRenderer.shaderGroup.shaderGroupName
         ) mc.entityRenderer.stopUseShader()

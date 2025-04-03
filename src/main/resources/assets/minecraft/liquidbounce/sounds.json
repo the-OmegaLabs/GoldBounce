@@ -1,10 +1,12 @@
 {
   "enable": {
+    "category": "master",
     "sounds": [
       "liquidbounce:sound/enable"
     ]
   },
   "disable": {
+    "category": "master",
     "sounds": [
       "liquidbounce:sound/disable"
     ]
