@@ -15,6 +15,6 @@ enum class Category(val displayName: String) {
     MISC("Misc"),
     EXPLOIT("Exploit"),
     FUN("Fun"),
-    SETTINGS("Settings");
-
+    SETTINGS("Settings"),
+    SCRIPT("ScriptBased");
 }

@@ -29,6 +29,7 @@ import net.ccbluex.liquidbounce.features.module.modules.world.*
 import net.ccbluex.liquidbounce.features.module.modules.world.Timer
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.features.module.modules.settings.*
+import net.ccbluex.liquidbounce.features.module.modules.scriptbased.*
 import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
 import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
@@ -255,7 +256,8 @@ object ModuleManager : Listenable {
             HoldRight,
             LegitScaffold,
             BetterRotation,
-            ACDetect
+            ACDetect,
+            VelocityLite
         )
 
         InventoryManager.startCoroutine()

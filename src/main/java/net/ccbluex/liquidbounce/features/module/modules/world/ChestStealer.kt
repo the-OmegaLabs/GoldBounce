@@ -31,6 +31,7 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.chestStealerLas
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.countSpaceInInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.hasSpaceInInventory
 import net.ccbluex.liquidbounce.utils.inventory.enchantments
+import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.*
@@ -294,6 +295,16 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
     // Progress bar
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
+        val scaledResolution = ScaledResolution(mc)
+        if (silentGUI && progress != null) {
+            RenderUtils.drawLoadingCircle(
+                scaledResolution.scaledWidth / 2f,
+                scaledResolution.scaledHeight / 4f
+            )
+            return
+        }
+
+        // 原有进度条逻辑（当silentGUI关闭时）
         if (!progressBar || mc.currentScreen !is GuiChest || progress == null) return
 
         val (scaledWidth, scaledHeight) = ScaledResolution(mc)
