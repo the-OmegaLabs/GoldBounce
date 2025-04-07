@@ -4,6 +4,7 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
@@ -24,16 +25,10 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         "Style",
         arrayOf(
             "Health",
-            "Exhibition",
             "Novoline",
-            "Flux",
-            "Astolfo",
-            "ValuedValue",
             "Smoke",
             "Moon",
             "0x01a4",
-            "DortwareOld",
-            "DortwareNew"
         ),
         "Health"
     )
@@ -51,7 +46,7 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
     fun onRender2D(event: Render2DEvent) {
         val sr = ScaledResolution(mc)
         target =
-            raycastEntity(range = 3.0F.toDouble(), entityFilter = { it is EntityPlayer }) as? EntityPlayer ?: return
+            KillAura.target as EntityPlayer?
 
         // 抗机器人检测
         if (state && AntiBot.isBot(target!!)) return
