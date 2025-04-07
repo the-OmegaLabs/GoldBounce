@@ -319,7 +319,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
 
     // Target
-    var target: EntityLivingBase? = null
+    public var target: EntityLivingBase? = null
     private var hittable = false
     private val prevTargetEntities = mutableListOf<Int>()
 
