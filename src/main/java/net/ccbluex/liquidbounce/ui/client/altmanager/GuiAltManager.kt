@@ -137,7 +137,7 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
             0 -> mc.displayGuiScreen(prevGui)
             1 -> mc.displayGuiScreen(GuiLoginIntoAccount(this))
             2 -> { // Delete button
-                status = if (altsList.selectedSlot != -1 && altsList.selectedSlot < altsList.size) {
+                status = if (altsList.selectedSlot != -1 && altsList.selectedSlot < altsList.accounts.size) {
                     accountsConfig.removeAccount(altsList.accounts[altsList.selectedSlot])
                     saveConfig(accountsConfig)
                     "§aThe account has been removed."
@@ -369,7 +369,6 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
             get() = accounts.getOrNull(selectedSlot)
 
         override fun isSelected(id: Int) = selectedSlot == id
-        val size: Int get() = accounts.size
         override fun getSize() = accounts.size
 
         public override fun elementClicked(clickedElement: Int, doubleClick: Boolean, var3: Int, var4: Int) {
