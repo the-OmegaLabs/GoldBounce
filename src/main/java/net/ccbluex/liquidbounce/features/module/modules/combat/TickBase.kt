@@ -15,11 +15,7 @@ import net.ccbluex.liquidbounce.utils.misc.RandomUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
-import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.*
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.Vec3
@@ -86,7 +82,7 @@ object TickBase : Module("TickBase", Category.COMBAT) {
     fun onPreTick(event: PlayerTickEvent) {
         val player = mc.thePlayer ?: return
 
-        if (player.ridingEntity != null || Blink.handleEvents()) {
+        if (player.ridingEntity != null || handleEvents()) {
             return
         }
 
@@ -99,7 +95,7 @@ object TickBase : Module("TickBase", Category.COMBAT) {
     fun onGameTick(event: GameTickEvent) {
         val player = mc.thePlayer ?: return
 
-        if (player.ridingEntity != null || Blink.handleEvents()) {
+        if (player.ridingEntity != null || handleEvents()) {
             return
         }
 
@@ -163,7 +159,7 @@ object TickBase : Module("TickBase", Category.COMBAT) {
 
     @EventTarget
     fun onMove(event: MoveEvent) {
-        if (mc.thePlayer?.ridingEntity != null || Blink.handleEvents()) {
+        if (mc.thePlayer?.ridingEntity != null || handleEvents()) {
             return
         }
 

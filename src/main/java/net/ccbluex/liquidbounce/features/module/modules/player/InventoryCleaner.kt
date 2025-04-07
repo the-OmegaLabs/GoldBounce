@@ -285,7 +285,7 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
                     if (thePlayer.openContainer.getSlot(armorSlot).hasStack) {
                         when {
                             // Smart swap armor from crafting output to armor slot
-                            AutoArmor.handleEvents() && AutoArmor.smartSwap -> {
+                            handleEvents() && AutoArmor.smartSwap -> {
                                 // Grab repaired armor
                                 click(0, 0, 0)
 
@@ -299,7 +299,7 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
                             }
 
                             // Drop equipped armor and continue equipping repaired armor normally
-                            drop || AutoArmor.handleEvents() -> click(armorSlot, 0, 4)
+                            drop || handleEvents() -> click(armorSlot, 0, 4)
 
                             // Can't smart swap or drop, don't equip
                             else -> equipAfterCrafting = false

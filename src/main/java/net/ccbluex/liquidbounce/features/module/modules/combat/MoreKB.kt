@@ -1,15 +1,17 @@
 package net.ccbluex.liquidbounce.features.module.modules.combat
 
-import net.minecraft.entity.EntityLivingBase
-import net.minecraft.network.play.client.C0BPacketEntityAction
-import net.minecraft.network.NetworkManager
-import net.ccbluex.liquidbounce.event.*
-import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.event.AttackEvent
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
-import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
+import net.ccbluex.liquidbounce.value.BoolValue
+import net.ccbluex.liquidbounce.value.ListValue
+import net.minecraft.entity.EntityLivingBase
+import net.minecraft.network.play.client.C0BPacketEntityAction
 
 object MoreKB : Module(name = "MoreKB", category = Category.COMBAT) {
     private val mode by ListValue(

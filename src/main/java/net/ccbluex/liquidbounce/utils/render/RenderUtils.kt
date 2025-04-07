@@ -11,29 +11,26 @@ import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
-import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL14
-import org.lwjgl.opengl.GL20
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.util.*
-import javax.vecmath.Vector3d
-import javax.vecmath.Vector4d
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
 
-public object RenderUtils : MinecraftInstance() {
-    public val glCapMap = mutableMapOf<Int, Boolean>()
-    public val DISPLAY_LISTS_2D = IntArray(4)
+object RenderUtils : MinecraftInstance() {
+    val glCapMap = mutableMapOf<Int, Boolean>()
+    val DISPLAY_LISTS_2D = IntArray(4)
     var deltaTime = 0
 
     fun deltaTimeNormalized(ticks: Int = 50) = (deltaTime / ticks.toDouble()).coerceAtMost(1.0)
@@ -408,7 +405,7 @@ public object RenderUtils : MinecraftInstance() {
         drawRoundedBordered(x.toFloat(), y.toFloat(), x2.toFloat(), y2.toFloat(), color, width, radius)
     }
 
-    public fun drawRoundedBordered(
+    fun drawRoundedBordered(
         x1: Float,
         y1: Float,
         x2: Float,
@@ -602,7 +599,7 @@ public object RenderUtils : MinecraftInstance() {
         drawRoundedRectangle(newX1, newY1, newX2, newY2, red, green, blue, alpha, radius)
     }
 
-    public fun drawRoundedRectangle(
+    fun drawRoundedRectangle(
         x1: Float,
         y1: Float,
         x2: Float,
@@ -659,7 +656,7 @@ public object RenderUtils : MinecraftInstance() {
             i -= 4
         }
     }
-    public fun orderPoints(x1: Float, y1: Float, x2: Float, y2: Float): FloatArray {
+    fun orderPoints(x1: Float, y1: Float, x2: Float, y2: Float): FloatArray {
         val newX1 = min(x1, x2)
         val newY1 = min(y1, y2)
         val newX2 = max(x1, x2)
@@ -792,7 +789,7 @@ public object RenderUtils : MinecraftInstance() {
 
     fun glColor(color: Color) = glColor(color.red, color.green, color.blue, color.alpha)
 
-    public fun glColor(hex: Int) =
+    fun glColor(hex: Int) =
         glColor(hex shr 16 and 0xFF, hex shr 8 and 0xFF, hex and 0xFF, hex shr 24 and 0xFF)
 
     fun draw2D(entity: EntityLivingBase, posX: Double, posY: Double, posZ: Double, color: Int, backgroundColor: Int) {
@@ -909,19 +906,19 @@ public object RenderUtils : MinecraftInstance() {
 
     fun drawTexturedRect(x: Float, y: Float, width: Float, height: Float, image: String) {
         glPushMatrix()
-        val enableBlend = GL11.glIsEnabled(GL11.GL_BLEND)
-        val disableAlpha = !GL11.glIsEnabled(GL11.GL_ALPHA_TEST)
-        if (!enableBlend) glEnable(GL11.GL_BLEND)
-        if (!disableAlpha) glDisable(GL11.GL_ALPHA_TEST)
+        val enableBlend = glIsEnabled(GL_BLEND)
+        val disableAlpha = !glIsEnabled(GL_ALPHA_TEST)
+        if (!enableBlend) glEnable(GL_BLEND)
+        if (!disableAlpha) glDisable(GL_ALPHA_TEST)
         mc.textureManager.bindTexture(ResourceLocation("liquidbounce/ui/shadow/$image.png"))
-        GlStateManager.color(1f, 1f, 1f, 1f)
+        color(1f, 1f, 1f, 1f)
         drawModalRectWithCustomSizedTexture(x, y, 0f, 0f, width, height, width, height)
-        if (!enableBlend) glDisable(GL11.GL_BLEND)
-        if (!disableAlpha) glEnable(GL11.GL_ALPHA_TEST)
-        GL11.glPopMatrix()
+        if (!enableBlend) glDisable(GL_BLEND)
+        if (!disableAlpha) glEnable(GL_ALPHA_TEST)
+        glPopMatrix()
     }
     fun drawRoundedCornerRect(x: Float, y: Float, x1: Float, y1: Float, radius: Float) {
-        glBegin(GL11.GL_POLYGON)
+        glBegin(GL_POLYGON)
 
         val xRadius = min((x1 - x) * 0.5, radius.toDouble()).toFloat()
         val yRadius = min((y1 - y) * 0.5, radius.toDouble()).toFloat()
@@ -939,18 +936,18 @@ public object RenderUtils : MinecraftInstance() {
     }
     @JvmStatic
     fun drawRoundedCornerRect(x: Float, y: Float, x1: Float, y1: Float, radius: Float, color: Int) {
-        glEnable(GL11.GL_BLEND)
+        glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glDisable(GL11.GL_TEXTURE_2D)
-        val hasCull = GL11.glIsEnabled(GL11.GL_CULL_FACE)
-        glDisable(GL11.GL_CULL_FACE)
+        glDisable(GL_TEXTURE_2D)
+        val hasCull = glIsEnabled(GL_CULL_FACE)
+        glDisable(GL_CULL_FACE)
 
         glColor(color)
         drawRoundedCornerRect(x, y, x1, y1, radius)
 
-        glEnable(GL11.GL_TEXTURE_2D)
-        glDisable(GL11.GL_BLEND)
-        setGlState(GL11.GL_CULL_FACE, hasCull)
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        setGlState(GL_CULL_FACE, hasCull)
     }
     /**
      * GL CAP MANAGER

@@ -5,7 +5,10 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.render
 
-import net.ccbluex.liquidbounce.event.*
+import net.ccbluex.liquidbounce.event.CameraPositionEvent
+import net.ccbluex.liquidbounce.event.EventState
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.MotionEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
@@ -42,7 +45,7 @@ object CameraView : Module("CameraView", Category.RENDER, gameDetecting = false,
     fun onCameraUpdate(event: CameraPositionEvent) {
         mc.thePlayer?.run {
             val currentLaunchY = launchY ?: return
-            if (onScaffold && !Scaffold.handleEvents()) return
+            if (onScaffold && !handleEvents()) return
             if (onF5 && mc.gameSettings.thirdPersonView == 0) return
 
             event.withY(currentLaunchY + customY)

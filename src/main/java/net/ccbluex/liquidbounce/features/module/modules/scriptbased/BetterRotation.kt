@@ -1,21 +1,19 @@
 package net.ccbluex.liquidbounce.features.module.modules.scriptbased
 
+import net.ccbluex.liquidbounce.event.AttackEvent
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render3DEvent
-import net.ccbluex.liquidbounce.event.AttackEvent
-import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Text
+import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.value.TextValue
 import net.minecraft.util.MathHelper
 import net.minecraft.util.Vec3
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 object BetterRotation : Module("BetterRotation", Category.SCRIPT, gameDetecting = false, hideModule = false) {
     val desc = TextValue("Author","RN_Random_Name")

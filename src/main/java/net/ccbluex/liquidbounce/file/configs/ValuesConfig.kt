@@ -36,7 +36,8 @@ import net.ccbluex.liquidbounce.utils.EntityUtils.targetDead
 import net.ccbluex.liquidbounce.utils.EntityUtils.targetInvisible
 import net.ccbluex.liquidbounce.utils.EntityUtils.targetMobs
 import net.ccbluex.liquidbounce.utils.EntityUtils.targetPlayer
-import java.io.*
+import java.io.File
+import java.io.IOException
 
 class ValuesConfig(file: File) : FileConfig(file) {
 

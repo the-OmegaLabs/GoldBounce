@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.features.command
 
+import net.ccbluex.liquidbounce.features.command.CommandManager.latestAutoComplete
 import net.ccbluex.liquidbounce.features.command.commands.*
 import net.ccbluex.liquidbounce.features.command.shortcuts.Shortcut
 import net.ccbluex.liquidbounce.features.command.shortcuts.ShortcutParser

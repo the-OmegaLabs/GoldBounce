@@ -205,7 +205,7 @@ class GuiContributors(private val prevGui: GuiScreen) : GuiScreen() {
 
                 credits += Credit(author.name, author.avatarUrl, null,
                     additions, deletions, commits,
-                    contributorInformation?.teamMember ?: false,
+                    contributorInformation?.teamMember == true,
                     contributorInformation?.contributions ?: emptyList()
                 )
             }
@@ -284,7 +284,7 @@ class GuiContributors(private val prevGui: GuiScreen) : GuiScreen() {
 
         override fun getSize() = credits.size
 
-        public override fun elementClicked(index: Int, doubleClick: Boolean, var3: Int, var4: Int) {
+        override fun elementClicked(index: Int, doubleClick: Boolean, var3: Int, var4: Int) {
             selectedSlot = index
         }
 

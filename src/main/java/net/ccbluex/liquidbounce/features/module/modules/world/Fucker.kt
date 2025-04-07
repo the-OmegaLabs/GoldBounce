@@ -122,7 +122,7 @@ object Fucker : Module("Fucker", Category.WORLD, hideModule = false) {
         val player = mc.thePlayer ?: return
         val world = mc.theWorld ?: return
 
-        if (noHit && KillAura.handleEvents() && KillAura.target != null) {
+        if (noHit && handleEvents() && KillAura.target != null) {
             return
         }
 

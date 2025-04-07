@@ -6,20 +6,16 @@
 package net.ccbluex.liquidbounce.injection.forge.mixins.render;
 
 import com.google.common.base.Predicates;
-import net.ccbluex.liquidbounce.chat.Client;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.Render3DEvent;
-import net.ccbluex.liquidbounce.utils.ClientUtils;
-import net.ccbluex.liquidbounce.features.module.Module;
 import net.ccbluex.liquidbounce.features.module.modules.combat.Backtrack;
 import net.ccbluex.liquidbounce.features.module.modules.combat.ForwardTrack;
 import net.ccbluex.liquidbounce.features.module.modules.misc.OverrideRaycast;
 import net.ccbluex.liquidbounce.features.module.modules.player.Reach;
-import net.ccbluex.liquidbounce.features.module.modules.settings.*;
 import net.ccbluex.liquidbounce.features.module.modules.render.*;
+import net.ccbluex.liquidbounce.features.module.modules.settings.Camera;
 import net.ccbluex.liquidbounce.utils.Rotation;
 import net.ccbluex.liquidbounce.utils.RotationUtils;
-import net.ccbluex.liquidbounce.features.module.ModuleManager;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -126,7 +122,7 @@ public abstract class MixinEntityRenderer {
                 GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * p_orientCamera_1_, -1.0F, 0.0F, 0.0F);
             }
         } else if (this.mc.gameSettings.thirdPersonView > 0) {
-            double d3 = (double)(this.thirdPersonDistanceTemp + (this.thirdPersonDistance - this.thirdPersonDistanceTemp) * p_orientCamera_1_);
+            double d3 = this.thirdPersonDistanceTemp + (this.thirdPersonDistance - this.thirdPersonDistanceTemp) * p_orientCamera_1_;
             if (this.mc.gameSettings.debugCamEnable) {
                 GlStateManager.translate(0.0F, 0.0F, (float)(-d3));
             } else {
@@ -183,7 +179,7 @@ public abstract class MixinEntityRenderer {
             }
 
             Block block = ActiveRenderInfo.getBlockAtEntityViewpoint(this.mc.theWorld, entity, p_orientCamera_1_);
-            EntityViewRenderEvent.CameraSetup event = new EntityViewRenderEvent.CameraSetup(this.mc.entityRenderer, entity, block, (double)p_orientCamera_1_, yaw, pitch, roll);
+            EntityViewRenderEvent.CameraSetup event = new EntityViewRenderEvent.CameraSetup(this.mc.entityRenderer, entity, block, p_orientCamera_1_, yaw, pitch, roll);
             MinecraftForge.EVENT_BUS.post(event);
             GlStateManager.rotate(event.roll, 0.0F, 0.0F, 1.0F);
             GlStateManager.rotate(event.pitch, 1.0F, 0.0F, 0.0F);

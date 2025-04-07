@@ -7,9 +7,9 @@ package net.ccbluex.liquidbounce.injection.forge.mixins.entity;
 
 import com.mojang.authlib.GameProfile;
 import net.ccbluex.liquidbounce.features.module.modules.combat.KeepSprint;
+import net.ccbluex.liquidbounce.features.special.SmoothSneakingState;
 import net.ccbluex.liquidbounce.utils.CooldownHelper;
 import net.ccbluex.liquidbounce.utils.MovementUtils;
-import net.ccbluex.liquidbounce.features.special.SmoothSneakingState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -18,14 +18,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.FoodStats;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.At;
-
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
 
@@ -68,11 +65,11 @@ public abstract class MixinEntityPlayer extends MixinEntityLivingBase {
     private int cooldownStackSlot;
 
     @Unique
-    private SmoothSneakingState smoothSneakingState = new SmoothSneakingState();
+    private final SmoothSneakingState smoothSneakingState = new SmoothSneakingState();
 
     @Inject(method = {"getEyeHeight"}, at = {@At("RETURN")}, cancellable = true)
     public void getEyeHeight(CallbackInfoReturnable<Float> cir) {
-        float returnValue = ((Float) cir.getReturnValue()).floatValue();
+        float returnValue = cir.getReturnValue().floatValue();
         boolean isSneaking = this.isSneaking();
         if (isSneaking) {
             returnValue += 0.08f;

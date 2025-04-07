@@ -10,7 +10,6 @@ import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
 import net.ccbluex.liquidbounce.features.module.modules.misc.Teams
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
-import net.ccbluex.liquidbounce.utils.skid.slack.RenderUtil
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
@@ -24,10 +23,14 @@ import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawScaledCustomSizeModalRect
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtil
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.utils.skid.slack.RenderUtil
+import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.choices
+import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.entity.EntityLivingBase
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.MathHelper
 import net.minecraft.util.ResourceLocation
@@ -171,7 +174,7 @@ class Target : Element() {
             }
         }
     }
-    private fun drawHead(skin: ResourceLocation, x: Int, y: Int, width: Int, height: Int, color: Color) {
+    internal fun drawHead(skin: ResourceLocation, x: Int, y: Int, width: Int, height: Int, color: Color) {
         GlStateManager.color(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
         mc.textureManager.bindTexture(skin)
         drawScaledCustomSizeModalRect(x, y, 8f, 8f, 8, 8, width, height, 64f, 64f)
@@ -188,7 +191,7 @@ class Target : Element() {
 
             // 背景渲染
             if (roundedValue) {
-                RenderUtils.drawRoundedRect(0f, 0f, 120f, 40f, 6, Color(0, 0, 0, 120).rgb.toFloat())
+                drawRoundedRect(0f, 0f, 120f, 40f, 6, Color(0, 0, 0, 120).rgb.toFloat())
             } else {
                 drawRect(0, 0, 120, 40, Color(0, 0, 0, 120).rgb)
             }
@@ -201,8 +204,8 @@ class Target : Element() {
             // 血条逻辑
             val barWidth = (70 * healthPercent).toInt()
             if (roundedValue) {
-                RenderUtils.drawRoundedRect(40f, 20f, 70f, 15f, 2, Color(255, 255, 255, 120).rgb.toFloat())
-                RenderUtils.drawRoundedRect(40f, 20f, barWidth.toFloat(), 15f, 2, ColorUtils.rainbow().rgb.toFloat())
+                drawRoundedRect(40f, 20f, 70f, 15f, 2, Color(255, 255, 255, 120).rgb.toFloat())
+                drawRoundedRect(40f, 20f, barWidth.toFloat(), 15f, 2, ColorUtils.rainbow().rgb.toFloat())
             } else {
                 drawRect(40, 20, 70, 15, Color(255, 255, 255, 120).rgb)
                 drawRect(40, 20, barWidth, 15, ColorUtils.rainbow().rgb)
@@ -259,7 +262,7 @@ class Target : Element() {
             }
 
             // 血条绘制
-            val healthLength = (entity.health / entity.maxHealth).coerceIn(0f, 1f)
+            (entity.health / entity.maxHealth).coerceIn(0f, 1f)
             drawRoundedRect(
                 xPos + 36f,
                 yPos + 26.5f,
@@ -303,11 +306,11 @@ class Target : Element() {
             val distance = mc.thePlayer.getDistanceToEntityBox(player).roundToInt()
 
             // 背景渲染
-            RenderUtils.drawRoundedRect(0f, 0f, 100f, 50f, 5, Color(30, 30, 30, 180).rgb.toFloat())
+            drawRoundedRect(0f, 0f, 100f, 50f, 5, Color(30, 30, 30, 180).rgb.toFloat())
 
             // 左侧垂直血条
             val barHeight = (40 * healthPercent).toInt()
-            RenderUtils.drawRoundedRect(5f, 5f, 8f, 40f, 2, Color(80, 80, 80).rgb.toFloat())
+            drawRoundedRect(5f, 5f, 8f, 40f, 2, Color(80, 80, 80).rgb.toFloat())
             // 动态粒子效果
             val particleTime = System.currentTimeMillis() % 2000 / 2000f
             val particleCount = (10 * (1 - abs(particleTime - 0.5) * 2)).toInt()
@@ -346,7 +349,7 @@ class Target : Element() {
             val healthPercent = getHealth(target!!, healthFromScoreboard, absorption) / target!!.maxHealth
             val color = ColorUtils.rainbow()
 
-            RenderUtils.drawRoundedRect(0f, 0f, 162f, 40f, 10, Color(30, 30, 30, 180).rgb.toFloat())
+            drawRoundedRect(0f, 0f, 162f, 40f, 10, Color(30, 30, 30, 180).rgb.toFloat())
             val borderProgress = (System.currentTimeMillis() % 2000) / 2000f
             val borderColor = ColorUtil.interpolateColor(
                 ColorUtils.rainbow((borderProgress * 360).toLong()),
@@ -364,8 +367,8 @@ class Target : Element() {
             }
             // 血条
             val barWidth = (95 * healthPercent).toInt()
-            RenderUtils.drawRoundedRect(40f, 23f, 95f, 9f, 3, Color(151, 151, 151, 40).rgb.toFloat())
-            RenderUtils.drawRoundedRect(40f, 23f, barWidth.toFloat(), 9f, 3, color.rgb.toFloat())
+            drawRoundedRect(40f, 23f, 95f, 9f, 3, Color(151, 151, 151, 40).rgb.toFloat())
+            drawRoundedRect(40f, 23f, barWidth.toFloat(), 9f, 3, color.rgb.toFloat())
             RenderUtil.drawRoundedRectBorder(40f, 23f, 40f + 95f, 32f, 3f, Color(230, 230, 230, 200).rgb, 1f)
             RenderUtil.drawRoundedRectBorder(39f, 22f, 136f, 33f, 3f, Color(30, 30, 30, 100).rgb, 1f)
 

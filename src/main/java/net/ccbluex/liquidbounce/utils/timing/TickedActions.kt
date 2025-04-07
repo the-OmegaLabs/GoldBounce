@@ -7,9 +7,9 @@ package net.ccbluex.liquidbounce.utils.timing
 
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.utils.CoroutineUtils
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
-import net.ccbluex.liquidbounce.utils.CoroutineUtils
 import net.minecraft.item.ItemStack
 import java.util.concurrent.ConcurrentLinkedQueue
 

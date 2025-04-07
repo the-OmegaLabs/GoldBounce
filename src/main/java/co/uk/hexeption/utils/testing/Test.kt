@@ -16,7 +16,7 @@ import net.ccbluex.liquidbounce.utils.render.ColorUtils
 
 class Test {
     fun example() {
-        var allocator = VertexBuilderAllocator();
+        var allocator = VertexBuilderAllocator()
 
         var builder = allocator.allocate(
             VertexFormat.V3F_C4F, //vertex data format(depend on usage)
@@ -45,8 +45,8 @@ class Test {
 
 
         //颜色信息
-        var color = ColorElement.RGB(0x114514)//hex color like #FFFFFF
-        var color2 = ColorElement.RGB(255, 255, 255)
+        ColorElement.RGB(0x114514)//hex color like #FFFFFF
+        ColorElement.RGB(255, 255, 255)
         var color3 = ColorElement.RGBA(0x114514FF)//hex color with RGBA
 
 
@@ -58,19 +58,19 @@ class Test {
     }//差不多了 我溜了
 
     fun byte3ToFloat3(r:Int,g:Int,b:Int): DoubleArray {
-        var r2 = (r.and(255)) / 255.0;
-        var g2 = (g.and(255)) / 255.0;
-        var b2 = (b.and(255)) / 255.0;
-        return doubleArrayOf(r2, g2, b2);
+        var r2 = (r.and(255)) / 255.0
+        var g2 = (g.and(255)) / 255.0
+        var b2 = (b.and(255)) / 255.0
+        return doubleArrayOf(r2, g2, b2)
     }
 
     fun int1ToFloat3(c: Int): DoubleArray {
-        var r = (c.shr(16));
-        var g = (c.shr(8));
-        var b = c;
-        var r2 = (r.and(255)) / 255.0;
-        var g2 = (g.and(255)) / 255.0;
-        var b2 = (b.and(255)) / 255.0;
-        return doubleArrayOf(r2, g2, b2);
+        var r = (c.shr(16))
+        var g = (c.shr(8))
+        var b = c
+        var r2 = (r.and(255)) / 255.0
+        var g2 = (g.and(255)) / 255.0
+        var b2 = (b.and(255)) / 255.0
+        return doubleArrayOf(r2, g2, b2)
     }
 }

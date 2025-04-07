@@ -5,10 +5,6 @@
  */
 package net.ccbluex.liquidbounce.utils.kotlin
 
-import me.liuli.elixir.account.CrackedAccount
-import net.ccbluex.liquidbounce.event.EventManager
-import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
-import net.minecraft.util.Session
 import kotlin.random.Random
 
 object RandomUtils {

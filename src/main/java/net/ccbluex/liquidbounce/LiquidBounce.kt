@@ -7,7 +7,6 @@ package net.ccbluex.liquidbounce
 
 import de.florianmichael.viamcp.ViaMCP
 import kotlinx.coroutines.launch
-import net.ccbluex.liquidbounce.api.ClientUpdate.gitInfo
 import net.ccbluex.liquidbounce.api.loadSettings
 import net.ccbluex.liquidbounce.api.messageOfTheDay
 import net.ccbluex.liquidbounce.cape.CapeService
@@ -46,19 +45,15 @@ import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClassUtils.hasForge
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.ClientUtils.disableFastRender
+import net.ccbluex.liquidbounce.utils.client.SysUtils
+import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
-import net.ccbluex.liquidbounce.utils.client.TrayUtils
-import net.ccbluex.liquidbounce.utils.client.SysUtils
 import op.wawa.opacketfix.features.hytpacket.PacketManager
-import java.io.File
-import java.io.InputStream
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 object LiquidBounce {
 
@@ -122,8 +117,8 @@ object LiquidBounce {
             TrayUtils().start()
             // Load languages
             loadLanguages()
-            ViaMCP.create();
-            ViaMCP.INSTANCE.initAsyncSlider(); // For top left aligned slider
+            ViaMCP.create()
+            ViaMCP.INSTANCE.initAsyncSlider() // For top left aligned slider
             // Register listeners
             registerListener(RotationUtils)
             registerListener(ClientFixes)

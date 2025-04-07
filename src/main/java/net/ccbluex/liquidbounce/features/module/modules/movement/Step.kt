@@ -188,13 +188,13 @@ object Step : Module("Step", Category.MOVEMENT, gameDetecting = false, hideModul
         val thePlayer = mc.thePlayer ?: return
 
         // Phase should disable step
-        if (Phase.handleEvents()) {
+        if (handleEvents()) {
             event.stepHeight = 0F
             return
         }
 
         // Some fly modes should disable step
-        if (Fly.handleEvents() && Fly.mode in arrayOf(
+        if (handleEvents() && Fly.mode in arrayOf(
                 "Hypixel",
                 "OtherHypixel",
                 "LatestHypixel",

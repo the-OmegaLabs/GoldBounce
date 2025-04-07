@@ -11,8 +11,8 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.client.hud.element.Side
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.font
 import net.minecraft.client.resources.I18n

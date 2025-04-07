@@ -13,16 +13,10 @@ import net.ccbluex.liquidbounce.features.module.modules.render.SilentHotbarModul
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer;
 import net.ccbluex.liquidbounce.utils.ClassUtils;
 import net.ccbluex.liquidbounce.utils.SilentHotbar;
-import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils;
-import net.ccbluex.liquidbounce.utils.render.ColorSettingsKt;
-import net.ccbluex.liquidbounce.utils.render.RenderUtils;
-import net.ccbluex.liquidbounce.utils.render.shader.shaders.GradientShader;
-import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowShader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
@@ -36,12 +30,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.List;
-
-import static net.minecraft.client.renderer.GlStateManager.*;
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.glEnable;
 
 @Mixin(GuiIngame.class)
 @SideOnly(Side.CLIENT)

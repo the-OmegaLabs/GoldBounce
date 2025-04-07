@@ -9,12 +9,10 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_CLOUD
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
 import net.ccbluex.liquidbounce.file.FileManager.fontsDir
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
-import net.ccbluex.liquidbounce.utils.misc.HttpUtils.download
 import net.minecraft.client.gui.FontRenderer
 import java.awt.Font
 import java.io.File
@@ -38,7 +36,7 @@ object Fonts : MinecraftInstance() {
     lateinit var fontBold180: GameFontRenderer
 
     @FontDetails(fontName = "notification60", fontSize = 30)
-    lateinit var notification60: GameFontRenderer;
+    lateinit var notification60: GameFontRenderer
 
     private val CUSTOM_FONT_RENDERERS = hashMapOf<FontInfo, FontRenderer>()
 

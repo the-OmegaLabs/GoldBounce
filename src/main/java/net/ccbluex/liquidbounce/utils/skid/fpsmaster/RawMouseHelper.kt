@@ -1,6 +1,5 @@
 package net.ccbluex.liquidbounce.utils.skid.fpsmaster
 
-import net.ccbluex.liquidbounce.utils.skid.fpsmaster.RawInputMod
 import net.minecraft.util.MouseHelper
 
 class RawMouseHelper : MouseHelper() {

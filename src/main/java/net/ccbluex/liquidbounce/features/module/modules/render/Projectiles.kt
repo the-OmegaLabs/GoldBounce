@@ -11,13 +11,7 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getState
-import net.ccbluex.liquidbounce.utils.extensions.interpolatedPosition
-import net.ccbluex.liquidbounce.utils.extensions.lastTickPos
-import net.ccbluex.liquidbounce.utils.extensions.minus
-import net.ccbluex.liquidbounce.utils.extensions.renderPos
-import net.ccbluex.liquidbounce.utils.extensions.rotation
-import net.ccbluex.liquidbounce.utils.extensions.toRadians
-import net.ccbluex.liquidbounce.utils.extensions.toRadiansD
+import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.isSplashPotion
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.interpolateHSB
@@ -36,11 +30,7 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityEnderPearl
 import net.minecraft.entity.item.EntityExpBottle
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.entity.projectile.EntityArrow
-import net.minecraft.entity.projectile.EntityEgg
-import net.minecraft.entity.projectile.EntityFireball
-import net.minecraft.entity.projectile.EntityPotion
-import net.minecraft.entity.projectile.EntitySnowball
+import net.minecraft.entity.projectile.*
 import net.minecraft.item.*
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11.*

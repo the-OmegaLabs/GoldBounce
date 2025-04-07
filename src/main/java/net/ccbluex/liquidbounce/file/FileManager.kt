@@ -17,7 +17,6 @@ import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
-import net.minecraft.util.ResourceLocation
 import java.io.File
 
 @SideOnly(Side.CLIENT)

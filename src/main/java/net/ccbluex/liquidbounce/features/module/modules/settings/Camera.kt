@@ -7,9 +7,10 @@ package net.ccbluex.liquidbounce.features.module.modules.settings
 
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.EventTarget
-import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.value.BoolValue
+import net.ccbluex.liquidbounce.value.FloatValue
 
 object Camera : Module("Camera", Category.SETTINGS, gameDetecting = false, hideModule = false) {
     val motionCamera = BoolValue("MotionCamera", true)

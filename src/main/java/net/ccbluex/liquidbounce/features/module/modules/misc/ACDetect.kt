@@ -7,14 +7,14 @@
 package net.ccbluex.liquidbounce.features.module.modules.misc
 
 import net.ccbluex.liquidbounce.LiquidBounce.hud
+import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.GameTickEvent
 import net.ccbluex.liquidbounce.event.PacketEvent
-import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.utils.chat
+import net.ccbluex.liquidbounce.value.boolean
 import net.minecraft.network.play.server.S01PacketJoinGame
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 

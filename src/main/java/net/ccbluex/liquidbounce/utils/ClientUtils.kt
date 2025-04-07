@@ -33,7 +33,7 @@ object ClientUtils : MinecraftInstance() {
         } catch (ignored: NoSuchFieldException) { }
     }
 
-    public val LOGGER: Logger = LogManager.getLogger("LiquidBounce")
+    val LOGGER: Logger = LogManager.getLogger("LiquidBounce")
 
     fun disableFastRender() {
         try {

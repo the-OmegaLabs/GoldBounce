@@ -5,9 +5,7 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.gui;
 
-import de.florianmichael.viamcp.ViaMCP;
 import de.florianmichael.viamcp.gui.GuiProtocolSelector;
-import kotlin.collections.CollectionsKt;
 import net.ccbluex.liquidbounce.features.special.BungeeCordSpoof;
 import net.ccbluex.liquidbounce.file.FileManager;
 import net.ccbluex.liquidbounce.lang.LanguageKt;

@@ -24,7 +24,7 @@ import net.minecraft.network.play.server.S13PacketDestroyEntities
 import net.minecraft.network.play.server.S14PacketEntity
 import net.minecraft.network.play.server.S20PacketEntityProperties
 import net.minecraft.potion.Potion
-import java.util.UUID
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.sqrt
 

@@ -16,9 +16,6 @@ import net.ccbluex.liquidbounce.utils.EntityUtils.isLookingOnEntities
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
 import net.ccbluex.liquidbounce.utils.extensions.*
-import net.ccbluex.liquidbounce.utils.extensions.getPing
-import net.ccbluex.liquidbounce.utils.extensions.interpolatedPosition
-import net.ccbluex.liquidbounce.utils.extensions.lastTickPos
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.disableGlCap
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawTexturedModalRect
@@ -119,7 +116,7 @@ object NameTags : Module("NameTags", Category.RENDER, hideModule = false) {
             if (entity !is EntityLivingBase) continue
 
             val isRenderingSelf =
-                entity is EntityPlayerSP && (mc.gameSettings.thirdPersonView != 0 || FreeCam.handleEvents())
+                entity is EntityPlayerSP && (mc.gameSettings.thirdPersonView != 0 || handleEvents())
 
             if (!isRenderingSelf || !renderSelf) {
                 if (!isSelected(entity, false)) continue
@@ -349,7 +346,7 @@ object NameTags : Module("NameTags", Category.RENDER, hideModule = false) {
     }
 
     fun shouldRenderNameTags(entity: Entity) =
-        handleEvents() && entity is EntityLivingBase && (ESP.handleEvents() && ESP.renderNameTags || isSelected(
+        handleEvents() && entity is EntityLivingBase && (handleEvents() && ESP.renderNameTags || isSelected(
             entity,
             false
         ) && (bot || !isBot(entity)))

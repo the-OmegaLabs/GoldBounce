@@ -30,7 +30,7 @@ object BlockUtils : MinecraftInstance() {
     /**
      * Check [blockPos] is replaceable
      */
-    fun isReplaceable(blockPos: BlockPos) = getMaterial(blockPos)?.isReplaceable ?: false
+    fun isReplaceable(blockPos: BlockPos) = getMaterial(blockPos)?.isReplaceable == true
 
     /**
      * Get state from [blockPos]

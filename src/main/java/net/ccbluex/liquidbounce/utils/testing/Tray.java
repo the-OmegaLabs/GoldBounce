@@ -1,7 +1,6 @@
 package net.ccbluex.liquidbounce.utils.testing;
 
 import java.awt.*;
-import java.awt.event.*;
 
 public class Tray {
 

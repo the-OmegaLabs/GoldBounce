@@ -49,6 +49,6 @@ public final class ClientUtils {
         final JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("text", message);
 
-        mc.thePlayer.addChatMessage((IChatComponent)GSON.fromJson(jsonObject, IChatComponent.class));
+        mc.thePlayer.addChatMessage(GSON.fromJson(jsonObject, IChatComponent.class));
     }
 }

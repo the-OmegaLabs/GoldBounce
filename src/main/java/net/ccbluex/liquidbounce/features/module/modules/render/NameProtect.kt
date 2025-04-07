@@ -8,15 +8,18 @@ package net.ccbluex.liquidbounce.features.module.modules.render
 import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_NAME
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.PacketEvent
-import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.Category
+import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.file.FileManager.friendsConfig
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.translateAlternateColorCodes
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.value.IntegerValue
+import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.text
 import net.minecraft.network.play.server.S01PacketJoinGame
 import net.minecraft.network.play.server.S40PacketDisconnect
-import kotlin.random.Random
 import java.util.*
+import kotlin.random.Random
 
 object NameProtect : Module("NameProtect", Category.RENDER, subjective = true, gameDetecting = false, hideModule = false) {
 

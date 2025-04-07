@@ -6,7 +6,6 @@
 package net.ccbluex.liquidbounce.utils
 
 import kotlinx.coroutines.*
-import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_NAME
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.render.shader.Shader

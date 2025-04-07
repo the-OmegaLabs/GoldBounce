@@ -5,11 +5,11 @@
  */
 package net.ccbluex.liquidbounce.file.configs
 
-import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import net.ccbluex.liquidbounce.file.FileConfig
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
-import java.io.*
+import java.io.File
+import java.io.IOException
 
 class FriendsConfig(file: File) : FileConfig(file) {
     val friends = mutableListOf<Friend>()

@@ -7,7 +7,12 @@
 
 package net.ccbluex.liquidbounce.utils
 
-import net.ccbluex.liquidbounce.event.*
+import net.ccbluex.liquidbounce.event.ClientSlotChange
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.Listenable
+import net.ccbluex.liquidbounce.event.PacketEvent
+import net.ccbluex.liquidbounce.utils.SilentHotbar.currentSlot
+import net.ccbluex.liquidbounce.utils.SilentHotbar.hotbarState
 import net.minecraft.network.play.client.C09PacketHeldItemChange
 
 object SilentHotbar : Listenable, MinecraftInstance() {

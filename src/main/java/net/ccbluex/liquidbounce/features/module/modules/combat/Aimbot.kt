@@ -22,11 +22,7 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.toRotation
 import net.ccbluex.liquidbounce.utils.SimulatedPlayer
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.*
 import net.minecraft.entity.Entity
 import java.util.*
 import kotlin.math.atan
@@ -117,7 +113,7 @@ object Aimbot : Module("Aimbot", Category.COMBAT, hideModule = false) {
         if (mc.gameSettings.keyBindAttack.isKeyDown)
             clickTimer.reset()
 
-        if (onClick && (clickTimer.hasTimePassed(150) || !mc.gameSettings.keyBindAttack.isKeyDown && AutoClicker.handleEvents()))
+        if (onClick && (clickTimer.hasTimePassed(150) || !mc.gameSettings.keyBindAttack.isKeyDown && handleEvents()))
             return
 
         // Search for the best enemy to target
@@ -193,7 +189,7 @@ object Aimbot : Module("Aimbot", Category.COMBAT, hideModule = false) {
                 outborder = false,
                 predict = true,
                 lookRange = range,
-                attackRange = if (Reach.handleEvents()) Reach.combatReach else 3f,
+                attackRange = if (handleEvents()) Reach.combatReach else 3f,
                 bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
                 horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(),
             )

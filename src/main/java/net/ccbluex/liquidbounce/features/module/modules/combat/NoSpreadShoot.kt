@@ -4,11 +4,9 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.GameTickEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.utils.MCGO
+import net.ccbluex.liquidbounce.value.IntegerValue
 import net.minecraft.client.Minecraft
-import net.minecraft.item.ItemStack
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 
 object NoSpreadShoot : Module("NoSpreadShoot", Category.COMBAT, hideModule = false) {
     private val mc = Minecraft.getMinecraft()

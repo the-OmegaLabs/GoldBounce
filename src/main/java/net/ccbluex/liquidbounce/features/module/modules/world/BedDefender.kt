@@ -264,7 +264,7 @@ object BedDefender : Module("BedDefender", Category.WORLD, hideModule = false) {
         }
     }
 
-    private fun switchBlockNextTickIfPossible(stack: ItemStack) {
+    internal fun switchBlockNextTickIfPossible(stack: ItemStack) {
         if (autoBlock in arrayOf("Off", "Switch") || stack.stackSize > 0)
             return
 

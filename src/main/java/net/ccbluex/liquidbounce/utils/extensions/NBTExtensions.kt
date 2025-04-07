@@ -6,7 +6,8 @@
 @file:Suppress("NOTHING_TO_INLINE")
 package net.ccbluex.liquidbounce.utils.extensions
 
-import net.minecraft.nbt.*
+import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.nbt.NBTTagList
 
 inline operator fun NBTTagCompound.set(key: String, value: Byte) {
     setByte(key, value)

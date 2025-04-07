@@ -1,16 +1,16 @@
 package net.ccbluex.liquidbounce.utils
 
-import net.minecraft.client.settings.KeyBinding
 import net.minecraft.client.Minecraft
+import net.minecraft.client.settings.KeyBinding
 import org.lwjgl.input.Keyboard
 
-public class MCGO {
+class MCGO {
 
     private val mc: Minecraft = Minecraft.getMinecraft()
 
     // Method to simulate right-click
     fun rightClick() {
-        KeyBinding.onTick(Minecraft.getMinecraft().gameSettings.keyBindUseItem.getKeyCode());
+        KeyBinding.onTick(Minecraft.getMinecraft().gameSettings.keyBindUseItem.keyCode)
     }
 
     // Method to switch to a specific inventory slot

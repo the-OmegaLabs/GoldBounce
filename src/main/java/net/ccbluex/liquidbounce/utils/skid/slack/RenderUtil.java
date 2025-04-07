@@ -1,9 +1,6 @@
 package net.ccbluex.liquidbounce.utils.skid.slack;
 
-import net.ccbluex.liquidbounce.utils.skid.fdpx.MathUtils;
-import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockStairs;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -11,20 +8,15 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.RenderItem;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityTNTPrimed;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.*;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -36,13 +28,13 @@ import org.lwjgl.util.glu.Cylinder;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.util.glu.Sphere;
 
-import javax.vecmath.Vector4d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 import java.awt.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
 import static org.lwjgl.opengl.GL11.*;

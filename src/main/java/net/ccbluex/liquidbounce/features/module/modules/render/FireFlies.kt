@@ -3,15 +3,15 @@ package net.ccbluex.liquidbounce.features.module.modules.visual
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.event.UpdateEvent
-import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.value.BoolValue
-import net.ccbluex.liquidbounce.value.FloatValue
+import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.skid.moonlight.fireflies.FireFilesUtils
 import net.ccbluex.liquidbounce.utils.skid.moonlight.math.MathUtils
-import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils.rainbow
-import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
+import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils.rainbow
+import net.ccbluex.liquidbounce.value.BoolValue
+import net.ccbluex.liquidbounce.value.FloatValue
 import net.minecraft.client.Minecraft
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.client.renderer.GlStateManager
@@ -299,9 +299,9 @@ object FireFlies : Module(name = "FireFlies", category = Category.RENDER) {
         var prevPos: Vec3
         var alphaPC: FireFilesUtils = FireFilesUtils(0.0f, 1.0f, 0.02f)
         var msChangeSideRate: Int = this.msChangeSideRate()
-        var moveYawSet: Float = FireFlies.getRandom(0.0, 360.0).toFloat()
-        var speed: Float = FireFlies.getRandom(0.1, 0.25).toFloat()
-        var yMotion: Float = FireFlies.getRandom(-0.075, 0.1).toFloat()
+        var moveYawSet: Float = getRandom(0.0, 360.0).toFloat()
+        var speed: Float = getRandom(0.1, 0.25).toFloat()
+        var yMotion: Float = getRandom(-0.075, 0.1).toFloat()
         var moveYaw: Float = this.moveYawSet
         var maxAlive: Float
         var startTime: Long = 0
@@ -343,7 +343,7 @@ object FireFlies : Module(name = "FireFlies", category = Category.RENDER) {
             if (System.currentTimeMillis() - this.rateTimer >= msChangeSideRate.toLong()) {
                 this.msChangeSideRate = this.msChangeSideRate()
                 this.rateTimer = System.currentTimeMillis()
-                this.moveYawSet = FireFlies.getRandom(0.0, 360.0).toFloat()
+                this.moveYawSet = getRandom(0.0, 360.0).toFloat()
             }
             this.moveYaw = MathUtils.lerp(this.moveYaw, this.moveYawSet, 0.065f)
             val motionX =

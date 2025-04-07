@@ -5,11 +5,13 @@
  */
 package net.ccbluex.liquidbounce.utils.block
 
-import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.isBlockBBValid
+import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.extensions.ceilInt
 import net.ccbluex.liquidbounce.utils.extensions.floorInt
-import net.minecraft.block.*
+import net.minecraft.block.Block
+import net.minecraft.block.BlockContainer
+import net.minecraft.block.BlockWorkbench
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.item.EntityFallingBlock
@@ -27,7 +29,7 @@ val BlockPos.material: Material?
     get() = this.block?.material
 
 val BlockPos.isReplaceable: Boolean
-    get() = this.material?.isReplaceable ?: false
+    get() = this.material?.isReplaceable == true
 
 val BlockPos.center: Vec3
     get() = Vec3(x + 0.5, y + 0.5, z + 0.5)

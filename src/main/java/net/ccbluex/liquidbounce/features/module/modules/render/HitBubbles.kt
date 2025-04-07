@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.visual
 
-import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_NAME
 import net.ccbluex.liquidbounce.event.AttackEvent
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render3DEvent
@@ -14,7 +13,6 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.customRotatedObject2D
 import net.ccbluex.liquidbounce.value.boolean
 import net.minecraft.client.renderer.GlStateManager.*
-import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.EntityLivingBase

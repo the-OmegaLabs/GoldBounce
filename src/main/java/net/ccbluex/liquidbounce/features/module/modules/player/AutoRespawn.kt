@@ -21,7 +21,7 @@ object AutoRespawn : Module("AutoRespawn", Category.PLAYER, gameDetecting = fals
     fun onUpdate(event: UpdateEvent) {
         val thePlayer = mc.thePlayer
 
-        if (thePlayer == null || Ghost.handleEvents())
+        if (thePlayer == null || handleEvents())
             return
 
         if (if (instant) mc.thePlayer.health == 0F || mc.thePlayer.isDead else mc.currentScreen is GuiGameOver && (mc.currentScreen as GuiGameOver).enableButtonsTimer >= 20) {

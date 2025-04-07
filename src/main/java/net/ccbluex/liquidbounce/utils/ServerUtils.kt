@@ -17,7 +17,6 @@ import net.minecraft.network.handshake.client.C00Handshake
 import net.minecraft.network.login.client.C00PacketLoginStart
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
-import org.spongepowered.asm.mixin.Unique
 import java.net.InetAddress
 
 

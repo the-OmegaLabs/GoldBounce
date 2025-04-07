@@ -180,7 +180,7 @@ object ColorUtils {
         try {
             color3 = Color(red, green, blue)
         } catch (exp: IllegalArgumentException) {
-            val nf = NumberFormat.getNumberInstance()
+            NumberFormat.getNumberInstance()
             // System.out.println(nf.format(red) + "; " + nf.format(green) + "; " + nf.format(blue));
             exp.printStackTrace()
         }
@@ -399,7 +399,7 @@ object ColorUtils {
     @JvmStatic
      fun StaticRainbow(speed: Int, index: Int): Color {
         var angle = ((System.currentTimeMillis() / speed + index) % 360).toInt()
-        val hue = angle / 360f
+        angle / 360f
         return Color.getHSBColor(if ((360.0.also { (angle).toInt() } / 360.0).toFloat().toDouble() < 0.5) -(angle / 360.0).toFloat() else (angle / 360.0).toFloat(), 0.5f, 1.0f)
     }
 

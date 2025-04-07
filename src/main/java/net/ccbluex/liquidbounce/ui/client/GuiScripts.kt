@@ -178,7 +178,7 @@ class GuiScripts(private val prevGui: GuiScreen) : GuiScreen() {
 
         override fun getSize() = scripts.size
 
-        public override fun elementClicked(id: Int, doubleClick: Boolean, var3: Int, var4: Int) {
+        override fun elementClicked(id: Int, doubleClick: Boolean, var3: Int, var4: Int) {
             selectedSlot = id
         }
 

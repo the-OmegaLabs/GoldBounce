@@ -33,7 +33,7 @@ object Rotations : Module("Rotations", Category.RENDER, gameDetecting = false, h
     private var lastRotation: Rotation? = null
 
     private val specialCases
-        get() = arrayListOf(Derp.handleEvents(), FreeCam.shouldDisableRotations()).any { it }
+        get() = arrayListOf(handleEvents(), FreeCam.shouldDisableRotations()).any { it }
 
     @EventTarget
     fun onMotion(event: MotionEvent) {

@@ -40,9 +40,9 @@ object BreakProgress : Module("BreakProgress", Category.RENDER, hideModule = fal
             mc.entityRenderer.disableLightmap()
 
             // Set the position where the progress bar will appear
-            val renderPosX = mc.renderManager.viewerPosX
-            val renderPosY = mc.renderManager.viewerPosY
-            val renderPosZ = mc.renderManager.viewerPosZ
+            mc.renderManager.viewerPosX
+            mc.renderManager.viewerPosY
+            mc.renderManager.viewerPosZ
 
             val blockPos = targetBlockPos!!
 
@@ -119,7 +119,7 @@ object BreakProgress : Module("BreakProgress", Category.RENDER, hideModule = fal
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         if (mc.thePlayer != null) {
-            val player = mc.thePlayer as EntityPlayerSP
+            mc.thePlayer as EntityPlayerSP
 
             // Check if player is breaking a block
             val blockPos = mc.objectMouseOver?.blockPos

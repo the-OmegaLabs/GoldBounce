@@ -19,7 +19,6 @@ import net.ccbluex.liquidbounce.utils.ClientUtils;
 import net.ccbluex.liquidbounce.utils.PacketUtils;
 import net.ccbluex.liquidbounce.utils.Rotation;
 import net.ccbluex.liquidbounce.utils.RotationUtils;
-import net.ccbluex.liquidbounce.utils.extensions.PlayerExtensionKt;
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils;
 import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.Minecraft;
@@ -51,6 +50,7 @@ import java.net.URISyntaxException;
 
 import static net.ccbluex.liquidbounce.utils.ClientUtilsKt.chat;
 import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
+import static net.ccbluex.liquidbounce.utils.extensions.PlayerExtensionKt.getRotation;
 import static net.minecraft.network.play.client.C19PacketResourcePackStatus.Action.FAILED_DOWNLOAD;
 
 @Mixin(NetHandlerPlayClient.class)
@@ -251,7 +251,7 @@ public abstract class MixinNetHandlerPlayClient {
         NoRotateSet module = NoRotateSet.INSTANCE;
 
         // Save the server's requested rotation before it resets the rotations
-        module.setSavedRotation(PlayerExtensionKt.getRotation(Minecraft.getMinecraft().thePlayer));
+        module.setSavedRotation(getRotation(Minecraft.getMinecraft().thePlayer));
     }
 
     @Redirect(method = "handlePlayerPosLook", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/NetworkManager;sendPacket(Lnet/minecraft/network/Packet;)V"))

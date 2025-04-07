@@ -1,6 +1,7 @@
 package net.ccbluex.liquidbounce.utils.network;
 
 import com.google.common.net.InetAddresses;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 

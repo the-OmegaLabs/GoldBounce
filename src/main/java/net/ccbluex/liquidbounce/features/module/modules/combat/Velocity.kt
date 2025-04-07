@@ -7,30 +7,28 @@ package net.ccbluex.liquidbounce.features.module.modules.combat
 
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
 import de.florianmichael.vialoadingbase.ViaLoadingBase
-import de.florianmichael.viamcp.fixes.AttackOrder
-import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.combat.Velocity.clicks
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler
 import net.ccbluex.liquidbounce.features.module.modules.movement.Speed
-import net.ccbluex.liquidbounce.features.module.modules.movement.Strafe
-import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isLookingOnEntities
-import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
-import net.ccbluex.liquidbounce.utils.client.*
-import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
-import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
-import net.ccbluex.liquidbounce.utils.extensions.*
-import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.MovementUtils.isOnGround
 import net.ccbluex.liquidbounce.utils.MovementUtils.speed
+import net.ccbluex.liquidbounce.utils.PacketUtils
+import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.RaycastUtils.runWithModifiedRaycastResult
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isLookingOnEntities
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
+import net.ccbluex.liquidbounce.utils.extensions.*
+import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.realMotionX
 import net.ccbluex.liquidbounce.utils.realMotionY
 import net.ccbluex.liquidbounce.utils.realMotionZ
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.utils.PacketUtils
+import net.ccbluex.liquidbounce.value.*
 import net.minecraft.block.BlockAir
 import net.minecraft.block.BlockSoulSand
 import net.minecraft.client.Minecraft
@@ -51,9 +49,6 @@ import net.minecraft.util.MathHelper
 import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.WorldSettings
 import javax.vecmath.Vector2d
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
@@ -303,7 +298,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         thePlayer.onGround = true
 
                     // Reduce Y
-                    if (thePlayer.hurtResistantTime > 0 && aacPushYReducer && !Speed.handleEvents())
+                    if (thePlayer.hurtResistantTime > 0 && aacPushYReducer && !handleEvents())
                         thePlayer.motionY -= 0.014999993
                 }
 
@@ -375,7 +370,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
             "grimcombat" -> {
                 if (attacked) {
-                    if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > 47) {
+                    if (ViaLoadingBase.getInstance().getTargetVersion().version > 47) {
                         mc.thePlayer.motionX = velX * reduceXZ / 8000.0
                         mc.thePlayer.motionY = velY / 8000.0
                         mc.thePlayer.motionZ = velZ * reduceXZ / 8000.0
@@ -713,7 +708,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         }
 
         if (mode == "Vulcan") {
-            if (Disabler.handleEvents() && Disabler.verusCombat && (!Disabler.onlyCombat || Disabler.isOnCombat)) return
+            if (handleEvents() && Disabler.verusCombat && (!Disabler.onlyCombat || Disabler.isOnCombat)) return
 
             if (packet is S32PacketConfirmTransaction) {
                 event.cancelEvent()

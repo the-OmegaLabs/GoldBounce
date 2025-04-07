@@ -10,8 +10,6 @@ import net.ccbluex.liquidbounce.features.module.modules.combat.Backtrack.loopThr
 import net.ccbluex.liquidbounce.utils.RotationUtils.getVectorForRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.isVisible
 import net.ccbluex.liquidbounce.utils.RotationUtils.serverRotation
-import net.ccbluex.liquidbounce.utils.extensions.eyes
-import net.ccbluex.liquidbounce.utils.extensions.hitBox
 import net.ccbluex.liquidbounce.utils.extensions.plus
 import net.ccbluex.liquidbounce.utils.extensions.times
 import net.minecraft.entity.Entity
@@ -19,13 +17,17 @@ import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityItemFrame
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.entity.projectile.EntityLargeFireball
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.MovingObjectPosition
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
 import java.util.*
 
 object RaycastUtils : MinecraftInstance() {
+    val Entity.eyes: Vec3
+    get() = getPositionEyes(1f)
+    val Entity.hitBox: AxisAlignedBB
+    get() {
+        val borderSize = collisionBorderSize.toDouble()
+        return entityBoundingBox.expand(borderSize, borderSize, borderSize)
+    }
     @JvmOverloads
     fun raycastEntity(
         range: Double,
@@ -85,6 +87,23 @@ object RaycastUtils : MinecraftInstance() {
         }
 
         return pointedEntity
+    }
+    fun overBlock(rotation: Rotation, facing: EnumFacing, pos: BlockPos, strict: Boolean): Boolean {
+        val (hitPos, hitSide) = raycast(rotation, 4.5) ?: return false
+
+        return if (strict) {
+            hitPos == pos && hitSide == facing
+        } else {
+            hitPos.distanceSq(pos) < 2.25 && hitSide == facing
+        }
+    }
+
+    private fun raycast(rotation: Rotation, reach: Double): Pair<BlockPos, EnumFacing>? {
+        val vec3 = mc.thePlayer.getPositionEyes(1f)
+        val vec31 = getVectorForRotation(rotation.yaw, rotation.pitch) * reach
+        val result = mc.theWorld.rayTraceBlocks(vec3, vec3 + vec31, false, true, false)
+
+        return result?.let { it.blockPos to it.sideHit }
     }
 
     /**

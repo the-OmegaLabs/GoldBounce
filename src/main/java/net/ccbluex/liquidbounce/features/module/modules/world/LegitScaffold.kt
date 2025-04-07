@@ -2,18 +2,17 @@ package net.ccbluex.liquidbounce.features.module.modules.world
 
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.features.module.Category
+import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.ModuleManager
+import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.minecraft.client.settings.GameSettings
 import net.minecraft.entity.player.EntityPlayer
-import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.Category
-import net.ccbluex.liquidbounce.features.module.ModuleManager
-import net.ccbluex.liquidbounce.value.*
+import net.minecraft.item.ItemBlock
+import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
-import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.MovingObjectPosition
-import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.minecraft.item.ItemBlock
 
 object LegitScaffold : Module("LegitScaffold", Category.WORLD) {
 
@@ -51,7 +50,7 @@ object LegitScaffold : Module("LegitScaffold", Category.WORLD) {
                 }
                 val offsetResult = isPlayerOnBlockEdge(mc.thePlayer)
                 var delay = 140
-                val heldItem = mc.thePlayer.getCurrentEquippedItem()
+                val heldItem = mc.thePlayer.currentEquippedItem
                 if (heldItem != null && heldItem.item is ItemBlock && mc.gameSettings.keyBindBack.pressed && mc.gameSettings.keyBindUseItem.pressed && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     mc.thePlayer.rotationYawHead = mc.thePlayer.rotationYaw
                     mc.thePlayer.rotationPitch = mc.thePlayer.rotationPitch

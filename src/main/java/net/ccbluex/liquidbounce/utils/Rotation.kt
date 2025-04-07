@@ -46,7 +46,7 @@ data class Rotation(var yaw: Float, var pitch: Float) : MinecraftInstance() {
     }
 
     fun plusDiff(other: Rotation): Rotation {
-        return this.plus(Rotation.of(angleDifferences(other, this)))
+        return this.plus(of(angleDifferences(other, this)))
     }
 
     /**

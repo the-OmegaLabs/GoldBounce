@@ -10,10 +10,11 @@
  */
 package net.ccbluex.liquidbounce.utils.skid.moonlight.math;
 
-import net.minecraft.util.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
 
 import java.security.SecureRandom;
-import java.util.Random;
 
 import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
 

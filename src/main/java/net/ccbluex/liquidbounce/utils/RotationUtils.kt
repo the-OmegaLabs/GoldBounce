@@ -9,6 +9,9 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.modules.combat.FastBow
 import net.ccbluex.liquidbounce.features.module.modules.render.Rotations
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
+import net.ccbluex.liquidbounce.utils.RotationUtils.BodyPoint.values
+import net.ccbluex.liquidbounce.utils.RotationUtils.MAX_CAPTURE_TICKS
+import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextDouble
@@ -137,7 +140,19 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return visibleVec ?: invisibleVec
     }
+    fun getRotationBlock(pos: BlockPos, predict: Float): Rotation {
+        val from = net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc.thePlayer.getPositionEyes(predict)
+        val to = Vec3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5)
+        val diff = to.subtract(Vec3d(from))
 
+        val yaw = MathHelper.wrapAngleTo180_float(
+            Math.toDegrees(atan2(diff.z, diff.x)).toFloat() - 90f
+        )
+        val pitch = MathHelper.wrapAngleTo180_float(
+            (-Math.toDegrees(atan2(diff.y, sqrt(diff.x * diff.x + diff.z * diff.z)))).toFloat()
+        )
+        return Rotation(yaw, pitch)
+    }
     /**
      * Face trajectory of arrow by default, can be used for calculating other trajectories (eggs, snowballs)
      * by specifying `gravity` and `velocity` parameters

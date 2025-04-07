@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
-import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
@@ -28,12 +27,9 @@ import net.ccbluex.liquidbounce.value.boolean
 import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
-import net.minecraft.client.audio.ISound
-import java.util.Base64
-import java.io.ByteArrayInputStream
 import java.util.concurrent.CopyOnWriteArraySet
 
-open class Module constructor(
+open class Module(
     val name: String,
     val category: Category,
     defaultKeyBind: Int = Keyboard.KEY_NONE,
@@ -50,7 +46,7 @@ open class Module constructor(
     ) : MinecraftInstance(), Listenable {
 
     // Value that determines whether the module should depend on GameDetector
-    private val onlyInGameValue = boolean("OnlyInGame", true, subjective = true) { GameDetector.state }
+    private val onlyInGameValue = boolean("OnlyInGame", true, subjective = true) { state }
 
     protected val TickScheduler = TickScheduler(this)
 
@@ -111,18 +107,23 @@ open class Module constructor(
 
             // Play sound and add notification
             if (!isStarting) {
-                val soundPath = if (value) "sound/enable" else "sound/disable"
-                synchronized(mc.soundHandler) {
-                    mc.soundHandler.playSound(
-                        PositionedSoundRecord.create(ResourceLocation("random.click"), 1F)
+                if(getName()!="Freeze") {
+                    synchronized(mc.soundHandler) {
+                        mc.soundHandler.playSound(
+                            PositionedSoundRecord.create(ResourceLocation("random.click"), 1F)
+                        )
+                    }
+                    addNotification(
+                        Notification(
+                            getName(),
+                            2000F,
+                            if (value) "启用了" else "禁用了",
+                            if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS
+                        )
                     )
                 }
-                addNotification(
-//                    Notification(getName(),2000F, ResourceLocation("liquidbounce", soundPath).resourcePath, if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS)
-
-                    Notification(getName(),2000F,if (value) "启用了" else "禁用了", if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS)
-                )
             }
+
 
             // Call on enabled or disabled
             if (value) {

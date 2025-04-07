@@ -4,7 +4,8 @@ import net.ccbluex.liquidbounce.LiquidBounce.moduleManager
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.utils.*
+import net.ccbluex.liquidbounce.utils.RotationUtils
+import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.gui.GuiChat
@@ -12,10 +13,15 @@ import net.minecraft.client.settings.GameSettings
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.Packet
-import net.minecraft.network.play.server.*
-import net.minecraft.util.*
+import net.minecraft.network.play.server.S12PacketEntityVelocity
+import net.minecraft.network.play.server.S27PacketExplosion
+import net.minecraft.network.play.server.S32PacketConfirmTransaction
+import net.minecraft.util.MathHelper
+import net.minecraft.util.Vec3
 import java.util.*
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
     val desc = TextValue("Author","RN_Random_Name")
@@ -63,7 +69,7 @@ object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         if (cancelVelocity()) return
-        var player = mc.thePlayer;
+        var player = mc.thePlayer
         when (veloMode.get()) {
             "IntaveA" -> handleIntaveA()
             "IntaveB" -> handleIntaveB()
@@ -152,12 +158,12 @@ object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
     }
 
     private fun handleIntaveAAttack() {
-        var player = mc.thePlayer;
-        if (player == null || cancelVelocity()) return;
+        var player = mc.thePlayer
+        if (player == null || cancelVelocity()) return
         if (player.hurtTime == 9 && (System.currentTimeMillis() - lastAttackTime) <= 8000) {
-            var f = intaveFactor.get();
-            player.motionX *= f;
-            player.motionZ *= f;
+            var f = intaveFactor.get()
+            player.motionX *= f
+            player.motionZ *= f
             if (debugger.get()) chat("Reduced")
         }
         lastAttackTime = System.currentTimeMillis()
@@ -180,17 +186,17 @@ object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
     }
 
     private fun handleIntaveB() {
-        var player = mc.thePlayer;
-        if (player == null || cancelVelocity()) return;
-        var target = getClosestEntity();
-        target?.let { hitable = isCrosshairOnEntity(it) };
-        blockVelocity = true;
+        var player = mc.thePlayer
+        if (player == null || cancelVelocity()) return
+        var target = getClosestEntity()
+        target?.let { hitable = isCrosshairOnEntity(it) }
+        blockVelocity = true
         if (hitable) {
-            if (player.hurtTime == 9 && !player.isBurning()) {
-                tryJump();
+            if (player.hurtTime == 9 && !player.isBurning) {
+                tryJump()
             }
             if (player.hurtTime > 0) {
-                tryForward();
+                tryForward()
             }
         }
     }
@@ -254,7 +260,7 @@ object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
     private fun isEntityS12(entity: Entity, packet: Packet<*>): Boolean {
         return (packet as? S12PacketEntityVelocity)?.let { s12 ->
             s12.entityID == entity.entityId && !isFallMotion(s12)
-        } ?: false
+        } == true
     }
 
     private fun isFallMotion(packet: S12PacketEntityVelocity): Boolean {
@@ -277,7 +283,7 @@ object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
         val player = mc.thePlayer ?: return false
         val rotation = RotationUtils.serverRotation
 
-        return target.getEntityBoundingBox().expand(
+        return target.entityBoundingBox.expand(
             target.collisionBorderSize.toDouble(),
             target.collisionBorderSize.toDouble(),
             target.collisionBorderSize.toDouble()

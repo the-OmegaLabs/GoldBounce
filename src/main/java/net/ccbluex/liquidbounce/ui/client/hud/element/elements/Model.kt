@@ -84,7 +84,7 @@ class Model(x: Double = 40.0, y: Double = 100.0) : Element(x, y) {
     /**
      * Draw [entityLivingBase] to screen
      */
-    private fun drawEntityOnScreen(yaw: Float, pitch: Float, entityLivingBase: EntityLivingBase) {
+    internal fun drawEntityOnScreen(yaw: Float, pitch: Float, entityLivingBase: EntityLivingBase) {
         resetColor()
         enableColorMaterial()
         glPushMatrix()

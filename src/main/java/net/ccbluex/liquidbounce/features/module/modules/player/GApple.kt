@@ -1,27 +1,26 @@
 package net.ccbluex.liquidbounce.features.module.modules.player
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
-import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.*
+import net.ccbluex.liquidbounce.utils.MinecraftInstance
+import net.ccbluex.liquidbounce.utils.ReflectionUtil
+import net.ccbluex.liquidbounce.utils.StuckUtils
+import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.packet.BlinkUtils
-import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.value.BoolValue
+import net.ccbluex.liquidbounce.value.IntegerValue
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Items
+import net.minecraft.network.Packet
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.S12PacketEntityVelocity
-import net.minecraft.network.Packet
 import net.minecraftforge.fml.common.gameevent.TickEvent
-import java.awt.Color
 import java.util.*
-import kotlin.collections.isNotEmpty
 import kotlin.math.min
 
 object GApple : Module("GApple", Category.PLAYER) {
@@ -104,7 +103,7 @@ object GApple : Module("GApple", Category.PLAYER) {
         if (movingPackets >= 32) {
             sendPackets(
                 C09PacketHeldItemChange(slot),
-                C08PacketPlayerBlockPlacement(MinecraftInstance.mc.thePlayer.inventoryContainer.getSlot(slot + 36).stack),
+                C08PacketPlayerBlockPlacement(mc.thePlayer.inventoryContainer.getSlot(slot + 36).stack),
             )
             releasePackets()
             sendPackets(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))

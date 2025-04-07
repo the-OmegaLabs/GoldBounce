@@ -5,7 +5,10 @@
  */
 package net.ccbluex.liquidbounce.features.command.commands
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.api.ClientApi
 import net.ccbluex.liquidbounce.api.Status

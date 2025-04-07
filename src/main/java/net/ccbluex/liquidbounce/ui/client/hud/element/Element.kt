@@ -5,6 +5,8 @@
  */
 package net.ccbluex.liquidbounce.ui.client.hud.element
 
+import net.ccbluex.liquidbounce.ui.client.hud.element.Side.Horizontal.values
+import net.ccbluex.liquidbounce.ui.client.hud.element.Side.Vertical.values
 import net.ccbluex.liquidbounce.utils.ClassUtils
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance

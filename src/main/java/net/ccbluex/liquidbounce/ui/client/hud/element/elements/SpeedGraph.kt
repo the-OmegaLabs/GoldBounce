@@ -42,7 +42,7 @@ class SpeedGraph(
     private var lastTick = -1
 
     override fun drawElement(): Border {
-        AWTFontRenderer.Companion.assumeNonVolatile = true
+        assumeNonVolatile = true
 
         val width = width
 

@@ -7,21 +7,23 @@ package net.ccbluex.liquidbounce.features.module.modules.movement
 
 import io.netty.buffer.Unpooled
 import net.ccbluex.liquidbounce.event.*
-import net.ccbluex.liquidbounce.value.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.player.GApple
 import net.ccbluex.liquidbounce.utils.BlinkUtils
+import net.ccbluex.liquidbounce.utils.MovementUtils.hasMotion
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
-import net.ccbluex.liquidbounce.utils.SilentHotbar
-import net.ccbluex.liquidbounce.utils.MovementUtils.hasMotion
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
+import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.choices
+import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.int
 import net.minecraft.item.*
-import net.minecraft.network.Packet
 import net.minecraft.network.PacketBuffer
 import net.minecraft.network.handshake.client.C00Handshake
 import net.minecraft.network.play.client.*

@@ -1,7 +1,8 @@
 package cn.stars.reversal.module.impl.render
 
 import net.ccbluex.liquidbounce.event.EventTarget
-import net.ccbluex.liquidbounce.event.*
+import net.ccbluex.liquidbounce.event.GameTickEvent
+import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.render.appleskin.AppleSkinHelper
@@ -38,7 +39,7 @@ object AppleSkin : Module(name = "AppleSkin", category = Category.RENDER) {
 
         this.drawSaturationOverlay(0f, stats.saturationLevel, 0, stats.foodLevel, right, top, 1.0f)
 
-        val heldItem: ItemStack = mc.thePlayer.getHeldItem()
+        val heldItem: ItemStack = mc.thePlayer.heldItem
 
         val holdingFood = heldItem != null && heldItem.item is ItemFood
 
@@ -50,7 +51,7 @@ object AppleSkin : Module(name = "AppleSkin", category = Category.RENDER) {
         val foodValues: FoodValues = AppleSkinHelper.getFoodValues(heldItem)
 
         val foodHunger: Int = foodValues.hunger
-        val foodSaturationIncrement: Float = foodValues.getSaturationIncrement()
+        val foodSaturationIncrement: Float = foodValues.saturationIncrement
 
         val newFoodValue = stats.foodLevel + foodHunger
         val newSaturationValue = stats.saturationLevel + foodSaturationIncrement
@@ -167,7 +168,7 @@ object AppleSkin : Module(name = "AppleSkin", category = Category.RENDER) {
             var u = iconStartOffset + 4 * iconSize
             var ub = iconStartOffset + iconSize
 
-            for (e in mc.thePlayer.getActivePotionEffects()) {
+            for (e in mc.thePlayer.activePotionEffects) {
                 if (e.potionID == Potion.hunger.getId()) {
                     u += 4 * iconSize
                     break

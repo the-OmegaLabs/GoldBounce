@@ -68,7 +68,7 @@ object BufferSpeed : Module("BufferSpeed", Category.MOVEMENT, hideModule = false
     fun onUpdate(event: UpdateEvent) {
         val thePlayer = mc.thePlayer ?: return
 
-        if (Speed.handleEvents() || noHurt && thePlayer.hurtTime > 0) {
+        if (handleEvents() || noHurt && thePlayer.hurtTime > 0) {
             reset()
             return
         }

@@ -63,7 +63,7 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
         if ((onlyOnSprintPress || !handleEvents()) && !player.isSprinting && !mc.gameSettings.keyBindSprint.isKeyDown && !SuperKnockback.startSprint() && !isSprinting)
             return
 
-        if (Scaffold.handleEvents()) {
+        if (handleEvents()) {
             if (!Scaffold.sprint) {
                 player.isSprinting = false
                 isSprinting = false
@@ -114,7 +114,7 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
             return true
         }
 
-        if ((usingItem || isLegitModeActive) && !NoSlow.handleEvents() && isUsingItem) {
+        if ((usingItem || isLegitModeActive) && !handleEvents() && isUsingItem) {
             return true
         }
 
@@ -130,7 +130,7 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
             return false
         }
 
-        val threshold = if ((!usingItem || NoSlow.handleEvents()) && isUsingItem) 0.2 else 0.8
+        val threshold = if ((!usingItem || handleEvents()) && isUsingItem) 0.2 else 0.8
         val playerForwardInput = player.movementInput.moveForward
 
         if (!checkServerSide) {

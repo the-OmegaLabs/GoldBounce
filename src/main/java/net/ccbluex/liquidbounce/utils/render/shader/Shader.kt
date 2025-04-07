@@ -8,14 +8,16 @@ package net.ccbluex.liquidbounce.utils.render.shader
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import org.apache.commons.io.IOUtils
-import org.lwjgl.opengl.*
+import org.lwjgl.opengl.ARBFragmentShader
 import org.lwjgl.opengl.ARBShaderObjects.*
+import org.lwjgl.opengl.ARBVertexShader
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUseProgram
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import kotlin.Throws
 
 abstract class Shader : MinecraftInstance {
     var programId = 0

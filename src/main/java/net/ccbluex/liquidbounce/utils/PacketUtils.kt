@@ -5,18 +5,16 @@
  */
 package net.ccbluex.liquidbounce.utils
 
-import com.google.common.collect.Queues
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.modules.combat.FakeLag
 import net.ccbluex.liquidbounce.features.module.modules.combat.Velocity
 import net.ccbluex.liquidbounce.injection.implementations.IMixinEntity
-import net.ccbluex.liquidbounce.utils.extensions.*
+import net.ccbluex.liquidbounce.utils.extensions.currPos
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.Packet
 import net.minecraft.network.play.INetHandlerPlayClient
-import net.minecraft.network.play.INetHandlerPlayServer
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.server.*
 import net.minecraft.util.Vec3

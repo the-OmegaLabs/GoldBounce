@@ -8,7 +8,8 @@ package net.ccbluex.liquidbounce.utils.render.shader.shaders
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
 import net.ccbluex.liquidbounce.utils.render.shader.Shader
 import org.lwjgl.opengl.Display
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.glUniform1f
+import org.lwjgl.opengl.GL20.glUniform2f
 import java.io.File
 import java.io.IOException
 

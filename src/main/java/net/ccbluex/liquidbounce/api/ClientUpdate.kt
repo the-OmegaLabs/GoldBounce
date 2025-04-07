@@ -6,12 +6,12 @@
 package net.ccbluex.liquidbounce.api
 
 import net.ccbluex.liquidbounce.LiquidBounce
-import net.ccbluex.liquidbounce.LiquidBounce.clientVersionNumber
 import net.ccbluex.liquidbounce.LiquidBounce.IN_DEV
+import net.ccbluex.liquidbounce.LiquidBounce.clientVersionNumber
+import net.ccbluex.liquidbounce.api.ClientApi.requestNewestBuildEndpoint
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import java.text.SimpleDateFormat
 import java.util.*
-import net.ccbluex.liquidbounce.api.ClientApi.requestNewestBuildEndpoint
 
 object ClientUpdate {
 

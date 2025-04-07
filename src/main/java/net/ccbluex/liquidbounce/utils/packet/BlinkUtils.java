@@ -1,10 +1,9 @@
 package net.ccbluex.liquidbounce.utils.packet;
-import net.ccbluex.liquidbounce.utils.client.MinecraftInstance;
+
 import net.ccbluex.liquidbounce.utils.PacketUtils;
-import net.minecraft.client.Minecraft;
+import net.ccbluex.liquidbounce.utils.client.MinecraftInstance;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S00PacketKeepAlive;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;

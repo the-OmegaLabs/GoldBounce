@@ -11,7 +11,6 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.event.WorldEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.combat.TNTBlock
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot.isBot
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.value.boolean
@@ -21,7 +20,8 @@ import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemFireball
 import net.minecraft.item.ItemTool
 import net.minecraft.network.play.server.S38PacketPlayerListItem
-import net.minecraft.network.play.server.S38PacketPlayerListItem.Action.*
+import net.minecraft.network.play.server.S38PacketPlayerListItem.Action.ADD_PLAYER
+import net.minecraft.network.play.server.S38PacketPlayerListItem.Action.REMOVE_PLAYER
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
 

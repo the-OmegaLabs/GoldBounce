@@ -12,7 +12,8 @@ import net.ccbluex.liquidbounce.file.FileConfig
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.minecraft.block.Block
-import java.io.*
+import java.io.File
+import java.io.IOException
 
 class XRayConfig(file: File) : FileConfig(file) {
 

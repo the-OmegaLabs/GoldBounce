@@ -21,12 +21,7 @@ import net.ccbluex.liquidbounce.utils.misc.RandomUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawEntityBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawPlatform
 import net.ccbluex.liquidbounce.utils.schedulePacketProcess
-import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.*
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.Packet
@@ -274,7 +269,7 @@ object TimerRange : Module("TimerRange", Category.COMBAT, hideModule = false) {
             outborder = false,
             predict = true,
             lookRange = if (timerBoostMode == "Normal") rangeValue else randomRange,
-            attackRange = if (Reach.handleEvents()) Reach.combatReach else 3f,
+            attackRange = if (handleEvents()) Reach.combatReach else 3f,
         )
 
         if (distance == null) {

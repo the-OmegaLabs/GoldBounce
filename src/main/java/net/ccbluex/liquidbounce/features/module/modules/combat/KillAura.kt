@@ -11,7 +11,8 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
 import net.ccbluex.liquidbounce.features.module.modules.world.Fucker
 import net.ccbluex.liquidbounce.features.module.modules.world.Nuker
-import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.*
+import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
+import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Tower
 import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClientUtils.runTimeTicks
 import net.ccbluex.liquidbounce.utils.CooldownHelper.getAttackCooldownProgress
@@ -21,7 +22,6 @@ import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
-import net.ccbluex.liquidbounce.utils.RaycastUtils.runWithModifiedRaycastResult
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.getVectorForRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.isRotationFaced
@@ -33,7 +33,6 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.toRotation
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
-import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -52,16 +51,11 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
 import net.minecraft.network.play.client.C02PacketUseEntity
-import net.minecraft.network.play.client.C02PacketUseEntity.Action.*
+import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.potion.Potion
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.util.MovingObjectPosition
-import net.minecraft.util.Vec3
+import net.minecraft.util.*
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -319,7 +313,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
 
     // Target
-    public var target: EntityLivingBase? = null
+    var target: EntityLivingBase? = null
     private var hittable = false
     private val prevTargetEntities = mutableListOf<Int>()
 
@@ -705,7 +699,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         if (!blinkAutoBlock || !BlinkUtils.isBlinking) {
-            val affectSprint = false.takeIf { KeepSprint.handleEvents() || keepSprint }
+            val affectSprint = false.takeIf { handleEvents() || keepSprint }
 
             thePlayer.attackEntityWithModifiedSprint(entity, affectSprint) { if (swing) thePlayer.swingItem() }
 
@@ -838,7 +832,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                         currentRotation.pitch
                     ) { entity -> !livingRaycast || entity is EntityLivingBase && entity !is EntityArmorStand }
 
-            if (chosenEntity != null && chosenEntity is EntityLivingBase && (NoFriends.handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
+            if (chosenEntity != null && chosenEntity is EntityLivingBase && (handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
                 if (raycastIgnored && target != chosenEntity) {
                     this.target = chosenEntity
                 }
@@ -852,7 +846,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         var shouldExcept = false
 
         chosenEntity ?: this.target?.run {
-            if (ForwardTrack.handleEvents()) {
+            if (handleEvents()) {
                 ForwardTrack.includeEntityTruePos(this) {
                     checkIfAimingAtBox(this, currentRotation, eyes, onSuccess = {
                         hittable = true
@@ -877,7 +871,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         var checkNormally = true
 
-        if (Backtrack.handleEvents()) {
+        if (handleEvents()) {
             Backtrack.loopThroughBacktrackData(targetToCheck) {
                 var result = false
 
@@ -891,7 +885,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
                 return@loopThroughBacktrackData result
             }
-        } else if (ForwardTrack.handleEvents()) {
+        } else if (handleEvents()) {
             ForwardTrack.includeEntityTruePos(targetToCheck) {
                 checkIfAimingAtBox(targetToCheck, currentRotation, eyes, onSuccess = { checkNormally = false })
             }
@@ -1072,9 +1066,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     private fun shouldPrioritize(): Boolean = when {
-        !onScaffold && (Scaffold.handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) ||
+        !onScaffold && (handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) ||
                 Tower.handleEvents() && Tower.isTowering) -> true
-        !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
+        !onDestroyBlock && (handleEvents() && !Fucker.noHit && Fucker.pos != null || handleEvents()) -> true
         else -> false
     }
 

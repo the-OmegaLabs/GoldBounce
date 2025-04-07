@@ -7,13 +7,7 @@ package net.ccbluex.liquidbounce.utils
 
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.extensions.withGCD
-import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
-import net.ccbluex.liquidbounce.value.intRange
+import net.ccbluex.liquidbounce.value.*
 import kotlin.math.abs
 
 @Suppress("MemberVisibilityCanBePrivate")

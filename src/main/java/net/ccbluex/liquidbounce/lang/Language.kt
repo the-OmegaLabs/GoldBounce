@@ -6,6 +6,8 @@
 package net.ccbluex.liquidbounce.lang
 
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
+import net.ccbluex.liquidbounce.lang.LanguageManager.knownLanguages
+import net.ccbluex.liquidbounce.lang.LanguageManager.languageMap
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 

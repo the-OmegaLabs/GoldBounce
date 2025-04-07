@@ -15,8 +15,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Reader {
-    private String json;
-    private String[] ele;
+    private final String json;
+    private final String[] ele;
 
     public Reader(String json) {
         this.json = json;

@@ -19,7 +19,6 @@ import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner
 import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner.canBeSortedTo
 import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner.isStackUseful
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.kotlin.CoroutineUtils.waitUntil
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.component1
@@ -30,15 +29,17 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.chestStealerCur
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.chestStealerLastSlot
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.countSpaceInInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.hasSpaceInInventory
-import net.ccbluex.liquidbounce.utils.inventory.enchantments
+import net.ccbluex.liquidbounce.utils.kotlin.CoroutineUtils.waitUntil
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.value.IntegerValue
+import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.choices
+import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.gui.inventory.GuiChest
 import net.minecraft.entity.EntityLiving.getArmorPosition
-import net.minecraft.init.Blocks
 import net.minecraft.init.Items
 import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemStack
@@ -144,7 +145,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
         if (!handleEvents()) return
 
         val thePlayer = mc.thePlayer ?: return
-        val screen = mc.currentScreen as? GuiChest ?: return
+        mc.currentScreen as? GuiChest ?: return
 
         if (!shouldOperate()) return
         delay(startDelay.toLong())
@@ -239,9 +240,9 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 }
 
                 if (mergeableCount == 0 && spaceInInventory <= 0) return@mapIndexedNotNullTo null
-                if (InventoryCleaner.handleEvents() && !isStackUseful(stack, stacks, noLimits = mergeableCount >= stack.stackSize)) return@mapIndexedNotNullTo null
+                if (handleEvents() && !isStackUseful(stack, stacks, noLimits = mergeableCount >= stack.stackSize)) return@mapIndexedNotNullTo null
                 var sortableTo: Int? = null
-                if (InventoryCleaner.handleEvents() && mergeableCount<=0) {
+                if (handleEvents() && mergeableCount<=0) {
                     for (hotbarIndex in 0..8) {
                         if (!canBeSortedTo(hotbarIndex, stack.item)) continue
                         val hotbarStack = stacks.getOrNull(stacks.size - 9 + hotbarIndex)

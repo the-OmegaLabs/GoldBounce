@@ -3,7 +3,7 @@ package net.ccbluex.liquidbounce.utils.client
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.file.FileManager
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
-import java.awt.*
+import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.io.InputStream

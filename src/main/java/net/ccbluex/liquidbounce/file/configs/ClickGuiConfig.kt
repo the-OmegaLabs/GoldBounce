@@ -14,7 +14,8 @@ import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
 import net.ccbluex.liquidbounce.ui.client.clickgui.ClickGui
 import net.ccbluex.liquidbounce.ui.client.clickgui.elements.ModuleElement
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
-import java.io.*
+import java.io.File
+import java.io.IOException
 
 class ClickGuiConfig(file: File) : FileConfig(file) {
 

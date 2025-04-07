@@ -113,7 +113,7 @@ object FakeLag : Module("FakeLag", Category.COMBAT, gameDetecting = false, hideM
         }
 
         // Flush on scaffold/tower usage
-        if (Scaffold.handleEvents() && Scaffold.placeRotation != null) {
+        if (handleEvents() && Scaffold.placeRotation != null) {
             blink()
             return
         }

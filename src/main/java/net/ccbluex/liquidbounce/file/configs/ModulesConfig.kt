@@ -12,7 +12,8 @@ import me.liuli.elixir.utils.set
 import net.ccbluex.liquidbounce.LiquidBounce.moduleManager
 import net.ccbluex.liquidbounce.file.FileConfig
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
-import java.io.*
+import java.io.File
+import java.io.IOException
 
 class ModulesConfig(file: File) : FileConfig(file) {
 
