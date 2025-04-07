@@ -44,10 +44,11 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
 
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
-        if (target == null) return
+
         val sr = ScaledResolution(mc)
         target =
             KillAura.target as EntityPlayer?
+        if (target == null) return
 
         // 抗机器人检测
         if (state && AntiBot.isBot(target!!)) return
