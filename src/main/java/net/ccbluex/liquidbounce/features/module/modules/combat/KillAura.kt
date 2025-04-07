@@ -9,6 +9,7 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
+import net.ccbluex.liquidbounce.features.module.modules.world.ChestAura
 import net.ccbluex.liquidbounce.features.module.modules.world.Fucker
 import net.ccbluex.liquidbounce.features.module.modules.world.Nuker
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
@@ -699,7 +700,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         if (!blinkAutoBlock || !BlinkUtils.isBlinking) {
-            val affectSprint = false.takeIf { handleEvents() || keepSprint }
+            val affectSprint = false.takeIf { KeepSprint.handleEvents() || keepSprint }
 
             thePlayer.attackEntityWithModifiedSprint(entity, affectSprint) { if (swing) thePlayer.swingItem() }
 
@@ -832,7 +833,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                         currentRotation.pitch
                     ) { entity -> !livingRaycast || entity is EntityLivingBase && entity !is EntityArmorStand }
 
-            if (chosenEntity != null && chosenEntity is EntityLivingBase && (handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
+            if (chosenEntity != null && chosenEntity is EntityLivingBase && (NoFriends.handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
                 if (raycastIgnored && target != chosenEntity) {
                     this.target = chosenEntity
                 }
@@ -846,7 +847,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         var shouldExcept = false
 
         chosenEntity ?: this.target?.run {
-            if (handleEvents()) {
+            if (ForwardTrack.handleEvents()) {
                 ForwardTrack.includeEntityTruePos(this) {
                     checkIfAimingAtBox(this, currentRotation, eyes, onSuccess = {
                         hittable = true
@@ -871,7 +872,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         var checkNormally = true
 
-        if (handleEvents()) {
+        if (Backtrack.handleEvents()) {
             Backtrack.loopThroughBacktrackData(targetToCheck) {
                 var result = false
 
@@ -885,7 +886,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
                 return@loopThroughBacktrackData result
             }
-        } else if (handleEvents()) {
+        } else if (ForwardTrack.handleEvents()) {
             ForwardTrack.includeEntityTruePos(targetToCheck) {
                 checkIfAimingAtBox(targetToCheck, currentRotation, eyes, onSuccess = { checkNormally = false })
             }
@@ -1066,9 +1067,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     private fun shouldPrioritize(): Boolean = when {
-        !onScaffold && (handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) ||
+        !onScaffold && (Scaffold.handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) ||
                 Tower.handleEvents() && Tower.isTowering) -> true
-        !onDestroyBlock && (handleEvents() && !Fucker.noHit && Fucker.pos != null || handleEvents()) -> true
+        !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
         else -> false
     }
 
@@ -1161,7 +1162,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         get() = targetMode
 
     val isBlockingChestAura
-        get() = handleEvents() && target != null
+        get() = ChestAura.handleEvents() && target != null
 }
 
 data class SwingFailData(val vec3: Vec3, val startTime: Long)
