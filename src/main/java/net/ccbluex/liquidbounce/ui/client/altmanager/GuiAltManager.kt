@@ -369,10 +369,10 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
             get() = accounts.getOrNull(selectedSlot)
 
         override fun isSelected(id: Int) = selectedSlot == id
-
+        val size: Int get() = accounts.size
         override fun getSize() = accounts.size
 
-        override fun elementClicked(clickedElement: Int, doubleClick: Boolean, var3: Int, var4: Int) {
+        public override fun elementClicked(clickedElement: Int, doubleClick: Boolean, var3: Int, var4: Int) {
             selectedSlot = clickedElement
 
             if (doubleClick) {
