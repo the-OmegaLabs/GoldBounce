@@ -159,7 +159,7 @@ class Text(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F, side: Side = S
     private val display: String
         get() {
             val textContent = if (displayString.isEmpty() && !editMode)
-                "Text Element"
+                "bps"
             else
                 displayString
 

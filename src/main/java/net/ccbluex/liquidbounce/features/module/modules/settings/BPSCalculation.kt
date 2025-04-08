@@ -12,10 +12,8 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.FloatValue
 
-object Camera : Module("Camera", Category.SETTINGS, gameDetecting = false, hideModule = false) {
-    val motionCamera = BoolValue("MotionCamera", true)
-    val interpolation = FloatValue("MotionInterpolation", 0.05f, 0.01f..0.5f) { motionCamera.get()}
-    override fun onEnable() {
-        LiquidBounce.moduleManager.getModule(Camera::class.java).state = false
-    }
+object BPSCalculation : Module("BPSCalculation", Category.SETTINGS, gameDetecting = false, hideModule = false) {
+    val bpsLimitEnabled by BoolValue("BPSLimitEnabled", false)
+    val bpsLimit by FloatValue("BPSLimit", 15f, 0f..30f) {bpsLimitEnabled}
+    val debugMode by BoolValue("Debug", false)
 }

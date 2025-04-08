@@ -10,7 +10,9 @@ import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Text.Companion.DECIMAL_FORMAT
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.BPSUtils
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.blocksAmount
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsFloat
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -25,7 +27,9 @@ import org.lwjgl.opengl.GL11
 
 @ElementInfo(name = "BlockCounter")
 class BlockCounter(x: Double = 520.0, y: Double = 245.0) : Element(x = x, y = y) {
-
+    init {
+       BPSUtils.getBPS() // 添加初始化调用
+    }
     private val onScaffold by boolean("ScaffoldOnly", true)
 
     private val textColorMode by choices("Text-Color", arrayOf("Custom", "Rainbow", "Gradient"), "Custom")
@@ -90,7 +94,10 @@ class BlockCounter(x: Double = 520.0, y: Double = 245.0) : Element(x = x, y = y)
             if (BlockOverlay.handleEvents() && BlockOverlay.info && BlockOverlay.currentBlock != null)
                 GL11.glTranslatef(0f, 15f, 0f)
 
-            val info = "Blocks: §7${blocksAmount()}"
+            val rawBPS = BPSUtils.getBPS()
+            val info = "Blocks:§7${blocksAmount()} §7${DECIMAL_FORMAT.format(rawBPS)}(${"%.2f".format(rawBPS*60)}B/m)"
+
+
 
             val textCustomColor = textColors.color(1).rgb
             val backgroundCustomColor = bgColors.color().rgb

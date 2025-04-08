@@ -1,5 +1,6 @@
 package net.ccbluex.liquidbounce.features.module.modules.player
 
+import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
@@ -32,8 +33,6 @@ object GApple : Module("GApple", Category.PLAYER) {
     private val notValue by BoolValue("Notify", false)
     private val hudValue by BoolValue("HUD", false)
     private val sendDelay by IntegerValue("SendDelay", 3, 1..10)
-    private val noCancelC02 by BoolValue("NoCancelC02", false)
-    private val noC02 by BoolValue("NoC02", false)
 
     // State
     var eating = false
@@ -43,10 +42,12 @@ object GApple : Module("GApple", Category.PLAYER) {
     private var needSkip = false
     private val stopWatch = MSTimer()
     private var target: EntityLivingBase? = null
-
     init {
-        arrayOf(heal, noMove, autoValue, stuckValue, notValue, hudValue, sendDelay, noCancelC02, noC02)
+        LiquidBounce.eventManager.registerListener(this)
     }
+//    init {
+//        arrayOf(heal, noMove, autoValue, stuckValue, notValue, hudValue, sendDelay, noCancelC02, noC02)
+//    }
 
     override fun onEnable() {
         packets.clear()
@@ -72,6 +73,15 @@ object GApple : Module("GApple", Category.PLAYER) {
 
     @EventTarget
     fun onTick(event: TickEvent) {
+        chat("""
+            [DEBUG] 状态：
+            Health=${mc.thePlayer.health}
+            Slot=$slot
+            Eating=$eating
+            Packets=${packets.size}
+            thPlayerState${if(mc.thePlayer!=null)"true" else "false"}
+        """.trimIndent())
+
         if (mc.thePlayer == null || !mc.thePlayer.isEntityAlive) {
             eating = false
             packets.clear()
@@ -79,8 +89,12 @@ object GApple : Module("GApple", Category.PLAYER) {
         }
 
         slot = InventoryUtils.findItem(36, 45, Items.golden_apple)?.minus(36) ?: -1
+        if (slot == -1) {
+            chat("未找到金苹果！当前背包内容：${mc.thePlayer.inventory}")
+        }
+        chat("当前生命值：${mc.thePlayer.health} 阈值：$heal")
 
-        if (slot == -1 || mc.thePlayer.health >= heal) {
+        if (slot == -1 || mc.thePlayer.health >= heal.toFloat()) {
             if (eating) {
                 eating = false
                 releasePackets()
@@ -142,6 +156,7 @@ object GApple : Module("GApple", Category.PLAYER) {
 
     @EventTarget
     fun onMoveInput(event: MoveEvent) {
+        chat("移动状态：eating=$eating, noMove=$noMove")
         if (eating && noMove) {
             event.cancelEvent()
         }
