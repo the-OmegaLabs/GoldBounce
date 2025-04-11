@@ -19,6 +19,7 @@ import net.ccbluex.liquidbounce.features.command.CommandManager
 import net.ccbluex.liquidbounce.features.command.CommandManager.registerCommands
 import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.ModuleManager.registerModules
+import net.ccbluex.liquidbounce.features.module.modules.player.GApple
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Tower
 import net.ccbluex.liquidbounce.features.special.BungeeCordSpoof
 import net.ccbluex.liquidbounce.features.special.ClientFixes
@@ -135,6 +136,8 @@ object LiquidBounce {
             registerListener(WaitTickUtils)
             registerListener(SilentHotbar)
             registerListener(WaitMsUtils)
+            registerListener(BPSUtils)
+            registerListener(GApple)
 
             SysUtils().copyToFontDir("HarmonyOS_Sans_SC_Bold.ttf")
             SysUtils().copyToFontDir("iconnovo.ttf")

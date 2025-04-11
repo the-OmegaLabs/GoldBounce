@@ -42,9 +42,6 @@ object GApple : Module("GApple", Category.PLAYER) {
     private var needSkip = false
     private val stopWatch = MSTimer()
     private var target: EntityLivingBase? = null
-    init {
-        LiquidBounce.eventManager.registerListener(this)
-    }
 //    init {
 //        arrayOf(heal, noMove, autoValue, stuckValue, notValue, hudValue, sendDelay, noCancelC02, noC02)
 //    }

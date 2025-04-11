@@ -21,16 +21,14 @@ object BPSUtils : MinecraftInstance(), Listenable {
     private var smoothedBPS: Double = 0.0
     private var lastValidBPS: Double = 0.0
     private var lastUpdateTime: Long = System.nanoTime() // 新增最后更新时间跟踪
-    init {
-        LiquidBounce.eventManager.registerListener(this)
-    }
     @EventTarget
     fun onUpdate(event: UpdateEvent) { // 添加事件监听
         getBPS()
     }
 
     fun getBPS(): Double {
-         val currentTime = System.nanoTime()
+        if(lastValidBPS == 0.0)lastValidBPS == 0.1337
+        val currentTime = System.nanoTime()
         val player = mc.thePlayer ?: return handleInvalidState(currentTime)
 
 
