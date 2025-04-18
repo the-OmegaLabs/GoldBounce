@@ -5,6 +5,9 @@
  */
 package net.ccbluex.liquidbounce.features.command.commands
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
 import net.ccbluex.liquidbounce.LiquidBounce.moduleManager
 import net.ccbluex.liquidbounce.features.command.Command
@@ -21,6 +24,7 @@ import net.ccbluex.liquidbounce.script.ScriptManager.disableScripts
 import net.ccbluex.liquidbounce.script.ScriptManager.reloadScripts
 import net.ccbluex.liquidbounce.script.ScriptManager.unloadScripts
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.ui.font.Fonts.loadFonts
 
 object ReloadCommand : Command("reload", "configreload") {
     /**
@@ -43,7 +47,9 @@ object ReloadCommand : Command("reload", "configreload") {
         reloadScripts()
 
         chat("§c§lReloading fonts...")
-        Fonts.loadFonts()
+        CoroutineScope(Dispatchers.Main).async{
+            loadFonts()
+        }
 
         chat("§c§lReloading modules...")
         loadConfig(modulesConfig)

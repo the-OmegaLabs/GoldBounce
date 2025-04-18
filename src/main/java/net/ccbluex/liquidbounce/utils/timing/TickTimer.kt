@@ -14,6 +14,8 @@ class TickTimer {
     fun reset() {
         tick = 0
     }
-
+    fun getTickPassed(): Int {
+        return tick
+    }
     fun hasTimePassed(ticks: Int) = tick >= ticks
 }

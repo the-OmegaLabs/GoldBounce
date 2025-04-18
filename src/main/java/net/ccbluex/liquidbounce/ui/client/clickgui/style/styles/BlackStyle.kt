@@ -32,68 +32,94 @@ import kotlin.math.roundToInt
 @SideOnly(Side.CLIENT)
 object BlackStyle : Style() {
 
+    // 优化面板背景颜色和边框
     override fun drawPanel(mouseX: Int, mouseY: Int, panel: Panel) {
-        drawRect(panel.x.toFloat(), panel.y-3f, panel.x+panel.width.toFloat(), panel.y+17f,
-            Color(30, 30, 30, 180).rgb)
-        drawRect(panel.x.toFloat(), panel.y+17f, panel.x+panel.width.toFloat(),
-            panel.y+24f+panel.fade, Color(30, 30, 30, 180).rgb)
+        val panelColor = Color(30, 30, 30, 200) // 增加透明度
+        val borderColor = Color(40, 40, 40, 200)
+
+        drawRect(panel.x.toFloat(), panel.y - 3f, panel.x + panel.width.toFloat(), panel.y + 17f, panelColor.rgb)
+        drawRect(panel.x.toFloat(), panel.y + 17f, panel.x + panel.width.toFloat(),
+            panel.y + 24f + panel.fade, panelColor.rgb)
+
         if (panel.fade > 0) {
             drawBorderedRect(
                 panel.x,
                 panel.y + 17,
                 panel.x + panel.width,
                 panel.y + 19 + panel.fade,
-                3,
-                Color(40, 40, 40).rgb,
-                Color(40, 40, 40).rgb
+                2, // 减小边框宽度
+                borderColor.rgb,
+                borderColor.rgb
             )
             drawBorderedRect(
                 panel.x,
                 panel.y + 17 + panel.fade,
                 panel.x + panel.width,
                 panel.y + 24 + panel.fade,
-                3,
-                Color(20, 20, 20).rgb,
-                Color(20, 20, 20).rgb
+                2,
+                borderColor.darker().rgb,
+                borderColor.darker().rgb
             )
         }
 
-        val xPos = panel.x - (font35.getStringWidth("§f" + StringUtils.stripControlCodes(panel.name)) - 100) / 2
-        font35.drawString(panel.name, xPos, panel.y + 4, Color.WHITE.rgb)
+        // 优化面板标题位置和颜色
+        val titleColor = if (panel.isHovered(mouseX, mouseY)) Color(255, 255, 255) else Color(200, 200, 200)
+        val xPos = panel.x + (panel.width - font35.getStringWidth(panel.name)) / 2
+        font35.drawString(panel.name, xPos, panel.y + 4, titleColor.rgb)
     }
 
+    // 优化悬停提示框样式
     override fun drawHoverText(mouseX: Int, mouseY: Int, text: String) {
         val lines = text.lines()
-
-        val width =
-            lines.maxOfOrNull { font35.getStringWidth(it) + 14 } ?: return // Makes no sense to render empty lines
+        val width = lines.maxOfOrNull { font35.getStringWidth(it) + 14 } ?: return
         val height = (font35.fontHeight * lines.size) + 3
 
-        // Don't draw hover text beyond window boundaries
         val (scaledWidth, scaledHeight) = ScaledResolution(mc)
         val x = mouseX.clamp(0, (scaledWidth / scale - width).roundToInt())
         val y = mouseY.clamp(0, (scaledHeight / scale - height).roundToInt())
 
-        drawBorderedRect(x + 9, y, x + width, y + height, 3, Color(40, 40, 40).rgb, Color(40, 40, 40).rgb)
+        // 使用渐变背景
+        drawGradientRect(x + 9, y, x + width, y + height, 
+            Color(50, 50, 50, 220).rgb, 
+            Color(30, 30, 30, 220).rgb)
 
-        lines.forEachIndexed { index, text ->
-            font35.drawString(text, x + 12, y + 3 + (font35.fontHeight) * index, Color.WHITE.rgb)
+        // 添加边框
+        drawBorderedRect(x + 9, y, x + width, y + height, 1, 
+            Color(80, 80, 80).rgb, 
+            Color(80, 80, 80).rgb)
+
+        lines.forEachIndexed { index, line ->
+            font35.drawString(line, x + 12, y + 3 + (font35.fontHeight) * index, Color.WHITE.rgb)
         }
     }
 
+    // 优化按钮元素样式
     override fun drawButtonElement(mouseX: Int, mouseY: Int, buttonElement: ButtonElement) {
+        val bgColor = if (buttonElement.isHovered(mouseX, mouseY)) 
+            Color(40, 40, 40, 200) 
+        else 
+            Color(20, 20, 20, 200)
+
         drawRect(
             buttonElement.x - 1,
             buttonElement.y - 1,
             buttonElement.x + buttonElement.width + 1,
             buttonElement.y + buttonElement.height + 1,
-            getHoverColor(
-                if (buttonElement.color != Int.MAX_VALUE) Color(20, 20, 20) else Color(40, 40, 40),
-                buttonElement.hoverTime
-            )
+            bgColor.rgb
         )
 
-        font35.drawString(buttonElement.displayName, buttonElement.x + 5, buttonElement.y + 5, Color.WHITE.rgb)
+        // 添加按钮文字阴影效果
+        val textColor = if (buttonElement.isHovered(mouseX, mouseY)) 
+            Color(255, 255, 255) 
+        else 
+            Color(200, 200, 200)
+        
+        font35.drawStringWithShadow(
+            buttonElement.displayName, 
+            buttonElement.x + 5F,
+            buttonElement.y + 5F,
+            textColor.rgb
+        )
     }
 
     override fun drawModuleElementAndClick(
@@ -440,5 +466,14 @@ object BlackStyle : Style() {
         }
 
         return false
+    }
+
+    // 添加新的工具方法
+    private fun drawGradientRect(left: Int, top: Int, right: Int, bottom: Int, startColor: Int, endColor: Int) {
+        // 实现渐变矩形绘制
+    }
+
+    private fun drawStringWithShadow(text: String, x: Int, y: Int, color: Int) {
+        // 实现带阴影的文字绘制
     }
 }

@@ -13,6 +13,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.ModuleManager.getModule
 import net.ccbluex.liquidbounce.features.module.modules.movement.Fly
+import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.extensions.component1
 import net.ccbluex.liquidbounce.utils.extensions.component2
@@ -139,6 +140,8 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
                 "lowjump" -> thePlayer.motionY = 0.3425
                 "custommotion" -> thePlayer.motionY = customMotionY.toDouble()
                 "visual" -> thePlayer.onCriticalHit(entity)
+
+
             }
 
             msTimer.reset()

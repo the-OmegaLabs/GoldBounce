@@ -14,22 +14,24 @@ class GuiMainMenu : GuiScreen() {
 
     override fun initGui() {
         val defaultHeight = height / 4 + 48
+        val buttonWidth = 98
+        val buttonHeight = 20
+        val buttonSpacing = 24
 
         buttonList.run {
-            add(GuiButton(100, width / 2 - 100, defaultHeight + 24, 98, 20, "账户管理器"))
-            add(GuiButton(103, width / 2 + 2, defaultHeight + 24, 98, 20, "模组菜单"))
-            add(GuiButton(101, width / 2 - 100, defaultHeight + 24 * 2, 98, 20, "服务器状态"))
-            add(GuiButton(102, width / 2 + 2, defaultHeight + 24 * 2, 98, 20, "外挂设置"))
+            add(GuiButton(1, width / 2 - 100, defaultHeight, buttonWidth, buttonHeight, "单人游戏"))
+            add(GuiButton(2, width / 2 + 2, defaultHeight, buttonWidth, buttonHeight, "多人游戏"))
 
-            add(GuiButton(1, width / 2 - 100, defaultHeight, 98, 20, "单人游戏"))
-            add(GuiButton(2, width / 2 + 2, defaultHeight, 98, 20, "多人游戏"))
+            add(GuiButton(100, width / 2 - 100, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "账户管理器"))
+            add(GuiButton(103, width / 2 + 2, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "模组菜单"))
 
-            // Minecraft Realms
-            //		this.buttonList.add(new GuiButton(14, this.width / 2 - 100, j + 24 * 2, I18n.format("menu.online", new Object[0])));
+            add(GuiButton(101, width / 2 - 100, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "服务器状态"))
+            add(GuiButton(102, width / 2 + 2, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "外挂设置"))
 
-            add(GuiButton(108, width / 2 - 100, defaultHeight + 24 * 3, "贡献者"))
-            add(GuiButton(0, width / 2 - 100, defaultHeight + 24 * 4, 98, 20, "设置"))
-            add(GuiButton(4, width / 2 + 2, defaultHeight + 24 * 4, 98, 20, "退出"))
+            add(GuiButton(108, width / 2 - 100, defaultHeight + buttonSpacing * 3, buttonWidth * 2 + 4, buttonHeight, "贡献者"))
+
+            add(GuiButton(0, width / 2 - 100, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "设置"))
+            add(GuiButton(4, width / 2 + 2, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "退出"))
         }
     }
 
@@ -48,7 +50,6 @@ class GuiMainMenu : GuiScreen() {
 
         super.drawScreen(mouseX, mouseY, partialTicks)
     }
-
 
     override fun actionPerformed(button: GuiButton) {
         when (button.id) {

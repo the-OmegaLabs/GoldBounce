@@ -31,6 +31,7 @@ object FileManager : MinecraftInstance() {
     val clickGuiConfig = ClickGuiConfig(File(dir, "clickgui.json"))
     val accountsConfig = AccountsConfig(File(dir, "accounts.json"))
     val friendsConfig = FriendsConfig(File(dir, "friends.json"))
+    val soundsDir = File(dir, "sounds")
     val xrayConfig = XRayConfig(File(dir, "xray-blocks.json"))
     val hudConfig = HudConfig(File(dir, "hud.json"))
     val shortcutsConfig = ShortcutsConfig(File(dir, "shortcuts.json"))

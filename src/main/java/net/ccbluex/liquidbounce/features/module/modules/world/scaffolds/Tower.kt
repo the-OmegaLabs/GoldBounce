@@ -316,7 +316,28 @@ object Tower : MinecraftInstance(), Listenable {
                 player.setPosition(player.posX + 0.035, player.posY, player.posZ)
             }
 
-            "blocksmc" -> handleBlocksMCMode()
+            "blocksmc" -> {
+                MovementUtils.strafe()
+                if (player.onGround) {
+                    player.motionY = blocksmcMotion.get().toDouble()
+                } else {
+                    val speedMultiplier = if (player.isPotionActive(Potion.moveSpeed)) 
+                        blocksmcSpeedEffect.get().toDouble() 
+                    else 1.0
+
+                    player.motionX *= blocksmcAirDrag.get().toDouble()
+                    player.motionZ *= blocksmcAirDrag.get().toDouble()
+                    MovementUtils.strafe(speedMultiplier.toFloat())
+                }
+
+                if (player.posY % 1 < 0.1 && !player.onGround) {
+                    player.setPosition(
+                        player.posX,
+                        player.posY.toInt().toDouble(),
+                        player.posZ
+                    )
+                }
+            }
         }
     }
 

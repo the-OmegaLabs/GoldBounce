@@ -83,21 +83,73 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
     }
 
 
+    private var lastHealth = 0f
+    private var healthAnimationProgress = 0f
+    private var critAnimationProgress = 0f
+    private var nameColor = Color.WHITE
+
     private fun renderNovolineHUD(sr: ScaledResolution) {
         val centerX = sr.scaledWidth / 2 + posX
         val centerY = sr.scaledHeight / 2 + posY
-        RenderUtils.drawRect(centerX - 50, centerY - 15, centerX + 50, centerY + 15, Color(40, 40, 40).rgb)
-        Fonts.font35.drawCenteredString(target!!.name, centerX.toFloat(), centerY - 10F, Color.WHITE.rgb)
 
-        val healthPercent = (target!!.health / target!!.maxHealth).coerceIn(0f..1f)
+        // 绘制背景
+        RenderUtils.drawRect(centerX - 50, centerY - 15, centerX + 50, centerY + 15, Color(40, 40, 40).rgb)
+
+        // 处理名字颜色变化
+        if (target!!.hurtTime > 0) {
+            nameColor = Color(255, 0, 0) // 受伤时变为红色
+        } else {
+            // 渐变为白色
+            nameColor = Color(
+                (nameColor.red + (255 - nameColor.red) * 0.1f).toInt(),
+                (nameColor.green + (255 - nameColor.green) * 0.1f).toInt(),
+                (nameColor.blue + (255 - nameColor.blue) * 0.1f).toInt()
+            )
+        }
+
+        // 绘制名字
+        Fonts.font35.drawCenteredString(target!!.name, centerX.toFloat(), centerY - 10F, nameColor.rgb)
+
+        // 处理血条动画
+        val currentHealth = target!!.health
+        if (currentHealth != lastHealth) {
+            healthAnimationProgress = 1f // 开始动画
+            lastHealth = currentHealth
+        }
+
+        val healthPercent = (currentHealth / target!!.maxHealth).coerceIn(0f..1f)
+        val animatedHealth = if (healthAnimationProgress > 0) {
+            healthAnimationProgress -= 0.05f
+            lerp(lastHealth / target!!.maxHealth, healthPercent, 1f - healthAnimationProgress)
+        } else {
+            healthPercent
+        }
+
+        // 绘制血条背景
         RenderUtils.drawRect(centerX - 45, centerY + 5, centerX + 45, centerY + 8, Color(30, 30, 30).rgb)
+
+        // 绘制血条
         RenderUtils.drawRect(
             centerX - 45, centerY + 5,
-            (centerX - 45) + (90 * healthPercent).toInt(), centerY + 8,
+            (centerX - 45) + (90 * animatedHealth).toInt(), centerY + 8,
             Color(129, 95, 149).rgb
         )
+
+        // 处理暴击提示动画
+        if (target!!.hurtTime > 0 && target!!.hurtResistantTime == 0) {
+            critAnimationProgress = 1f // 开始暴击动画
+        }
+
+        if (critAnimationProgress > 0) {
+            critAnimationProgress -= 0.05f
+            val critColor = Color(255, 0, 0, (255 * critAnimationProgress).toInt())
+            Fonts.font35.drawCenteredString("CRIT!", centerX.toFloat(), centerY - 20F, critColor.rgb)
+        }
     }
 
+    private fun lerp(start: Float, end: Float, progress: Float): Float {
+        return start + (end - start) * progress
+    }
 
     private fun render0x01a4HUD(sr: ScaledResolution) {
         val posX = sr.scaledWidth / 2 + this.posX
