@@ -16,6 +16,7 @@ import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.int
+import net.minecraft.init.Blocks
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 
@@ -25,7 +26,7 @@ object Blink : Module("Blink", Category.PLAYER, gameDetecting = false, hideModul
 
     private val pulse by boolean("Pulse", false)
     private val pulseDelay by int("PulseDelay", 1000, 500..5000) { pulse }
-
+    private val skywars by boolean("Skywars", false)
     private val fakePlayerMenu by boolean("FakePlayer", true)
 
     private val pulseTimer = MSTimer()
@@ -35,6 +36,8 @@ object Blink : Module("Blink", Category.PLAYER, gameDetecting = false, hideModul
 
         if (fakePlayerMenu)
             BlinkUtils.addFakePlayer()
+
+
     }
 
     override fun onDisable() {
@@ -91,6 +94,15 @@ object Blink : Module("Blink", Category.PLAYER, gameDetecting = false, hideModul
                     BlinkUtils.addFakePlayer()
                 }
                 pulseTimer.reset()
+            }
+        }
+        if (skywars) {
+            val blockPos = mc.thePlayer.position.down()
+            val blockState = mc.theWorld.getBlockState(blockPos)
+            val block = blockState.block
+
+            if (block == Blocks.glass || block == Blocks.barrier) {
+                mc.theWorld.setBlockToAir(blockPos)
             }
         }
     }

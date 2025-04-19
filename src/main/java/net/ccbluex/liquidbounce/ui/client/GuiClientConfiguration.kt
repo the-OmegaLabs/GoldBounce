@@ -37,7 +37,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle("迷你世界 1.8.9")
+                Display.setTitle("河南人都是神之EP1偷井盖儿咯")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }

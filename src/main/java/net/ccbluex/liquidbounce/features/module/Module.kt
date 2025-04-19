@@ -5,7 +5,9 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
+import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
+import net.ccbluex.liquidbounce.LiquidBounce.tipSoundManager
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
 import net.ccbluex.liquidbounce.file.FileManager.modulesConfig
@@ -107,11 +109,10 @@ open class Module(
 
             // Play sound and add notification
             if (!isStarting) {
-                if(getName()!="Freeze") {
-                    synchronized(mc.soundHandler) {
-                        mc.soundHandler.playSound(
-                            PositionedSoundRecord.create(ResourceLocation("random.click"), 1F)
-                        )
+                    if(value){
+                        tipSoundManager.enableSound.asyncPlay()
+                    }else{
+                        tipSoundManager.disableSound.asyncPlay()
                     }
                     addNotification(
                         Notification(
@@ -121,7 +122,6 @@ open class Module(
                             if (value) Notifications.SeverityType.SUCCESS else Notifications.SeverityType.RED_SUCCESS
                         )
                     )
-                }
             }
 
 

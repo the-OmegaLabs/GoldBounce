@@ -22,7 +22,6 @@ import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawFilledCircle
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.util.StringUtils
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
 import java.awt.Color
@@ -38,8 +37,10 @@ object BlackStyle : Style() {
         val borderColor = Color(40, 40, 40, 200)
 
         drawRect(panel.x.toFloat(), panel.y - 3f, panel.x + panel.width.toFloat(), panel.y + 17f, panelColor.rgb)
-        drawRect(panel.x.toFloat(), panel.y + 17f, panel.x + panel.width.toFloat(),
-            panel.y + 24f + panel.fade, panelColor.rgb)
+        drawRect(
+            panel.x.toFloat(), panel.y + 17f, panel.x + panel.width.toFloat(),
+            panel.y + 24f + panel.fade, panelColor.rgb
+        )
 
         if (panel.fade > 0) {
             drawBorderedRect(
@@ -79,14 +80,18 @@ object BlackStyle : Style() {
         val y = mouseY.clamp(0, (scaledHeight / scale - height).roundToInt())
 
         // 使用渐变背景
-        drawGradientRect(x + 9, y, x + width, y + height, 
-            Color(50, 50, 50, 220).rgb, 
-            Color(30, 30, 30, 220).rgb)
+        drawGradientRect(
+            x + 9, y, x + width, y + height,
+            Color(50, 50, 50, 220).rgb,
+            Color(30, 30, 30, 220).rgb
+        )
 
         // 添加边框
-        drawBorderedRect(x + 9, y, x + width, y + height, 1, 
-            Color(80, 80, 80).rgb, 
-            Color(80, 80, 80).rgb)
+        drawBorderedRect(
+            x + 9, y, x + width, y + height, 1,
+            Color(80, 80, 80).rgb,
+            Color(80, 80, 80).rgb
+        )
 
         lines.forEachIndexed { index, line ->
             font35.drawString(line, x + 12, y + 3 + (font35.fontHeight) * index, Color.WHITE.rgb)
@@ -95,9 +100,9 @@ object BlackStyle : Style() {
 
     // 优化按钮元素样式
     override fun drawButtonElement(mouseX: Int, mouseY: Int, buttonElement: ButtonElement) {
-        val bgColor = if (buttonElement.isHovered(mouseX, mouseY)) 
-            Color(40, 40, 40, 200) 
-        else 
+        val bgColor = if (buttonElement.isHovered(mouseX, mouseY))
+            Color(40, 40, 40, 200)
+        else
             Color(20, 20, 20, 200)
 
         drawRect(
@@ -109,13 +114,13 @@ object BlackStyle : Style() {
         )
 
         // 添加按钮文字阴影效果
-        val textColor = if (buttonElement.isHovered(mouseX, mouseY)) 
-            Color(255, 255, 255) 
-        else 
+        val textColor = if (buttonElement.isHovered(mouseX, mouseY))
+            Color(255, 255, 255)
+        else
             Color(200, 200, 200)
-        
+
         font35.drawStringWithShadow(
-            buttonElement.displayName, 
+            buttonElement.displayName,
             buttonElement.x + 5F,
             buttonElement.y + 5F,
             textColor.rgb
@@ -470,10 +475,48 @@ object BlackStyle : Style() {
 
     // 添加新的工具方法
     private fun drawGradientRect(left: Int, top: Int, right: Int, bottom: Int, startColor: Int, endColor: Int) {
-        // 实现渐变矩形绘制
+        val startColorObj = Color(startColor, true)
+        val endColorObj = Color(endColor, true)
+
+        // 获取颜色的RGB分量
+        val startRed = startColorObj.red
+        val startGreen = startColorObj.green
+        val startBlue = startColorObj.blue
+        val startAlpha = startColorObj.alpha
+
+        val endRed = endColorObj.red
+        val endGreen = endColorObj.green
+        val endBlue = endColorObj.blue
+        val endAlpha = endColorObj.alpha
+
+        // 计算颜色差值
+        val deltaRed = endRed - startRed
+        val deltaGreen = endGreen - startGreen
+        val deltaBlue = endBlue - startBlue
+        val deltaAlpha = endAlpha - startAlpha
+
+        // 绘制渐变矩形
+        for (i in left until right) {
+            val ratio = (i - left).toFloat() / (right - left)
+            val color = Color(
+                (startRed + deltaRed * ratio).toInt(),
+                (startGreen + deltaGreen * ratio).toInt(),
+                (startBlue + deltaBlue * ratio).toInt(),
+                (startAlpha + deltaAlpha * ratio).toInt()
+            )
+            drawRect(i, top, i + 1, bottom, color.rgb)
+        }
     }
 
+
     private fun drawStringWithShadow(text: String, x: Int, y: Int, color: Int) {
-        // 实现带阴影的文字绘制
+        val shadowColor = Color(0, 0, 0, 100) // 阴影颜色
+        val shadowOffset = 1 // 阴影偏移量
+
+        // 绘制阴影
+        font35.drawString(text, x + shadowOffset, y + shadowOffset, shadowColor.rgb)
+        // 绘制文字
+        font35.drawString(text, x, y, color)
     }
+
 }

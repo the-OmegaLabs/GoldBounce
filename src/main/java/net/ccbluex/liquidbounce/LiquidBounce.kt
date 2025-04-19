@@ -42,6 +42,8 @@ import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager.Companion.loa
 import net.ccbluex.liquidbounce.ui.client.clickgui.ClickGui
 import net.ccbluex.liquidbounce.ui.client.hud.HUD
 import net.ccbluex.liquidbounce.ui.font.Fonts.loadFonts
+import net.ccbluex.liquidbounce.ui.sound.TipSoundManager
+import net.ccbluex.liquidbounce.ui.sound.TipSoundPlayer
 import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClassUtils.hasForge
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
@@ -66,11 +68,10 @@ object LiquidBounce {
     const val CLIENT_NAME = "GoldBounce"
     const val CLIENT_AUTHOR = "bzym2"
     const val CLIENT_CLOUD = "https://cloud.liquidbounce.net/LiquidBounce"
-    const val CLIENT_WEBSITE = "炉管.online"
+    const val CLIENT_WEBSITE = "pornhub.com"
 
     const val MINECRAFT_VERSION = "1.8.9"
-    
-    val clientVersionText = "b07"
+    val clientVersionText = "b08"
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy
     val clientCommit = ""
     val clientBranch = "main"
@@ -81,7 +82,7 @@ object LiquidBounce {
      */
     const val IN_DEV = true
 
-    val clientTitle = CLIENT_NAME + " " + clientVersionText + " "
+    val clientTitle = "$CLIENT_NAME $clientVersionText "
 
     var isStarting = true
 
@@ -91,6 +92,7 @@ object LiquidBounce {
     val eventManager = EventManager
     val fileManager = FileManager
     val scriptManager = ScriptManager
+    lateinit var tipSoundManager: TipSoundManager
 
     // HUD & ClickGUI
     val hud = HUD
@@ -109,12 +111,10 @@ object LiquidBounce {
     fun startClient() {
         PacketManager().init()
         isStarting = true
-
+        tipSoundManager = TipSoundManager()
         LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
 
         try {
-
-
             TrayUtils().start()
             // Load languages
             loadLanguages()
@@ -138,7 +138,6 @@ object LiquidBounce {
             registerListener(WaitMsUtils)
             registerListener(BPSUtils)
             registerListener(GApple)
-
             SysUtils().copyToFontDir("HarmonyOS_Sans_SC_Bold.ttf")
             SysUtils().copyToFontDir("iconnovo.ttf")
             SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
@@ -152,10 +151,8 @@ object LiquidBounce {
 
             // Register commands
             registerCommands()
-
             // Setup module manager and register modules
             registerModules()
-
             runCatching {
                 // Remapper
                 loadSrg()
