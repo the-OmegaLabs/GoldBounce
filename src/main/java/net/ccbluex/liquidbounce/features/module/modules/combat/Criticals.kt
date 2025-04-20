@@ -20,6 +20,7 @@ import net.ccbluex.liquidbounce.utils.extensions.component2
 import net.ccbluex.liquidbounce.utils.extensions.component3
 import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
+import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
@@ -34,6 +35,7 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
         arrayOf(
             "Packet",
             "NCPPacket",
+            "BMCPacket",
             "BlocksMC",
             "BlocksMC2",
             "NoGround",
@@ -51,12 +53,37 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     val delay by int("Delay", 0, 0..500)
     private val hurtTime by int("HurtTime", 10, 0..10)
     private val customMotionY by float("Custom-Y", 0.2f, 0.01f..0.42f) { mode == "CustomMotion" }
+    private val lookValue = BoolValue("UseC06Packet", false) {mode == "BMCPacket"}
     var stuckEnabled = false
     val msTimer = MSTimer()
 
     override fun onEnable() {
         if (mode == "NoGround")
             mc.thePlayer.tryJump()
+    }
+    fun sendCriticalPacket(
+        xOffset: Double = 0.0,
+        yOffset: Double = 0.0,
+        zOffset: Double = 0.0,
+        ground: Boolean
+    ) {
+        val x = mc.thePlayer.posX + xOffset
+        val y = mc.thePlayer.posY + yOffset
+        val z = mc.thePlayer.posZ + zOffset
+        if (lookValue.get()) {
+            mc.netHandler.addToSendQueue(
+                C03PacketPlayer.C06PacketPlayerPosLook(
+                    x,
+                    y,
+                    z,
+                    mc.thePlayer.rotationYaw,
+                    mc.thePlayer.rotationPitch,
+                    ground
+                )
+            )
+        } else {
+            mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(x, y, z, ground))
+        }
     }
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
@@ -105,7 +132,11 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
                     )
                     mc.thePlayer.onCriticalHit(entity)
                 }
-
+                "bmcpacket" -> {
+                    sendCriticalPacket(yOffset = 0.0825080378093, ground = false)
+                    sendCriticalPacket(yOffset = 0.0215634532004, ground = false)
+                    sendCriticalPacket(yOffset = 0.1040220332227, ground = false)
+                }
                 "blocksmc" -> {
                     sendPackets(
                         C04PacketPlayerPosition(x, y + 0.001091981, z, true),
