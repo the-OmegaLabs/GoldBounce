@@ -12,6 +12,7 @@ import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold.shouldGoDown
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.MovementUtils
+import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.getBlock
@@ -25,9 +26,11 @@ import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.init.Blocks.air
 import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.potion.Potion
 import net.minecraft.stats.StatList
 import net.minecraft.util.BlockPos
+import net.minecraft.util.Vec3
 import kotlin.math.truncate
 
 object Tower : MinecraftInstance(), Listenable {
@@ -96,7 +99,8 @@ object Tower : MinecraftInstance(), Listenable {
     // Mode stuff
     private val tickTimer = TickTimer()
     private var jumpGround = 0.0
-
+    private var offGroundTicks = 0
+    private var sent = false
     // Handle motion events
     @EventTarget
     fun onMotion(event: MotionEvent) {
@@ -317,25 +321,35 @@ object Tower : MinecraftInstance(), Listenable {
             }
 
             "blocksmc" -> {
-                MovementUtils.strafe()
                 if (player.onGround) {
-                    player.motionY = blocksmcMotion.get().toDouble()
-                } else {
-                    val speedMultiplier = if (player.isPotionActive(Potion.moveSpeed)) 
-                        blocksmcSpeedEffect.get().toDouble() 
-                    else 1.0
-
-                    player.motionX *= blocksmcAirDrag.get().toDouble()
-                    player.motionZ *= blocksmcAirDrag.get().toDouble()
-                    MovementUtils.strafe(speedMultiplier.toFloat())
+                    offGroundTicks = 0
+                    sent = false
                 }
 
-                if (player.posY % 1 < 0.1 && !player.onGround) {
-                    player.setPosition(
-                        player.posX,
-                        player.posY.toInt().toDouble(),
-                        player.posZ
-                    )
+                when (offGroundTicks) {
+                    0 -> {
+                        player.motionY = blocksmcMotion.get().toDouble()
+                        MovementUtils.strafe()
+                    }
+                    1 -> {
+                        if (!sent) {
+                            val randomFactor = 0.5f + (Math.random() * 0.44).toFloat()
+                            val playerPosition = player.position
+                            val adjustedY = if (playerPosition.y > 0) playerPosition.y - 255 else playerPosition.y + 255
+                            val inter = Vec3(playerPosition.x.toDouble(), adjustedY.toDouble(), playerPosition.z.toDouble())
+
+                            sendPacket(C08PacketPlayerBlockPlacement(BlockPos(inter.xCoord.toInt(), inter.yCoord.toInt(), inter.zCoord.toInt()), 255, player.heldItem, 0f, randomFactor, 0f))
+                            sent = true
+                        }
+                    }
+                    2 -> {
+                        player.setPosition(player.posX, player.posY.toInt().toDouble(), player.posZ)
+                    }
+                }
+
+                offGroundTicks++
+                if (offGroundTicks >= 3) {
+                    offGroundTicks = 0
                 }
             }
         }

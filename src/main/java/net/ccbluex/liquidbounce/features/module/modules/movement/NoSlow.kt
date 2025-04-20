@@ -37,16 +37,29 @@ import net.minecraft.network.status.client.C01PacketPing
 import net.minecraft.network.status.server.S01PacketPong
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
+import net.minecraft.util.Vec3
 
 
 object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val swordMode by choices(
         "SwordMode",
-        arrayOf("None", "NCP", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Blink","PostPlace", "GrimAC"),
+        arrayOf(
+            "None",
+            "NCP",
+            "UpdatedNCP",
+            "AAC5",
+            "SwitchItem",
+            "InvalidC08",
+            "Blink",
+            "PostPlace",
+            "GrimAC",
+            "BlocksMC"
+        ),
         "None"
     )
-
+    private val bmcTicks by int("BMC Ticks", 1, 1..20) { swordMode == "BlocksMC" }
+    private val bmcOldOffset by boolean("BMC OldOffset", false) { swordMode == "BlocksMC" }
     private val reblinkTicks by int("ReblinkTicks", 10, 1..20) { swordMode == "Blink" }
 
     private val blockForwardMultiplier by float("BlockForwardMultiplier", 1f, 0.2F..1f)
@@ -90,21 +103,19 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val BlinkTimer = TickTimer()
 
-    override fun onDisable() {
-        shouldSwap = false
-        shouldBlink = true
-        BlinkTimer.reset()
-        BlinkUtils.unblink()
-    }
+    private var randomFactor = 0f
+    private var sent = false
 
     @EventTarget
-    fun onMotion(event: MotionEvent){
+    fun onMotion(event: MotionEvent) {
         val player = mc.thePlayer ?: return
         val heldItem = player.heldItem ?: return
         val isUsingItem = usingItemFunc()
 
         if (!hasMotion && !shouldSwap)
             return
+
+
 
         if (isUsingItem || shouldSwap) {
             if (heldItem.item !is ItemSword && heldItem.item !is ItemBow && (consumeFoodOnly && heldItem.item is ItemFood ||
@@ -233,11 +244,58 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                         }
                     }
                 }
+
+                "BlocksMC" -> {
+                    if (!sent) {
+                        sent = true
+                        if (player.onGround) {
+                            player.jump()
+                        }
+                    }
+
+                    val slot = player.inventory.currentItem
+                    val item = player.inventory.getStackInSlot(slot)
+
+                    if (item != null && (item.unlocalizedName.contains(
+                            "apple",
+                            true
+                        ) || item.unlocalizedName.contains("bow", true) || item.unlocalizedName.contains(
+                            "potion",
+                            true
+                        ))
+                    ) {
+                        randomFactor = if (bmcOldOffset) {
+                            0.5f + (Math.random() * 0.44).toFloat()
+                        } else {
+                            (Math.random() * 0.96).toFloat()
+                        }
+
+                        val playerPosition = player.position
+                        val adjustedY = if (playerPosition.y > 0) playerPosition.y - 255 else playerPosition.y + 255
+                        val inter = Vec3(playerPosition.x.toDouble(), adjustedY.toDouble(), playerPosition.z.toDouble())
+
+                        sendPacket(
+                            C08PacketPlayerBlockPlacement(
+                                BlockPos(
+                                    inter.xCoord.toInt(),
+                                    inter.yCoord.toInt(),
+                                    inter.zCoord.toInt()
+                                ), 0, item, 0f, randomFactor, 0f
+                            )
+                        )
+
+                        if (player.ticksExisted % bmcTicks == 0) {
+                            // Additional logic if needed
+                        }
+                    }
+                    return
+                }
             }
         }
     }
+
     @EventTarget
-    fun onPacket(event: PacketEvent){
+    fun onPacket(event: PacketEvent) {
         val packet = event.packet
         val player = mc.thePlayer ?: return
 
@@ -338,8 +396,9 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             }
         }
     }
+
     @EventTarget
-    fun onSlowDown(event: SlowDownEvent){
+    fun onSlowDown(event: SlowDownEvent) {
         val heldItem = mc.thePlayer.heldItem?.item
 
         if (heldItem !is ItemSword) {
