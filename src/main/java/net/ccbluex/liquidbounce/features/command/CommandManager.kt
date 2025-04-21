@@ -36,6 +36,7 @@ object CommandManager {
         registerCommand(SettingsCommand)
         registerCommand(PacketDebuggerCommand)
         registerCommand(LocalSettingsCommand)
+        registerCommand(LocalKeybindsCommand)
         registerCommand(LocalThemesCommand)
         registerCommand(ServerInfoCommand)
         registerCommand(ToggleCommand)

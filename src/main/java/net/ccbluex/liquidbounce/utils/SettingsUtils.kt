@@ -8,12 +8,16 @@ package net.ccbluex.liquidbounce.utils
 import net.ccbluex.liquidbounce.LiquidBounce.moduleManager
 import net.ccbluex.liquidbounce.api.ClientApi
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.file.FileManager
+import net.ccbluex.liquidbounce.file.FileManager.keybindsDir
+import net.ccbluex.liquidbounce.file.FileManager.settingsDir
 import net.ccbluex.liquidbounce.utils.misc.HttpUtils
 import net.ccbluex.liquidbounce.utils.misc.StringUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.translateAlternateColorCodes
 import net.ccbluex.liquidbounce.value.*
 import org.lwjgl.input.Keyboard
+import java.io.File
 import kotlin.reflect.KMutableProperty0
 
 /**
@@ -138,6 +142,26 @@ object SettingsUtils {
                 )
             }§7."
         )
+    }
+    fun setBindByName(module: String, value: String) {
+        var realModule = moduleManager.getModule(module)
+        realModule?.let { it.keyBind = Keyboard.getKeyIndex(value) }
+        realModule?.let {
+            chat(
+                "§7[§3§lAutoSettings§7] §a§l${it.getName()} §7was bound to §c§l${
+                    Keyboard.getKeyName(
+                        realModule.keyBind
+                    )
+                }§7."
+            )
+        }
+    }
+    fun applyKeybinds(keybinds : String){
+        keybinds.lines().forEachIndexed{ index,content->
+            var key = content.split(" ")[0]
+            var moduleName = content.split(" ")[1]
+            setBindByName(moduleName,key)
+        }
     }
 
     // Utility functions for setting values
