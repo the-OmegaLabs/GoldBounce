@@ -255,7 +255,8 @@ object ModuleManager : Listenable {
             BetterRotation,
             ACDetect,
             VelocityLite,
-            TargetHUD
+            TargetHUD,
+            RotationPathESP
         )
 
         InventoryManager.startCoroutine()

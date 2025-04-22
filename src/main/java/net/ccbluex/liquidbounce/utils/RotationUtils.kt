@@ -531,34 +531,160 @@ object RotationUtils : MinecraftInstance(), Listenable {
      *
      * @param rotation your target rotation
      */
-    fun setTargetRotation(rotation: Rotation, options: RotationSettings, ticks: Int = options.resetTicks) {
-        if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90) {
-            return
-        }
+    fun generateSinusoidalRotation(currentRotation: Rotation, amplitude: Float, frequency: Float): Rotation {
+        val deltaTime = System.currentTimeMillis() / 1000.0
+        val sinusoidalYaw = currentRotation.yaw + amplitude * sin(deltaTime * frequency).toFloat()
+        val sinusoidalPitch = currentRotation.pitch + amplitude * cos(deltaTime * frequency).toFloat()
 
-        if (!options.prioritizeRequest && activeSettings?.prioritizeRequest == true) {
-            return
+        return Rotation(sinusoidalYaw, sinusoidalPitch).fixedSensitivity()
+    }
+    fun faceMultipleTrajectories(
+        targets: List<Entity>,
+        predict: Boolean,
+        predictSize: Float,
+        gravity: Float = 0.05f,
+        velocity: Float? = null,
+    ): Rotation? {
+        if (targets.isEmpty()) return null
+        val randomTarget = targets.random() // 随机选择一个目标
+        return faceTrajectory(randomTarget, predict, predictSize, gravity, velocity)
+    }
+    fun generateCurvedRotationSequence(
+        startRotation: Rotation,
+        endRotation: Rotation,
+        steps: Int
+    ): List<Rotation> {
+        return List(steps) { step ->
+            val t = step.toFloat() / steps
+            val curveFactor = sin(t * Math.PI).toFloat() // 使用正弦曲线生成非线性效果
+            Rotation(
+                startRotation.yaw + (endRotation.yaw - startRotation.yaw) * curveFactor,
+                startRotation.pitch + (endRotation.pitch - startRotation.pitch) * curveFactor
+            ).fixedSensitivity()
         }
+    }
+    fun simulateMouseSensitiveRotation(
+        currentRotation: Rotation,
+        targetRotation: Rotation,
+        sensitivity: Float,
+        maxStep: Float = 10f
+    ): Rotation {
+        val yawDiff = RotationUtils.angleDifference(targetRotation.yaw, currentRotation.yaw)
+        val pitchDiff = targetRotation.pitch - currentRotation.pitch
+
+        val yawStep = (yawDiff * sensitivity).coerceIn(-maxStep, maxStep)
+        val pitchStep = (pitchDiff * sensitivity).coerceIn(-maxStep, maxStep)
+
+        return currentRotation.plus(Rotation(yawStep, pitchStep)).fixedSensitivity()
+    }
+    fun simulateInertialRotation(
+        currentRotation: Rotation,
+        targetRotation: Rotation,
+        inertiaFactor: Float = 0.9f
+    ): Rotation {
+        val yawDiff = RotationUtils.angleDifference(targetRotation.yaw, currentRotation.yaw)
+        val pitchDiff = targetRotation.pitch - currentRotation.pitch
+
+        val yawStep = yawDiff * (1 - inertiaFactor)
+        val pitchStep = pitchDiff * (1 - inertiaFactor)
+
+        return currentRotation.plus(Rotation(yawStep, pitchStep)).fixedSensitivity()
+    }
+    fun simulateDynamicPath(
+        currentRotation: Rotation,
+        targetRotation: Rotation,
+        pathPoints: Int = 5
+    ): List<Rotation> {
+        return List(pathPoints) { step ->
+            val t = step.toFloat() / pathPoints
+            Rotation(
+                currentRotation.yaw + (targetRotation.yaw - currentRotation.yaw) * t,
+                currentRotation.pitch + (targetRotation.pitch - currentRotation.pitch) * t
+            ).fixedSensitivity()
+        }
+    }
+    fun simulateRandomJitter(
+        currentRotation: Rotation,
+        jitterAmount: Float = 1f
+    ): Rotation {
+        val randomYawJitter = (-jitterAmount..jitterAmount).random()
+        val randomPitchJitter = (-jitterAmount..jitterAmount).random()
+
+        return currentRotation.plus(Rotation(randomYawJitter, randomPitchJitter)).fixedSensitivity()
+    }
+    fun simulateSmoothTracking(
+        currentRotation: Rotation,
+        targetRotation: Rotation,
+        stepSize: Float = 5f
+    ): Rotation {
+        val yawDiff = RotationUtils.angleDifference(targetRotation.yaw, currentRotation.yaw)
+        val pitchDiff = targetRotation.pitch - currentRotation.pitch
+
+        val yawStep = yawDiff.coerceIn(-stepSize, stepSize)
+        val pitchStep = pitchDiff.coerceIn(-stepSize, stepSize)
+
+        return currentRotation.plus(Rotation(yawStep, pitchStep)).fixedSensitivity()
+    }
+
+    fun simulateRealisticRotation(
+        currentRotation: Rotation,
+        targetRotation: Rotation,
+        sensitivity: Float = 0.8f,
+        inertiaFactor: Float = 0.9f,
+        jitterAmount: Float = 1f,
+        stepSize: Float = 5f
+    ): Rotation {
+        val sensitiveRotation = simulateMouseSensitiveRotation(currentRotation, targetRotation, sensitivity)
+        val inertialRotation = simulateInertialRotation(sensitiveRotation, targetRotation, inertiaFactor)
+        val jitteredRotation = simulateRandomJitter(inertialRotation, jitterAmount)
+        return simulateSmoothTracking(jitteredRotation, targetRotation, stepSize)
+    }
+    fun simulateMicroAdjustments(
+        currentRotation: Rotation,
+        adjustmentRange: Float = 2f
+    ): Rotation {
+        val randomYawAdjustment = (-adjustmentRange..adjustmentRange).random()
+        val randomPitchAdjustment = (-adjustmentRange..adjustmentRange).random()
+
+        return currentRotation.plus(Rotation(randomYawAdjustment, randomPitchAdjustment)).fixedSensitivity()
+    }
+
+    fun setTargetRotation(rotation: Rotation, options: RotationSettings, ticks: Int = options.resetTicks) {
+        if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90) return
+        if (!options.prioritizeRequest && activeSettings?.prioritizeRequest == true) return
 
         if (!options.applyServerSide) {
             currentRotation?.let {
                 mc.thePlayer.rotationYaw = it.yaw
                 mc.thePlayer.rotationPitch = it.pitch
             }
-
             resetRotation()
         }
 
-        targetRotation = rotation
+        // 获取 rotateMode
+        val rotateMode = if (options is RotationSettingsWithRotationModes) options.rotationMode else options.getMode().get()
+        val current = currentRotation ?: rotation
+
+        targetRotation = when (rotateMode) {
+            "MouseSensitive" -> simulateMouseSensitiveRotation(current, rotation, sensitivity = 0.8f)
+            "Inertial" -> simulateInertialRotation(current, rotation, inertiaFactor = 0.9f)
+            "MicroAdjustment" -> simulateMicroAdjustments(current, adjustmentRange = 1.5f)
+            "SmoothTracking" -> simulateSmoothTracking(current, rotation, stepSize = 5f)
+            "RandomJitter" -> simulateRandomJitter(current, jitterAmount = 0.8f)
+            "Realistic" -> simulateRealisticRotation(current, rotation)
+            "Sinusoidal" -> generateSinusoidalRotation(current, amplitude = 3f, frequency = 2f)
+            "Default" -> rotation
+            else -> rotation
+        } as Rotation?
 
         resetTicks = if (!options.applyServerSide || !options.resetTicksValue.isSupported()) 1 else ticks
-
         activeSettings = options
 
         if (options.immediate) {
             update()
         }
     }
+
 
     private fun resetRotation() {
         resetTicks = 0

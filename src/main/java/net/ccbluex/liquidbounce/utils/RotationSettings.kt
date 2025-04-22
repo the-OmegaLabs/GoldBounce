@@ -30,6 +30,22 @@ open class RotationSettings(owner: Module, generalApply: () -> Boolean = { true 
     }
 
     open val legitimizeValue = boolean("Legitimize", false) { rotationsActive && generalApply() }
+    open val rotateMode = ListValue(
+        "RotationMode",
+        arrayOf(
+            "MouseSensitive",  // 模拟鼠标灵敏度
+            "Inertial",        // 模拟惯性
+            "MicroAdjustment", // 微调模拟
+            "SmoothTracking",  // 平滑跟踪
+            "RandomJitter",    // 随机抖动
+            "Realistic",        // 综合真实模拟
+            "Default"
+        ),
+        "MouseSensitive"
+    ) { rotationsActive && generalApply() }
+    fun getMode(): ListValue {
+        return rotateMode
+    }
     open val maxHorizontalAngleChangeValue: FloatValue = object : FloatValue(
         "MaxHorizontalAngleChange", 180f, 1f..180f
     ) {

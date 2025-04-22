@@ -16,7 +16,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object BetterRotation : Module("BetterRotation", Category.SCRIPT, gameDetecting = false, hideModule = false) {
-    val desc = TextValue("Author","RN_Random_Name")
+    val desc = TextValue("Author","bzym2,RN_RANDOM_NAME(base version)")
     val versionDesc = TextValue("Version","3")
     private var lastRenderYaw = 0f
     private var lastYaw = 0f

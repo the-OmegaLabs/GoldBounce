@@ -13,6 +13,7 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
+import net.minecraft.client.renderer.RenderGlobal
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
@@ -264,6 +265,28 @@ object RenderUtils : MinecraftInstance() {
                 axisAlignedBB.maxZ
             ), color
         )
+    }
+    fun drawFilledBox(box: AxisAlignedBB, red: Float, green: Float, blue: Float, alpha: Float) {
+        val tessellator = Tessellator.getInstance()
+        val buffer = tessellator.worldRenderer
+
+        GlStateManager.disableTexture2D()
+        GlStateManager.enableBlend()
+        GlStateManager.disableDepth()
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0)
+        GlStateManager.color(red, green, blue, alpha)
+
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION)
+        buffer.pos(box.minX, box.minY, box.minZ).endVertex()
+        buffer.pos(box.minX, box.maxY, box.minZ).endVertex()
+        buffer.pos(box.maxX, box.minY, box.minZ).endVertex()
+        buffer.pos(box.maxX, box.maxY, box.minZ).endVertex()
+
+        tessellator.draw()
+
+        GlStateManager.enableDepth()
+        GlStateManager.disableBlend()
+        GlStateManager.enableTexture2D()
     }
 
     fun drawFilledBox(axisAlignedBB: AxisAlignedBB) {
