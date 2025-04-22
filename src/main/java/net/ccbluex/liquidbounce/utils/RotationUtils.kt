@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.utils
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.modules.combat.FastBow
 import net.ccbluex.liquidbounce.features.module.modules.render.Rotations
+import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
 import net.ccbluex.liquidbounce.utils.RotationUtils.BodyPoint.values
 import net.ccbluex.liquidbounce.utils.RotationUtils.MAX_CAPTURE_TICKS
@@ -663,6 +664,9 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         // 获取 rotateMode
         val rotateMode = if (options is RotationSettingsWithRotationModes) options.rotationMode else options.getMode().get()
+        if(Debugger.RotationDebug){
+            chat("RotationMode $rotateMode")
+        }
         val current = currentRotation ?: rotation
 
         targetRotation = when (rotateMode) {
@@ -676,6 +680,10 @@ object RotationUtils : MinecraftInstance(), Listenable {
             "Default" -> rotation
             else -> rotation
         } as Rotation?
+
+        if (Debugger.RotationDebug) {
+            chat("Target Rotation: ${targetRotation?.yaw}, ${targetRotation?.pitch}")
+        }
 
         resetTicks = if (!options.applyServerSide || !options.resetTicksValue.isSupported()) 1 else ticks
         activeSettings = options
