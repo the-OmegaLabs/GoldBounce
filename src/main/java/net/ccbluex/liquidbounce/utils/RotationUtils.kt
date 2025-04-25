@@ -141,8 +141,10 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return visibleVec ?: invisibleVec
     }
+
     fun getRotationBlock(pos: BlockPos, predict: Float): Rotation {
-        val from = net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc.thePlayer.getPositionEyes(predict)
+        val from =
+            net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc.thePlayer.getPositionEyes(predict)
         val to = Vec3d(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5)
         val diff = to.subtract(Vec3d(from))
 
@@ -154,6 +156,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
         )
         return Rotation(yaw, pitch)
     }
+
     /**
      * Face trajectory of arrow by default, can be used for calculating other trajectories (eggs, snowballs)
      * by specifying `gravity` and `velocity` parameters
@@ -539,6 +542,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return Rotation(sinusoidalYaw, sinusoidalPitch).fixedSensitivity()
     }
+
     fun faceMultipleTrajectories(
         targets: List<Entity>,
         predict: Boolean,
@@ -550,6 +554,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
         val randomTarget = targets.random() // 随机选择一个目标
         return faceTrajectory(randomTarget, predict, predictSize, gravity, velocity)
     }
+
     fun generateCurvedRotationSequence(
         startRotation: Rotation,
         endRotation: Rotation,
@@ -564,6 +569,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
             ).fixedSensitivity()
         }
     }
+
     fun simulateMouseSensitiveRotation(
         currentRotation: Rotation,
         targetRotation: Rotation,
@@ -578,6 +584,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return currentRotation.plus(Rotation(yawStep, pitchStep)).fixedSensitivity()
     }
+
     fun simulateInertialRotation(
         currentRotation: Rotation,
         targetRotation: Rotation,
@@ -591,6 +598,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return currentRotation.plus(Rotation(yawStep, pitchStep)).fixedSensitivity()
     }
+
     fun simulateDynamicPath(
         currentRotation: Rotation,
         targetRotation: Rotation,
@@ -604,6 +612,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
             ).fixedSensitivity()
         }
     }
+
     fun simulateRandomJitter(
         currentRotation: Rotation,
         jitterAmount: Float = 1f
@@ -613,6 +622,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return currentRotation.plus(Rotation(randomYawJitter, randomPitchJitter)).fixedSensitivity()
     }
+
     fun simulateSmoothTracking(
         currentRotation: Rotation,
         targetRotation: Rotation,
@@ -640,15 +650,20 @@ object RotationUtils : MinecraftInstance(), Listenable {
         val jitteredRotation = simulateRandomJitter(inertialRotation, jitterAmount)
         return simulateSmoothTracking(jitteredRotation, targetRotation, stepSize)
     }
+
     fun simulateMicroAdjustments(
-        currentRotation: Rotation,
+        baseRotation: Rotation,
+        targetRotation: Rotation,
         adjustmentRange: Float = 2f
     ): Rotation {
-        val randomYawAdjustment = (-adjustmentRange..adjustmentRange).random()
-        val randomPitchAdjustment = (-adjustmentRange..adjustmentRange).random()
+        val yawDiff = angleDifference(targetRotation.yaw, baseRotation.yaw)
+        val pitchDiff = targetRotation.pitch - baseRotation.pitch
+        val yawAdjust = yawDiff.coerceIn(-adjustmentRange, adjustmentRange)
+        val pitchAdjust = pitchDiff.coerceIn(-adjustmentRange, adjustmentRange)
 
-        return currentRotation.plus(Rotation(randomYawAdjustment, randomPitchAdjustment)).fixedSensitivity()
+        return baseRotation.plus(Rotation(yawAdjust, pitchAdjust))
     }
+
 
     fun setTargetRotation(rotation: Rotation, options: RotationSettings, ticks: Int = options.resetTicks) {
         if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90) return
@@ -663,8 +678,9 @@ object RotationUtils : MinecraftInstance(), Listenable {
         }
 
         // 获取 rotateMode
-        val rotateMode = if (options is RotationSettingsWithRotationModes) options.rotationMode else options.getMode().get()
-        if(Debugger.RotationDebug){
+        val rotateMode =
+            if (options is RotationSettingsWithRotationModes) options.rotationMode else options.getMode().get()
+        if (Debugger.RotationDebug) {
             chat("RotationMode $rotateMode")
         }
         val current = currentRotation ?: rotation
@@ -672,7 +688,11 @@ object RotationUtils : MinecraftInstance(), Listenable {
         targetRotation = when (rotateMode) {
             "MouseSensitive" -> simulateMouseSensitiveRotation(current, rotation, sensitivity = 0.8f)
             "Inertial" -> simulateInertialRotation(current, rotation, inertiaFactor = 0.9f)
-            "MicroAdjustment" -> simulateMicroAdjustments(current, adjustmentRange = 1.5f)
+            "MicroAdjustment" -> {
+                val baseRotation = rotation.fixedSensitivity()
+                simulateMicroAdjustments(baseRotation, rotation, adjustmentRange = 1.5f)
+            }
+
             "SmoothTracking" -> simulateSmoothTracking(current, rotation, stepSize = 5f)
             "RandomJitter" -> simulateRandomJitter(current, jitterAmount = 0.8f)
             "Realistic" -> simulateRealisticRotation(current, rotation)
