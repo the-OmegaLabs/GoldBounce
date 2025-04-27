@@ -31,6 +31,7 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.rotationDifference
 import net.ccbluex.liquidbounce.utils.RotationUtils.searchCenter
 import net.ccbluex.liquidbounce.utils.RotationUtils.setTargetRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.toRotation
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
@@ -56,10 +57,13 @@ import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.potion.Potion
 import net.minecraft.util.*
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.text.compareTo
+import kotlin.text.toDouble
 
 object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
@@ -603,40 +607,62 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      * Update current target
      */
     private fun updateTarget() {
-        if (shouldPrioritize())
-            return
+        if (KillAura.shouldPrioritize()) return
 
+        // Reset fixed target to null
         target = null
 
         val switchMode = targetMode == "Switch"
-        val theWorld = mc.theWorld
-        val thePlayer = mc.thePlayer
+
+        val theWorld = mc.theWorld ?: return
+        val thePlayer = mc.thePlayer ?: return
 
         var bestTarget: EntityLivingBase? = null
         var bestValue: Double? = null
 
         for (entity in theWorld.loadedEntityList) {
-            if (entity !is EntityLivingBase || !isEnemy(entity) || switchMode && entity.entityId in prevTargetEntities)
-                continue
+            if (entity !is EntityLivingBase || !EntityUtils.isSelected(
+                    entity, true
+                ) || switchMode && entity.entityId in prevTargetEntities
+            ) continue
 
-            // 缓存距离计算结果
             var distance = 0.0
             Backtrack.runWithNearestTrackedDistance(entity) {
                distance = thePlayer.getDistanceToEntityBox(entity)
             }
-
-            if (switchMode && distance > range && prevTargetEntities.isNotEmpty())
-                continue
+            if (switchMode && distance > range && prevTargetEntities.isNotEmpty()) continue
 
             val entityFov = rotationDifference(entity)
 
-            if (distance > maxRange || fov != 180F && entityFov > fov)
-                continue
+            if (distance > KillAura.maxRange || fov != 180F && entityFov > fov) continue
 
-            if (switchMode && !isLookingOnEntities(entity, maxSwitchFOV.toDouble()))
-                continue
+            if (switchMode && !EntityUtils.isLookingOnEntities(entity, maxSwitchFOV.toDouble())) continue
 
+            val currentValue = when (priority.lowercase()) {
+                "distance" -> distance
+                "direction" -> entityFov.toDouble()
+                "health" -> entity.health.toDouble()
+                "livingtime" -> -entity.ticksExisted.toDouble()
+                "armor" -> entity.totalArmorValue.toDouble()
+                "hurtresistance" -> entity.hurtResistantTime.toDouble()
+                "hurttime" -> entity.hurtTime.toDouble()
+                "healthabsorption" -> (entity.health + entity.absorptionAmount).toDouble()
+                "regenamplifier" -> if (entity.isPotionActive(Potion.regeneration)) {
+                    entity.getActivePotionEffect(Potion.regeneration).amplifier.toDouble()
+                } else -1.0
+
+                "inweb" -> if (entity.isInWeb) -1.0 else Double.MAX_VALUE
+                "onladder" -> if (entity.isOnLadder) -1.0 else Double.MAX_VALUE
+                "inliquid" -> if (entity.isInWater || entity.isInLava) -1.0 else Double.MAX_VALUE
+                else -> null
+            } ?: continue
+
+            if (bestValue == null || currentValue < bestValue) {
+                bestValue = currentValue as Double?
+                bestTarget = entity
+            }
         }
+
 
 
         if (bestTarget != null) {
