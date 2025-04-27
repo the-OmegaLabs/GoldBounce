@@ -11,6 +11,7 @@ import net.minecraft.client.settings.GameSettings
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.login.client.C01PacketEncryptionResponse
 import net.minecraft.network.login.server.S01PacketEncryptionRequest
+import net.minecraft.util.EnumChatFormatting
 import net.minecraft.util.IChatComponent
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -64,7 +65,7 @@ object ClientUtils : MinecraftInstance() {
             return
         }
 
-        val prefixMessage = "§8[§e§l$CLIENT_NAME§8]§r $message"
+        val prefixMessage = "${EnumChatFormatting.YELLOW}${EnumChatFormatting.BOLD}Gold${EnumChatFormatting.WHITE}${EnumChatFormatting.BOLD}Bounce${EnumChatFormatting.RESET} ${EnumChatFormatting.BOLD}$message"
         val jsonObject = JsonObject()
         jsonObject.addProperty("text", prefixMessage)
         mc.thePlayer.addChatMessage(IChatComponent.Serializer.jsonToComponent(jsonObject.toString()))

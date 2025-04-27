@@ -18,7 +18,9 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextDouble
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
+import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.*
@@ -569,6 +571,16 @@ object RotationUtils : MinecraftInstance(), Listenable {
             ).fixedSensitivity()
         }
     }
+    fun getRotations(posX: Double, posY: Double, posZ: Double): Rotation {
+        val player = mc.thePlayer
+        val x = posX - player.posX
+        val y = posY - (player.posY + player.getEyeHeight())
+        val z = posZ - player.posZ
+        val dist = MathHelper.sqrt_double(x * x + z * z)
+        val yaw = (atan2(z, x) * 180.0 / Math.PI - 90).toFloat()
+        val pitch = (-(atan2(y, dist.toDouble()) * 180.0 / Math.PI)).toFloat()
+        return Rotation(yaw, pitch)
+    }
 
     fun simulateMouseSensitiveRotation(
         currentRotation: Rotation,
@@ -584,7 +596,9 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return currentRotation.plus(Rotation(yawStep, pitchStep)).fixedSensitivity()
     }
-
+    fun getRotationsEntity(entity:EntityLivingBase): Rotation {
+        return RotationUtils.getRotations(entity.posX, entity.posY + entity.getEyeHeight() - 0.4, entity.posZ);
+    }
     fun simulateInertialRotation(
         currentRotation: Rotation,
         targetRotation: Rotation,

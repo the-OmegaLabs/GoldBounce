@@ -23,7 +23,9 @@ import net.ccbluex.liquidbounce.features.module.modules.render.*
 import net.ccbluex.liquidbounce.features.module.modules.scriptbased.BetterRotation
 import net.ccbluex.liquidbounce.features.module.modules.scriptbased.TargetHUD
 import net.ccbluex.liquidbounce.features.module.modules.scriptbased.VelocityLite
+import net.ccbluex.liquidbounce.features.module.modules.settings.BPSCalculation
 import net.ccbluex.liquidbounce.features.module.modules.settings.Camera
+import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
 import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles
 import net.ccbluex.liquidbounce.features.module.modules.world.*
@@ -256,7 +258,10 @@ object ModuleManager : Listenable {
             ACDetect,
             VelocityLite,
             TargetHUD,
-            RotationPathESP
+            RotationPathESP,
+            TargetStrafe,
+            Debugger,
+            BPSCalculation
         )
 
         InventoryManager.startCoroutine()

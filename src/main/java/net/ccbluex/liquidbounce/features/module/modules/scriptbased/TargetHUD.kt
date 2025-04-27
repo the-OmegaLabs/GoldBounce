@@ -28,7 +28,7 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
             "Novoline",
             "Smoke",
             "Moon",
-            "0x01a4",
+            "户籍",
         ),
         "Health"
     )
@@ -58,7 +58,7 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
             "novoline" -> renderNovolineHUD(sr)
             "smoke" -> renderSmokeHUD(sr)
             "moon" -> renderMoonHUD(sr)
-            "0x01a4" -> render0x01a4HUD(sr)
+            "户籍" -> render0x01a4HUD(sr)
         }
     }
 
@@ -155,15 +155,16 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         val posX = sr.scaledWidth / 2 + this.posX
         val posY = sr.scaledHeight / 2 + this.posY
 
-        // 高级渐变背景
         RenderUtils.drawRect(
-            posX + 11F, posY + 5F, posX + 130F, posY + 53F,
+            posX + 11F, posY - 15F, posX + 130F, posY + 90F,
             Color(30, 30, 30, 200).rgb
         )
+        Fonts.font35.drawString("PLC 全国人口档案查询系统", posX + 15, posY - 5, Color.WHITE.rgb)
+        Fonts.font35.drawString("姓名:${target!!.gameProfile.name}", posX + 15, posY + 5, Color.WHITE.rgb)
+        Fonts.font35.drawString("健康:${target!!.health.toInt()}/${target!!.maxHealth.toInt()}", posX + 15, posY + 25, Color.WHITE.rgb)
+        Fonts.font35.drawString("资产:${target!!.totalArmorValue}", posX + 15, posY + 45, Color.WHITE.rgb)
+        Fonts.font35.drawString("身份证:${target!!.gameProfile.id}", posX + 15, posY + 65, Color.WHITE.rgb)
 
-        // 动态数据展示
-        Fonts.font35.drawString("HP: ${target!!.health.toInt()}", posX + 15, posY + 15, Color.WHITE.rgb)
-        Fonts.font35.drawString("Armor: ${target!!.totalArmorValue}", posX + 15, posY + 30, Color.WHITE.rgb)
     }
 
 

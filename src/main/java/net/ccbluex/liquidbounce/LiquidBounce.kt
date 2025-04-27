@@ -96,7 +96,7 @@ object LiquidBounce {
     var isStarting = true
 
     // Managers
-    val moduleManager = ModuleManager
+    public val moduleManager = ModuleManager
     val commandManager = CommandManager
     val eventManager = EventManager
     val fileManager = FileManager

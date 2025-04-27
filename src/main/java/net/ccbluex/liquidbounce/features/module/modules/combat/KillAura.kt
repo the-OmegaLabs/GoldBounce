@@ -636,18 +636,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (switchMode && !isLookingOnEntities(entity, maxSwitchFOV.toDouble()))
                 continue
 
-            // 使用缓存的距离
-            var currentValue = when (priority.lowercase()) {
-                "distance" -> distance
-                "direction" -> entityFov.toDouble()
-               // ... 其他优先级判断
-                else -> null
-            } ?: continue
-
-            if (bestValue == null || currentValue < bestValue) {
-                bestValue = currentValue
-                bestTarget = entity
-            }
         }
 
 
