@@ -43,6 +43,7 @@ public abstract class MixinGuiChat extends MixinGuiScreen {
     @Shadow
     public abstract void onAutocompleteResponse(String[] p_onAutocompleteResponse_1_);
 
+
     @Inject(method = "initGui", at = @At("RETURN"))
     private void init(CallbackInfo callbackInfo) {
         inputField.yPosition = height + 1;

@@ -34,6 +34,7 @@ import net.ccbluex.liquidbounce.script.ScriptManager.enableScripts
 import net.ccbluex.liquidbounce.script.ScriptManager.loadScripts
 import net.ccbluex.liquidbounce.script.remapper.Remapper
 import net.ccbluex.liquidbounce.script.remapper.Remapper.loadSrg
+import net.ccbluex.liquidbounce.skid.ClientSoundsPacketHandler
 import net.ccbluex.liquidbounce.tabs.BlocksTab
 import net.ccbluex.liquidbounce.tabs.ExploitsTab
 import net.ccbluex.liquidbounce.tabs.HeadsTab
@@ -56,7 +57,12 @@ import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
+import net.minecraft.client.Minecraft
+import net.minecraft.util.ChatComponentText
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import op.wawa.opacketfix.features.hytpacket.PacketManager
+import java.util.concurrent.ExecutorService
 
 object LiquidBounce {
 
@@ -75,7 +81,10 @@ object LiquidBounce {
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy
     val clientCommit = ""
     val clientBranch = "main"
-
+    var inited = false
+    var local: Boolean = false
+    var clientSoundsEnabled = true
+    private lateinit var executor: ExecutorService
     /**
      * Defines if the client is in development mode.
      * This will enable update checking on commit time instead of regular legacy versioning.
@@ -229,7 +238,62 @@ object LiquidBounce {
             LOGGER.info("Successfully started client")
         }
     }
+    @SubscribeEvent
+    fun ServerJoinEvent(event: FMLNetworkEvent.ClientConnectedToServerEvent) {
+        // Check if BPS is enabled
+        local = event.isLocal
+        if (clientSoundsEnabled) {
+            // You don't need this on local server
+            if (!local) {
+                ClientSoundsPacketHandler.blocks.clear()
+                // Create a netty pipeline handler
+                val handler = ClientSoundsPacketHandler()
+                // Register the handler before the Minecraft handler so that some packets can be ignored
+                event.manager.channel().pipeline().addBefore("packet_handler", "asdfInHandler", handler)
+                // Register the handler after the Minecraft handler to play sound
+                event.manager.channel().pipeline().addAfter("packet_handler", "asdfOutHandler", handler)
+                inited = true
+            } else {
+                executor.execute {
+                    while (Minecraft.getMinecraft().thePlayer == null) {
+                        try {
+                            Thread.sleep(500)
+                        } catch (e: InterruptedException) {
+                        }
+                    }
+                    Minecraft.getMinecraft().thePlayer.addChatComponentMessage(
+                        ChatComponentText("BPS is automatically disabled on local servers.")
+                    )
+                }
+            }
+        } else {
+            executor.execute {
+                while (Minecraft.getMinecraft().thePlayer == null) {
+                    try {
+                        Thread.sleep(500)
+                    } catch (e: InterruptedException) {
+                    }
+                }
+                Minecraft.getMinecraft().thePlayer.addChatComponentMessage(
+                    ChatComponentText("BPS was toggled off, do \"/bps toggle\" to toggle it back on.")
+                )
+            }
+        }
+    }
 
+    // Triggered when you leave a server to remove the packet handler
+    @SubscribeEvent
+    fun ServerQuitEvent(event: FMLNetworkEvent.ClientDisconnectionFromServerEvent) {
+        if (inited) {
+            inited = false
+            val channel = event.manager.channel()
+            channel.eventLoop().submit {
+                channel.pipeline().remove("asdfInHandler")
+                channel.pipeline().remove("asdfOutHandler")
+                null
+            }
+        }
+    }
     /**
      * Execute if client will be stopped
      */
