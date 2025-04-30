@@ -261,7 +261,8 @@ object ModuleManager : Listenable {
             RotationPathESP,
             TargetStrafe,
             Debugger,
-            BPSCalculation
+            BPSCalculation,
+            MotionBlur
         )
 
         InventoryManager.startCoroutine()

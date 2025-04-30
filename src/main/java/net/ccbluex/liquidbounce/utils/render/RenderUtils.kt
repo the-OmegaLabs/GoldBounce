@@ -13,11 +13,17 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
-import net.minecraft.client.renderer.RenderGlobal
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.enchantment.Enchantment
+import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.item.ItemArmor
+import net.minecraft.item.ItemBow
+import net.minecraft.item.ItemStack
+import net.minecraft.item.ItemSword
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
@@ -105,7 +111,6 @@ object RenderUtils : MinecraftInstance() {
         glDepthMask(true)
         resetCaps()
     }
-
     fun drawSelectionBoundingBox(boundingBox: AxisAlignedBB) {
         val tessellator = Tessellator.getInstance()
         val worldRenderer = tessellator.worldRenderer

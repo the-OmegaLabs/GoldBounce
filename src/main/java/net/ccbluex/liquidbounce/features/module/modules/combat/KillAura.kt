@@ -145,7 +145,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val onDestroyBlock by boolean("OnDestroyBlock", false)
 
     // AutoBlock
-    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco"), "Packet")
+    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC"), "Packet")
     private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
     private val unblockMode by choices(
         "UnblockMode",
@@ -240,7 +240,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
     }
     private val highestBodyPointToTarget by highestBodyPointToTargetValue
-
     private val lowestBodyPointToTargetValue: ListValue = object : ListValue(
         "LowestBodyPointToTarget",
         arrayOf("Head", "Body", "Feet"),
@@ -279,6 +278,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         false
     ) { predictClientMovement != 0 }
     private val predictEnemyPosition by float("PredictEnemyPosition", 1.5f, -1f..2f)
+    // Block$MC
+    private var blocksmcJohnState = false
+    private var blocksmcClickCounter = 0
+    private val blocksmcAttackInterval by int("BlocksMCAttackInterval", 2, 1..5) { autoBlock == "BlocksMC" }
+    private val blocksmcBlockRate by int("BlocksMCBlockRate", 50, 1..100) { autoBlock == "BlocksMC" }
 
     // Extra swing
     private val failSwing by boolean("FailSwing", true) { swing && options.rotationsActive }
@@ -694,6 +698,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
      * Attack [entity]
      */
+
     private fun attackEntity(entity: EntityLivingBase, isLastClick: Boolean) {
         val thePlayer = mc.thePlayer
 
@@ -726,6 +731,23 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             ) {
                 thePlayer.onEnchantmentCritical(entity)
             }
+        }
+
+        if (autoBlock == "BlocksMC" && (!blinked || !BlinkUtils.isBlinking)) {
+            if (blocksmcJohnState) {
+                // 发送攻击包
+                sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
+                
+                blocksmcClickCounter++
+                if (blocksmcClickCounter > blocksmcAttackInterval && Math.random() > 0.5) {
+                    blocksmcClickCounter = 0
+                }
+            } else {
+                if (blocksmcBlockRate > 0 && nextInt(100) <= blocksmcBlockRate) {
+                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                }
+            }
+            blocksmcJohnState = !blocksmcJohnState
         }
 
         // Start blocking after attack
@@ -1007,6 +1029,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         renderBlocking = false
+
+        // BlocksMC模式专用停止逻辑
+        if (autoBlock == "BlocksMC" && (forceStop || !blockStatus)) {
+            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+            blocksmcJohnState = false
+            blocksmcClickCounter = 0
+        }
     }
 
     @EventTarget
@@ -1127,7 +1156,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private fun isAlive(entity: EntityLivingBase) = entity.isEntityAlive && entity.health > 0
 
     /**
-     * Check if player is able to block
+     * Check if player is able to block (BlocksMC模式调整)
      */
     private val canBlock: Boolean
         get() {
@@ -1157,6 +1186,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 return true
             }
 
+            // BlocksMC模式跳过常规检查
+            if (autoBlock == "BlocksMC") return true
+            
             return false
         }
 

@@ -16,6 +16,7 @@ import net.ccbluex.liquidbounce.utils.attack.CPSCounter
 import net.ccbluex.liquidbounce.utils.block.state
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.stripColor
+import net.minecraft.client.Minecraft
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -75,6 +76,8 @@ fun getNearestPointBB(eye: Vec3, box: AxisAlignedBB): Vec3 {
 }
 
 fun EntityPlayer.getPing() = mc.netHandler.getPlayerInfo(uniqueID)?.responseTime ?: 0
+val EntityLivingBase.ping: Int
+    get() = if (this is EntityPlayer) { Minecraft.getMinecraft().netHandler.getPlayerInfo(this.uniqueID)?.responseTime?.coerceAtLeast(0) } else { null } ?: -1
 
 fun Entity.isAnimal() =
     this is EntityAnimal
