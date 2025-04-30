@@ -89,10 +89,11 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
 
     @EventTarget
     fun onWorld(event: WorldEvent) {
-        if(lastRecY == 0.0) {
-            lastRecY = mc.thePlayer.posY
+        if (lastRecY == 0.0) {
+            lastRecY = mc.thePlayer?.posY ?: 0.0
         }
     }
+
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
