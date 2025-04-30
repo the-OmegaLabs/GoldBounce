@@ -48,13 +48,16 @@ object EventManager {
 
          for (invokableEventTarget in targets) {
              try {
-                 if (!invokableEventTarget.eventClass.handleEvents() && !invokableEventTarget.ignoreCondition)
-                     continue
+                if (!invokableEventTarget.eventClass.handleEvents() && !invokableEventTarget.ignoreCondition)
+                    continue
 
-                 invokableEventTarget.method.invoke(invokableEventTarget.eventClass, event)
-             } catch (throwable: Throwable) {
-                 LOGGER.error("Error calling event ${event.javaClass.name}", throwable)
-             }
+                invokableEventTarget.method.invoke(invokableEventTarget.eventClass, event)
+            } catch (throwable: Throwable) {
+                val className = invokableEventTarget.eventClass::class.java.simpleName
+                val methodName = invokableEventTarget.method.name
+                LOGGER.error("Error in $className.$methodName handling ${event.javaClass.simpleName}", throwable)
+            }
+
          }
      }
 
