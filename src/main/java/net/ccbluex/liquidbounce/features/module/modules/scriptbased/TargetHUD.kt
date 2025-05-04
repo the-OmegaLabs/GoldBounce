@@ -218,4 +218,6 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         GlStateManager.color(1f, 1f, 1f, 1f)
         GlStateManager.disableBlend()
     }
+    override val tag
+        get() = hudStyle
 }

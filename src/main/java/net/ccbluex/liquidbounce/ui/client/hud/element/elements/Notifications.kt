@@ -40,7 +40,7 @@ class Notifications(
 
     val horizontalFade by choices("HorizontalFade", arrayOf("InOnly", "OutOnly", "Both", "None"), "OutOnly")
     val padding by int("Padding", 5, 1..20)
-    val roundRadius by float("RoundRadius", 3f, 0f..10f)
+    val roundRadius by float("RoundRadius", 8f, 0f..10f)
     val renderBorder by boolean("RenderBorder", false)
     val borderWidth by float("BorderWidth", 2f, 0.5F..5F) { renderBorder }
 

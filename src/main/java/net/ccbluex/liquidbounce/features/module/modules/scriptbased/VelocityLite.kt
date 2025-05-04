@@ -361,4 +361,6 @@ object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
         mc.gameSettings.keyBindJump.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindJump)
         mc.gameSettings.keyBindForward.pressed = GameSettings.isKeyDown(mc.gameSettings.keyBindForward)
     }
+    override val tag
+        get() = veloMode.get()
 }

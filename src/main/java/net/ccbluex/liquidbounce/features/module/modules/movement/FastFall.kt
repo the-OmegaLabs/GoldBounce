@@ -75,4 +75,6 @@ object FastFall : Module("FastFall", category = Category.MOVEMENT, hideModule = 
         // Reset timer speed to normal when module is disabled
         mc.timer.timerSpeed = 1F
     }
+    override val tag
+        get() = selected
 }

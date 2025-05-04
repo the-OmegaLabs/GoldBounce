@@ -146,6 +146,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // AutoBlock
     val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC"), "Packet")
+    // Block$MC
+    private var blocksmcJohnState = false
+    private var blocksmcClickCounter = 0
+    private val blocksmcAttackInterval by int("BlocksMCAttackInterval", 2, 1..5) { autoBlock == "BlocksMC" }
+    private val blocksmcBlockRate by int("BlocksMCBlockRate", 50, 1..100) { autoBlock == "BlocksMC" }
+
     private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
     private val unblockMode by choices(
         "UnblockMode",
@@ -278,11 +284,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         false
     ) { predictClientMovement != 0 }
     private val predictEnemyPosition by float("PredictEnemyPosition", 1.5f, -1f..2f)
-    // Block$MC
-    private var blocksmcJohnState = false
-    private var blocksmcClickCounter = 0
-    private val blocksmcAttackInterval by int("BlocksMCAttackInterval", 2, 1..5) { autoBlock == "BlocksMC" }
-    private val blocksmcBlockRate by int("BlocksMCBlockRate", 50, 1..100) { autoBlock == "BlocksMC" }
 
     // Extra swing
     private val failSwing by boolean("FailSwing", true) { swing && options.rotationsActive }
@@ -411,6 +412,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     @EventTarget
     fun onTick(event: GameTickEvent) {
         val player = mc.thePlayer ?: return
+        target?.let { if (it.isDead) EventManager.callEvent(EntityKilledEvent(target!!)) }
 
         if (shouldPrioritize()) {
             target = null
@@ -612,8 +614,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private fun updateTarget() {
         if (KillAura.shouldPrioritize()) return
-
-        // Reset fixed target to null
+                // Reset fixed target to null
         target = null
 
         val switchMode = targetMode == "Switch"
@@ -1205,7 +1206,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      * HUD Tag
      */
     override val tag
-        get() = targetMode
+        get() = "$targetMode->$autoBlock"
 
     val isBlockingChestAura
         get() = ChestAura.handleEvents() && target != null

@@ -294,4 +294,6 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
         }
         return true
     }
+    override val tag
+        get() = renderModeValue.get()
 }

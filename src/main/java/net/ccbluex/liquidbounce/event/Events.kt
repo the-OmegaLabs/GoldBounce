@@ -11,6 +11,7 @@ import net.minecraft.block.Block
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.multiplayer.WorldClient
 import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.Packet
 import net.minecraft.util.*
 
@@ -73,7 +74,12 @@ class KeyEvent(val key: Int) : Event()
  * @param eventState PRE or POST
  */
 class MotionEvent(var x: Double, var y: Double, var z: Double, var onGround: Boolean, val eventState: EventState) : Event()
-
+/**
+ * Called when player killed other entity
+ *
+ * @param targetEntity Attacked entity
+ */
+class EntityKilledEvent(val targetEntity: EntityLivingBase) : Event()
 /**
  * Called in "onLivingUpdate" when the player is using a use item.
  *

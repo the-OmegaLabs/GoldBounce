@@ -18,4 +18,6 @@ object Camera : Module("Camera", Category.SETTINGS, gameDetecting = false, hideM
     override fun onEnable() {
         LiquidBounce.moduleManager.getModule(Camera::class.java).state = false
     }
+    override val tag
+        get() = interpolation.get().toString()
 }

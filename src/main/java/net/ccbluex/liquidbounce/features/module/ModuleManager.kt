@@ -262,7 +262,8 @@ object ModuleManager : Listenable {
             TargetStrafe,
             Debugger,
             BPSCalculation,
-            MotionBlur
+            MotionBlur,
+            Insult
         )
 
         InventoryManager.startCoroutine()
