@@ -9,6 +9,8 @@ import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
+import net.ccbluex.liquidbounce.utils.extensions.isMob
+import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
 import net.ccbluex.liquidbounce.value.ListValue
@@ -44,12 +46,11 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
 
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
-
+        KillAura.target?.let { if (it.isMob()) return }
         val sr = ScaledResolution(mc)
         target =
             KillAura.target as EntityPlayer?
         if (target == null) return
-
         // 抗机器人检测
         if (state && AntiBot.isBot(target!!)) return
 
