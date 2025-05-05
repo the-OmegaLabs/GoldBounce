@@ -59,9 +59,12 @@ import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_U
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.potion.Potion
 import net.minecraft.util.*
+import org.lwjgl.opengl.GL11
 import java.awt.Color
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.text.compareTo
 import kotlin.text.toDouble
 
@@ -317,7 +320,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val mark by choices("Mark", arrayOf("None", "Platform", "Box"), "Platform", subjective = true)
     private val boxOutline by boolean("Outline", true, subjective = true) { mark == "Box" }
     private val fakeSharp by boolean("FakeSharp", true, subjective = true)
-
+    private val circle by BoolValue("Circle", false)
+    private val circleAccuracy by IntegerValue("Accuracy", 59, 0..59) { circle }
+    private val circleThickness by FloatValue("Thickness", 2f, 0f..20f) { circle }
+    private val circleRed by IntegerValue("Red", 255, 0..255) { circle }
+    private val circleGreen by IntegerValue("Green", 255, 0..255) { circle }
+    private val circleBlue by IntegerValue("Blue", 255, 0..255) { circle }
+    private val circleAlpha by IntegerValue("Alpha", 255, 0..255) { circle }
     /**
      * MODULE
      */
@@ -516,6 +525,45 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val notHittableColor = Color(255, 0, 0, 70)
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
+        if (circle) {
+            GL11.glPushMatrix()
+            GL11.glTranslated(
+                mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * mc.timer.renderPartialTicks - mc.renderManager.renderPosX,
+                mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * mc.timer.renderPartialTicks - mc.renderManager.renderPosY,
+                mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * mc.timer.renderPartialTicks - mc.renderManager.renderPosZ
+            )
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glEnable(GL11.GL_LINE_SMOOTH)
+            GL11.glDisable(GL11.GL_TEXTURE_2D)
+            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+
+            GL11.glLineWidth(circleThickness)
+            GL11.glColor4f(
+                circleRed.toFloat() / 255.0F,
+                circleGreen.toFloat() / 255.0F,
+                circleBlue.toFloat() / 255.0F,
+                circleAlpha.toFloat() / 255.0F
+            )
+            GL11.glRotatef(90F, 1F, 0F, 0F)
+            GL11.glBegin(GL11.GL_LINE_STRIP)
+
+            for (i in 0..360 step 60 - circleAccuracy) { // You can change circle accuracy  (60 - accuracy)
+                GL11.glVertex2f(
+                    cos(i * Math.PI / 180.0).toFloat() * range,
+                    (sin(i * Math.PI / 180.0).toFloat() * range)
+                )
+            }
+
+            GL11.glEnd()
+
+            GL11.glDisable(GL11.GL_BLEND)
+            GL11.glEnable(GL11.GL_TEXTURE_2D)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
+            GL11.glDisable(GL11.GL_LINE_SMOOTH)
+
+            GL11.glPopMatrix()
+        }
         handleFailedSwings()
         if (cancelRun) {
             target = null

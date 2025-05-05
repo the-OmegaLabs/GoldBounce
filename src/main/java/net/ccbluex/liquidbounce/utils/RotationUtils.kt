@@ -143,7 +143,6 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return visibleVec ?: invisibleVec
     }
-
     fun getRotationBlock(pos: BlockPos, predict: Float): Rotation {
         val from =
             net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc.thePlayer.getPositionEyes(predict)

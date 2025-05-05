@@ -443,6 +443,9 @@ object RenderUtils : MinecraftInstance() {
         radius: Float,
         bottom: Boolean = true
     ) {
+        val segments = 18
+        val step = 90.0 / segments
+
         val alpha = (color ushr 24 and 0xFF) / 255.0f
         val red = (color ushr 16 and 0xFF) / 255.0f
         val green = (color ushr 8 and 0xFF) / 255.0f
@@ -470,8 +473,8 @@ object RenderUtils : MinecraftInstance() {
         )
 
         for ((cx, cy, startAngle) in corners) {
-            for (i in 0..90 step 10) {
-                val angle = Math.toRadians(startAngle + i)
+            for (i in 0..segments) {  // 修改循环条件
+                val angle = Math.toRadians(startAngle + i * step)  // 使用新的步长
                 val x = cx + radiusD * sin(angle)
                 val y = cy + radiusD * cos(angle)
                 glVertex2d(x, y)
@@ -638,6 +641,9 @@ object RenderUtils : MinecraftInstance() {
         alpha: Float,
         radius: Float
     ) {
+        val segments = 18
+        val step = 90.0 / segments
+
         val (newX1, newY1, newX2, newY2) = orderPoints(x1, y1, x2, y2)
 
         glPushMatrix()
@@ -660,8 +666,8 @@ object RenderUtils : MinecraftInstance() {
         )
 
         for ((cx, cy, startAngle) in corners) {
-            for (i in 0..90 step 10) {
-                val angle = Math.toRadians(startAngle + i)
+            for (i in 0..segments) {  // 增加细分段数
+                val angle = Math.toRadians(startAngle + i * step)
                 val x = cx + radiusD * sin(angle)
                 val y = cy + radiusD * cos(angle)
                 glVertex2d(x, y)
@@ -681,7 +687,7 @@ object RenderUtils : MinecraftInstance() {
         var i = end
         while (i >= start) {
             glVertex2d(x + sin(i * Math.PI / 180.0) * xRadius, y + cos(i * Math.PI / 180.0) * yRadius)
-            i -= 4
+            i -= 2  // 从4度步长改为2度步长
         }
     }
     fun orderPoints(x1: Float, y1: Float, x2: Float, y2: Float): FloatArray {

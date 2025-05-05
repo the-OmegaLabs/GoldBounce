@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.ui.client.hud.element.elements
 import net.ccbluex.liquidbounce.LiquidBounce.moduleManager
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
+import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
@@ -188,12 +189,14 @@ class Arraylist(
 
         for (module in moduleManager.modules) {
             val shouldShow = (module.inArray && module.state && (inactiveStyle != "Hide" || module.isActive))
-
             if (!shouldShow && module.slide <= 0f)
                 continue
-
-            val displayString = getDisplayString(module)
-
+            var displayString : String
+            if (module.name == "CustomTag"){
+                displayString = CustomTag.custom.get()
+            }else{
+                displayString = getDisplayString(module)
+            }
             val width = font.getStringWidth(displayString)
 
             when (animation) {
@@ -244,7 +247,12 @@ class Arraylist(
 
             val markAsInactive = inactiveStyle == "Color" && !module.isActive
 
-            val displayString = getDisplayString(module)
+            var displayString: String
+            if (module.name == "CustomTag"){
+                displayString = CustomTag.custom.get()
+            }else{
+                displayString = getDisplayString(module)
+            }
             val displayStringWidth = font.getStringWidth(displayString)
 
             val previousDisplayString = getDisplayString(modules[(if (index > 0) index else 1) - 1])
@@ -559,6 +567,8 @@ class Arraylist(
     override fun updateElement() {
         modules = moduleManager.modules
             .filter { it.inArray && it.slide > 0 && !it.hideModuleValues.get() }
-            .sortedBy { -font.getStringWidth(getDisplayString(it)) }
+            .sortedWith(compareByDescending<Module> { it.name == "CustomTag" }
+                .thenByDescending { font.getStringWidth(getDisplayString(it)) })
     }
+
 }

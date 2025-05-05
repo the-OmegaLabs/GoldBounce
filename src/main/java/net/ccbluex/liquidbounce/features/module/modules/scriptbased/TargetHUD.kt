@@ -31,6 +31,7 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
             "Smoke",
             "Moon",
             "户籍",
+            "Chill"
         ),
         "Health"
     )
@@ -60,6 +61,7 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
             "smoke" -> renderSmokeHUD(sr)
             "moon" -> renderMoonHUD(sr)
             "户籍" -> render0x01a4HUD(sr)
+            "chill" -> renderChillHUD(sr)
         }
     }
 
@@ -90,66 +92,38 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
     private var nameColor = Color.WHITE
 
     private fun renderNovolineHUD(sr: ScaledResolution) {
-        val centerX = sr.scaledWidth / 2 + posX
-        val centerY = sr.scaledHeight / 2 + posY
-
+        val entity = target ?: return
+        val posX = sr.scaledWidth / 2 + this.posX
+        val posY = sr.scaledHeight / 2 + this.posY
+        
+        // 新增Novoline样式实现
+        val width = (38 + Fonts.font35.getStringWidth(entity.name)).coerceAtLeast(118).toFloat()
+        
         // 绘制背景
-        RenderUtils.drawRect(centerX - 50, centerY - 15, centerX + 50, centerY + 15, Color(40, 40, 40).rgb)
-
-        // 处理名字颜色变化
-        if (target!!.hurtTime > 0) {
-            nameColor = Color(255, 0, 0) // 受伤时变为红色
-        } else {
-            // 渐变为白色
-            nameColor = Color(
-                (nameColor.red + (255 - nameColor.red) * 0.1f).toInt(),
-                (nameColor.green + (255 - nameColor.green) * 0.1f).toInt(),
-                (nameColor.blue + (255 - nameColor.blue) * 0.1f).toInt()
-            )
+        RenderUtils.drawRect(posX.toFloat(), posY.toFloat(), posX + width + 14f, posY + 44f, bgColor.rgb)
+        
+        // 绘制玩家头部
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let { 
+            Target().drawHead(it.locationSkin, posX + 3, posY + 3, 30, 30, Color.WHITE)
         }
-
-        // 绘制名字
-        Fonts.font35.drawCenteredString(target!!.name, centerX.toFloat(), centerY - 10F, nameColor.rgb)
-
-        // 处理血条动画
-        val currentHealth = target!!.health
-        if (currentHealth != lastHealth) {
-            healthAnimationProgress = 1f // 开始动画
-            lastHealth = currentHealth
-        }
-
-        val healthPercent = (currentHealth / target!!.maxHealth).coerceIn(0f..1f)
-        val animatedHealth = if (healthAnimationProgress > 0) {
-            healthAnimationProgress -= 0.05f
-            lerp(lastHealth / target!!.maxHealth, healthPercent, 1f - healthAnimationProgress)
-        } else {
-            healthPercent
-        }
-
-        // 绘制血条背景
-        RenderUtils.drawRect(centerX - 45, centerY + 5, centerX + 45, centerY + 8, Color(30, 30, 30).rgb)
-
-        // 绘制血条
-        RenderUtils.drawRect(
-            centerX - 45, centerY + 5,
-            (centerX - 45) + (90 * animatedHealth).toInt(), centerY + 8,
-            Color(129, 95, 149).rgb
-        )
-
-        // 处理暴击提示动画
-        if (target!!.hurtTime > 0 && target!!.hurtResistantTime == 0) {
-            critAnimationProgress = 1f // 开始暴击动画
-        }
-
-        if (critAnimationProgress > 0) {
-            critAnimationProgress -= 0.05f
-            val critColor = Color(255, 0, 0, (255 * critAnimationProgress).toInt())
-            Fonts.font35.drawCenteredString("CRIT!", centerX.toFloat(), centerY - 20F, critColor.rgb)
-        }
-    }
-
-    private fun lerp(start: Float, end: Float, progress: Float): Float {
-        return start + (end - start) * progress
+        
+        // 绘制文本信息
+        Fonts.font35.drawString(entity.name, posX + 34.5f, posY + 4f, textColor.rgb)
+        Fonts.font35.drawString("Health: ${"%.1f".format(entity.health)}", posX + 34.5f, posY + 14f, textColor.rgb)
+        Fonts.font35.drawString("Distance: ${"%.1f".format(mc.thePlayer.getDistanceToEntity(entity))}m", 
+            posX + 34.5f, posY + 24f, textColor.rgb)
+        
+        // 绘制生命条
+        RenderUtils.drawRect(posX + 2.5f, posY + 35.5f, posX + width + 11.5f, posY + 37.5f, Color(0, 0, 0, 200).rgb)
+        RenderUtils.drawRect(posX + 3f, posY + 36f, 
+            posX + 3f + (entity.health / entity.maxHealth) * (width + 8f), 
+            posY + 37f, ColorUtils.healthColor(entity.health, entity.maxHealth))
+        
+        // 绘制护甲条
+        RenderUtils.drawRect(posX + 2.5f, posY + 39.5f, posX + width + 11.5f, posY + 41.5f, Color(0, 0, 0, 200).rgb)
+        RenderUtils.drawRect(posX + 3f, posY + 40f, 
+            posX + 3f + (entity.totalArmorValue / 20f) * (width + 8f), 
+            posY + 41f, Color(77, 128, 255).rgb)
     }
 
     private fun render0x01a4HUD(sr: ScaledResolution) {
@@ -212,6 +186,32 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         mc.netHandler.getPlayerInfo(target!!.uniqueID)?.let {
             Target().drawHead(it.locationSkin, posX + 3, posY + 9, 28, 28, color)
         }
+    }
+
+    private fun renderChillHUD(sr: ScaledResolution) {
+        val entity = target ?: return
+        val posX = sr.scaledWidth / 2 + this.posX
+        val posY = sr.scaledHeight / 2 + this.posY
+        
+        val tWidth = (45F + Fonts.font40.getStringWidth(entity.name).coerceAtLeast(Fonts.font72.getStringWidth("%.1f".format(entity.health)))).coerceAtLeast(120F)
+        
+        // 绘制背景
+        RenderUtils.drawRoundedRect(posX.toFloat(), posY.toFloat(), posX + tWidth, posY + 48F,bgColor.rgb, 7F)
+        
+        // 绘制玩家头部
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let { 
+            Target().drawHead(it.locationSkin, posX.toInt() + 4, posY.toInt() + 4, 30, 30, Color.WHITE) 
+        }
+        
+        // 绘制名称和生命值
+        Fonts.font40.drawString(entity.name, posX + 38F, posY + 6F, textColor.rgb)
+        Fonts.font72.drawString("%.1f".format(entity.health), posX + 38F, posY + 17F, textColor.rgb)
+        
+        // 绘制生命条
+        val healthPercent = entity.health / entity.maxHealth
+        RenderUtils.drawRect(posX + 4F, posY + 38F, posX + tWidth - 4F, posY + 44F, Color.DARK_GRAY.rgb)
+        RenderUtils.drawRect(posX + 4F, posY + 38F, posX + 4F + (tWidth - 8F) * healthPercent, posY + 44F, 
+            ColorUtils.healthColor(entity.health, entity.maxHealth))
     }
 
     override fun onDisable() {

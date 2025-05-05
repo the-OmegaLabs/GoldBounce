@@ -26,12 +26,14 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Minecraft Font")
     val minecraftFont: FontRenderer = mc.fontRendererObj
 
-    @FontDetails(fontName = "Harmony Medium", fontSize = 35)
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 35)
     lateinit var font35: GameFontRenderer
 
     @FontDetails(fontName = "Harmony Medium", fontSize = 40)
     lateinit var font40: GameFontRenderer
 
+    @FontDetails(fontName = "Harmony Medium", fontSize = 72)
+    lateinit var font72: GameFontRenderer
     @FontDetails(fontName = "Harmony Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
@@ -45,9 +47,10 @@ object Fonts : MinecraftInstance() {
         LOGGER.info("Loading Fonts.")
 
         downloadFonts()
-        font35 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 35))
-        font40 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 40))
-        fontBold180 = GameFontRenderer(getFont("HarmonyOS_Sans_SC_Bold.ttf", 180))
+        font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 35))
+        font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
+        font72 = GameFontRenderer(getFont("Product Sans Regular.ttf", 72))
+        fontBold180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
         notification60 = GameFontRenderer(getFont("iconnovo.ttf", 30))
         try {
             CUSTOM_FONT_RENDERERS.clear()

@@ -77,7 +77,7 @@ object LiquidBounce {
     const val CLIENT_WEBSITE = "pornhub.com"
 
     const val MINECRAFT_VERSION = "1.8.9"
-    val clientVersionText = "b08"
+    val clientVersionText = "b09"
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy
     val clientCommit = ""
     val clientBranch = "main"
@@ -147,7 +147,8 @@ object LiquidBounce {
             registerListener(WaitMsUtils)
             registerListener(BPSUtils)
             registerListener(GApple)
-            SysUtils().copyToFontDir("HarmonyOS_Sans_SC_Bold.ttf")
+            SysUtils().copyToFontDir("Product Sans Regular.ttf")
+            SysUtils().copyToFontDir("Product Sans Bold.ttf")
             SysUtils().copyToFontDir("iconnovo.ttf")
             SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
             // Load client fonts
