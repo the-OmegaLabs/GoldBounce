@@ -265,7 +265,8 @@ object ModuleManager : Listenable {
             BPSCalculation,
             MotionBlur,
             Insult,
-            CustomTag
+            CustomTag,
+            WaterMark
         )
 
         InventoryManager.startCoroutine()
