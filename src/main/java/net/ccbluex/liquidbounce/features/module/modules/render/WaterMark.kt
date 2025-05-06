@@ -4,17 +4,23 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.ModuleManager
+import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.render.ShadowUtils
+import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.float
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 import java.awt.Color
+import kotlin.math.*
 
 object WaterMark : Module("WaterMark", Category.RENDER) {
 
-    // Configuration variables
     private var posX = 0
     private var posY = 0
     private val bgColor = Color(0, 0, 0, 120)
@@ -22,6 +28,12 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
 
     private var animationProgress = 0f
     private var animationSpeed = 0.05f
+    private var isAnimating = true
+    private var pulseTime = 0f
+
+    private val shadowEnabled = boolean("Shadow", true)
+    private val shadowStrength = float("ShadowStrength", 5f, 1f..10f)
+    private val showMemory = boolean("Show Memory", false)
 
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
@@ -31,60 +43,122 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
 
         val fps = Minecraft.getDebugFPS()
         val ping = mc.netHandler.getPlayerInfo(mc.thePlayer.uniqueID)?.responseTime ?: 0
+        val memoryUsed = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)
+        val memoryMax = Runtime.getRuntime().maxMemory() / (1024 * 1024)
 
-        val watermarkText = "Obai | ${mc.session.username} | ${fps}fps | ${ping}ms"
-
-        val logoWidth = 20
-        val textWidth = Fonts.font35.getStringWidth(watermarkText)
-        val totalWidth = textWidth + logoWidth + 40
-        val height = 30
-
-        animationProgress = if (animationProgress < 1f) {
-            (animationProgress + animationSpeed).coerceAtMost(1f)
-        } else {
-            1f
+        val watermarkText = buildString {
+            append("Obai | ${mc.session.username} | ${fps}fps | ${ping}ms")
+            if (showMemory.get()) append(" | RAM: ${memoryUsed}/${memoryMax}MB")
         }
 
-        val animatedWidth = totalWidth * animationProgress
+        val logoWidth = 20
+        val textWidth = Fonts.fontHonor40.getStringWidth(watermarkText)
+        val totalWidth = textWidth + logoWidth + 20
+        val height = 30
 
-        // Enable blur effect (simulate by alpha blending)
-        GL11.glEnable(GL11.GL_BLEND)
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-        // Draw rounded rectangle background
-        RenderUtils.drawRoundedRect(
-            (posX - animatedWidth / 2).toFloat(),
-            posY.toFloat(),
-            (posX + animatedWidth / 2).toFloat(),
-            (posY + height).toFloat(),
-            bgColor.rgb,
-            15f
+        if (isAnimating) {
+            animationProgress = (animationProgress + animationSpeed).coerceAtMost(1f)
+            if (animationProgress >= 1f) isAnimating = false
+        }
 
-        )
+        val easedProgress = easeOutBack(animationProgress)
+        val animatedWidth = totalWidth * easedProgress
 
-        // Draw logo (placeholder as a circle for now)
+        pulseTime += 0.05f
+        val pulseWidth = 20 + 10 * sin(pulseTime)
+
+        if (shadowEnabled.get()) {
+            ShadowUtils.shadow(
+                strength = shadowStrength.get(),
+                drawMethod = {
+                    RenderUtils.drawRoundedRect(
+                        (posX - animatedWidth / 2).toFloat(),
+                        posY.toFloat(),
+                        (posX + animatedWidth / 2).toFloat(),
+                        (posY + height).toFloat(),
+                        bgColor.rgb,
+                        15f
+                    )
+                    RenderUtils.drawRoundedRect(
+                        (posX - animatedWidth / 2).toFloat(),
+                        (posY + height - 3).toFloat(),
+                        (posX - animatedWidth / 2 + pulseWidth).toFloat(),
+                        (posY + height).toFloat(),
+                        Color(255, 255, 255, 80).rgb,
+                        2f
+                    )
+                },
+                cutMethod = {
+                    RenderUtils.drawRoundedRect(
+                        (posX - animatedWidth / 2).toFloat() - 5,
+                        posY.toFloat() - 5,
+                        (posX + animatedWidth / 2).toFloat() + 5,
+                        (posY + height).toFloat() + 5,
+                        Color.WHITE.rgb,
+                        15f
+                    )
+                }
+            )
+        } else {
+            RenderUtils.drawRoundedRect(
+                (posX - animatedWidth / 2).toFloat(),
+                posY.toFloat(),
+                (posX + animatedWidth / 2).toFloat(),
+                (posY + height).toFloat(),
+                bgColor.rgb,
+                15f
+            )
+        }
+
         GlStateManager.color(1f, 1f, 1f, 1f)
-        RenderUtils.drawCircle((posX - animatedWidth / 2 + 15).toFloat(), (posY + height / 2).toFloat(),8f,0,360)
+        RenderUtils.drawCircle((posX - animatedWidth / 2 + 15).toFloat(), (posY + height / 2).toFloat(), 8f, 0, 360)
 
-        // Draw text
         Fonts.fontHonor40.drawString(
             watermarkText,
             (posX - animatedWidth / 2 + logoWidth + 10).toFloat(),
-            (posY + (height - Fonts.font35.FONT_HEIGHT) / 2).toFloat(),
+            (posY + (height - Fonts.fontHonor40.FONT_HEIGHT) / 2).toFloat(),
             textColor.rgb
         )
 
-        // Disable blending
+        val scaffoldModule = ModuleManager.getModule(Scaffold::class.java)
+        if (scaffoldModule.state == true) {
+            val blocksCount = InventoryUtils.blocksAmount()
+            val stateText = "Blocks:$blocksCount"
+            val stateWidth = Fonts.fontHonor40.getStringWidth(stateText) + 30
+            val stateHeight = 30
+
+            val slideOffset = if (isAnimating) 0f else easeOutBack(1f - animationProgress) * stateWidth
+            val stateX = posX - animatedWidth / 2 - stateWidth - 10 + slideOffset
+            val stateY = posY
+
+            RenderUtils.drawRoundedRect(
+                stateX.toFloat(),
+                stateY.toFloat(),
+                (stateX + stateWidth).toFloat(),
+                (stateY + stateHeight).toFloat(),
+                Color(30, 144, 255, 255).rgb,
+                15f
+            )
+
+            Fonts.fontHonor40.drawString(
+                stateText,
+                (stateX + 10f).toFloat(),
+                (stateY + (stateHeight - Fonts.fontHonor40.FONT_HEIGHT) / 2f).toFloat(),
+                Color.WHITE.rgb
+            )
+        }
+
         GL11.glDisable(GL11.GL_BLEND)
     }
-    private fun drawShadow(x1: Float, y1: Float, x2: Float, y2: Float, radius: Float) {
-        val shadowColor = Color(0, 0, 0, 100).rgb
-        GL11.glEnable(GL11.GL_BLEND)
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-        RenderUtils.drawRoundedRect(x1 - 5, y1 - 5, x2 + 5, y2 + 5, shadowColor, radius)
-        GL11.glDisable(GL11.GL_BLEND)
-    }
+
     override fun onDisable() {
-        // Reset animation progress
         animationProgress = 0f
+        isAnimating = true
+    }
+
+    private fun easeOutBack(x: Float): Float {
+        val c1 = 1.70158f
+        val c3 = c1 + 1f
+        return 1 + c3 * (x - 1).pow(3) + c1 * (x - 1).pow(2)
     }
 }

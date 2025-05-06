@@ -49,15 +49,18 @@ import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClassUtils.hasForge
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.ClientUtils.disableFastRender
+import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.client.SysUtils
 import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
+import net.ccbluex.liquidbounce.utils.render.ShadowUtils
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.util.ChatComponentText
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
@@ -113,7 +116,15 @@ object LiquidBounce {
 
     // Discord RPC
     val clientRichPresence = ClientRichPresence
-
+    fun initializeShadowUtils() {
+        try {
+            val scaledResolution = ScaledResolution(mc)
+            ShadowUtils.initShaderIfRequired(scaledResolution, 5.0f) // 初始化，强度可以调整
+        } catch (e: Exception) {
+            println("Error initializing ShadowUtils: ${e.message}")
+            e.printStackTrace()
+        }
+    }
     /**
      * Execute if client will be started
      */
@@ -184,7 +195,7 @@ object LiquidBounce {
 
             // Load configs
             loadAllConfigs()
-
+            initializeShadowUtils()
             // Update client window
             updateClientWindow()
 
