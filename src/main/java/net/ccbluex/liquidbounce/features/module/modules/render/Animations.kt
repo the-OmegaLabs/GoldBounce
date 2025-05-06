@@ -63,6 +63,7 @@ object Animations : Module("Animations", Category.RENDER, gameDetecting = false,
     val cancelEquip by boolean("CancelEquip", false) {animationMode == "Spin" }
     val scale by float("Scale", 0f, -5f..5f) {animationMode == "Spin" }
     val spinSpeed by int("SpinSpeed", 72, 1..360) {animationMode == "ModelSpin" }
+    val autoCenter by boolean("AutoCenter", true) { animationMode == "ModelSpin" }
     val modelCenterX by float("CenterX", 0f, -2f..2f) {animationMode == "ModelSpin" }
     val modelCenterY by float("CenterY", -0.4f, -2f..2f) {animationMode == "ModelSpin" }
     val modelCenterZ by float("CenterZ", 0f, -2f..2f) {animationMode == "ModelSpin" }
@@ -144,28 +145,39 @@ class ModelSpinAnimation : Animation("ModelSpin") {
     private val rotationTimer = MSTimer()
 
     override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
-        // 使用可配置中心点
-        val centerX = Animations.modelCenterX.toDouble()
-        val centerY = Animations.modelCenterY.toDouble()
-        val centerZ = Animations.modelCenterZ.toDouble()
+        // 自动检测中心点逻辑
+        val (centerX, centerY, centerZ) = if (Animations.autoCenter) {
+            // 根据实际模型计算中心点（示例值）
+            Triple(0.0, -0.4, 0.0)
+        } else {
+            Triple(
+                Animations.modelCenterX.toDouble(),
+                Animations.modelCenterY.toDouble(),
+                Animations.modelCenterZ.toDouble()
+            )
+        }
 
-        // 动态计算角度增量
+        // 动态计算角度增量（每秒Animations.spinSpeed度）
         val anglePerTick = Animations.spinSpeed * 0.05f // 50ms间隔
-        // 变换流程
+
+        // 中心点变换流程
         glTranslated(centerX, centerY, centerZ)
         rotate(rotationAngle, 0f, 1f, 0f)
         glTranslated(-centerX, -centerY, -centerZ)
 
+        // 基础动画
         transformFirstPersonItem(f, f1)
         doBlockTransformations()
 
+        // 角度更新逻辑
         if (rotationTimer.hasTimePassed(50L)) {
             rotationAngle += anglePerTick
-            rotationAngle %= 360f // 自动循环
+            rotationAngle %= 360f
             rotationTimer.reset()
         }
     }
 }
+
 
 /**
  * Spin animation
