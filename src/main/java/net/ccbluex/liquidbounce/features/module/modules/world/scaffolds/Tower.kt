@@ -8,19 +8,23 @@ package net.ccbluex.liquidbounce.features.module.modules.world.scaffolds
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.Fly
 import net.ccbluex.liquidbounce.features.module.modules.movement.Speed
+import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold.searchMode
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold.shouldGoDown
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
+import net.ccbluex.liquidbounce.utils.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
+import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.blocksAmount
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
 import net.ccbluex.liquidbounce.value.FloatValue
+import net.ccbluex.liquidbounce.value.IntegerValue
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.int
@@ -32,6 +36,7 @@ import net.minecraft.stats.StatList
 import net.minecraft.util.BlockPos
 import net.minecraft.util.Vec3
 import kotlin.math.truncate
+import kotlin.text.get
 
 object Tower : MinecraftInstance(), Listenable {
 
@@ -54,10 +59,8 @@ object Tower : MinecraftInstance(), Listenable {
         ),
         "None"
     )
-    val blocksmcMotion = FloatValue("BlocksMC-Motion", 0.42f, 0.1f..1f) { towerModeValues.get() == "BlocksMC" }
-    val blocksmcAirDrag = FloatValue("BlocksMC-AirDrag", 0.98f, 0.9f..1f) { towerModeValues.get() == "BlocksMC" }
-    val blocksmcSpeedEffect =
-        FloatValue("BlocksMC-SpeedEffect-Multiplier", 1.2f, 1f..2f) { towerModeValues.get() == "BlocksMC" }
+    private val motionBlocksMC = FloatValue("BlocksMC-Motion", 1F, 0.1F..1F) { towerModeValues.equals("BlocksMC") || towerModeValues.equals("TestBlocksMC") }
+    private val motionSpeedEffectBlocksMC = FloatValue("BlocksMC-SpeedEffect-Motion", 1F, 0.1F..1F) { towerModeValues.equals("BlocksMC") || towerModeValues.equals("TestBlocksMC") }
     val stopWhenBlockAboveValues = boolean("StopWhenBlockAbove", false) { towerModeValues.get() != "None" }
 
     val onJumpValues = boolean("TowerOnJump", true) { towerModeValues.get() != "None" }
@@ -103,9 +106,20 @@ object Tower : MinecraftInstance(), Listenable {
     private var sent = false
     // Handle motion events
     @EventTarget
+    fun onMove(event: MoveEvent) {
+        if (isTowering && towerModeValues.get() == "BlocksMC"){
+            if (mc.thePlayer.isPotionActive(Potion.moveSpeed)) {
+                event.x *= motionSpeedEffectBlocksMC.get()
+                event.z *= motionSpeedEffectBlocksMC.get()
+            } else {
+                event.x *= motionBlocksMC.get()
+                event.z *= motionBlocksMC.get()
+            }
+        }
+    }
+    @EventTarget
     fun onMotion(event: MotionEvent) {
         val eventState = event.eventState
-
         val player = mc.thePlayer ?: return
 
         isTowering = false
@@ -113,12 +127,16 @@ object Tower : MinecraftInstance(), Listenable {
         if (towerModeValues.get() == "None" || notOnMoveValues.get() && player.isMoving ||
             onJumpValues.get() && !mc.gameSettings.keyBindJump.isKeyDown
         ) {
+            if (Debugger.towerDbg) chat("退出Towering - 模式:${towerModeValues.get()} 移动:${player.isMoving} 跳跃键:${mc.gameSettings.keyBindJump.isKeyDown}")
             return
         }
 
         isTowering = true
+        if (Debugger.towerDbg) chat("进入Towering模式 - 当前模式:${towerModeValues.get()} | Speed: ${Speed.state} | Fly: ${Fly.state}")
 
         if (eventState == EventState.POST) {
+            if (Debugger.towerDbg) chat("开始执行 move()")
+
             tickTimer.update()
 
             if (!stopWhenBlockAboveValues.get() || getBlock(BlockPos(player).up(2)) == air) {
@@ -126,12 +144,12 @@ object Tower : MinecraftInstance(), Listenable {
             }
 
             val blockPos = BlockPos(player).down()
-
             if (blockPos.getBlock() == air) {
                 Scaffold.search(blockPos, !shouldGoDown, searchMode == "Area")
             }
         }
     }
+
 
     // Handle jump events
     @EventTarget
@@ -146,6 +164,7 @@ object Tower : MinecraftInstance(), Listenable {
             if (Speed.state || Fly.state)
                 return
 
+            if (Debugger.towerDbg) chat("取消跳跃事件 - 当前模式:${towerModeValues.get()} 移动状态:${mc.thePlayer.isMoving}")
             event.cancelEvent()
         }
     }
@@ -156,29 +175,6 @@ object Tower : MinecraftInstance(), Listenable {
         mc.thePlayer?.triggerAchievement(StatList.jumpStat)
     }
 
-    private fun handleBlocksMCMode() {
-        val player = mc.thePlayer!!
-        if (player.onGround) {
-            player.motionY = blocksmcMotion.get().toDouble()
-            MovementUtils.strafe()
-        } else {
-            val speedMultiplier = if (player.isPotionActive(Potion.moveSpeed))
-                blocksmcSpeedEffect.get()
-            else
-                1.0f
-
-            player.motionX *= blocksmcAirDrag.get().toDouble()
-            player.motionZ *= blocksmcAirDrag.get().toDouble()
-            MovementUtils.strafe(speedMultiplier)
-        }
-        if (player.posY % 1 < 0.1 && !player.onGround) {
-            player.setPosition(
-                player.posX,
-                player.posY.toInt().toDouble(),
-                player.posZ
-            )
-        }
-    }
 
     /**
      * Move player
@@ -186,25 +182,66 @@ object Tower : MinecraftInstance(), Listenable {
     private fun move() {
         val player = mc.thePlayer ?: return
 
-        if (blocksAmount() <= 0)
+        val amount = blocksAmount()
+        if (amount <= 0) {
+            if (Debugger.towerDbg) chat("停止Towering - 方块数量不足 ($amount)")
             return
+        }
+
+        if (Debugger.towerDbg) chat("当前执行Tower模式: ${towerModeValues.get().lowercase()}")
 
         when (towerModeValues.get().lowercase()) {
-            "jump" -> if (player.onGround && tickTimer.hasTimePassed(jumpDelayValues.get())) {
-                fakeJump()
-                player.tryJump()
-            } else if (!player.onGround) {
-                player.isAirBorne = false
-                tickTimer.reset()
+            "blocksmc" -> {
+                val player = mc.thePlayer ?: return
+
+                if (Debugger.towerDbg) chat("BlocksMC 模式运行 - 地面状态: ${player.onGround}, motionY: ${player.motionY}")
+
+                MovementUtils.strafe()
+
+                if (player.onGround) {
+                    player.motionY = 0.42
+                    fakeJump()
+                    if (Debugger.towerDbg) chat("BlocksMC 触发跳跃模拟")
+
+                    // 可选：根据药水加速增强跳跃高度
+                    if (player.isPotionActive(Potion.moveSpeed)) {
+                        val amplifier = player.getActivePotionEffect(Potion.moveSpeed).amplifier
+                        player.motionY += 0.08 * amplifier
+                    }
+
+                } else if (player.motionY < 0.1 && player.motionY > -0.1) {
+                    player.motionY = -0.0784000015258789
+                    if (Debugger.towerDbg) chat("BlocksMC 下降修正")
+                }
+
+                // 检查脚下是否有方块支撑
+                val blockBelow = BlockPos(player.posX, player.posY - 1.4, player.posZ)
+                if (getBlock(blockBelow) == air && Debugger.towerDbg) {
+                    chat("⚠ BlocksMC 需要脚下有方块支撑！")
+                }
             }
 
-            "motion" -> if (player.onGround) {
-                fakeJump()
-                player.motionY = 0.42
-            } else if (player.motionY < 0.1) {
-                player.motionY = -0.3
-            }
+            "jump" -> {
+                if (Debugger.towerDbg) chat("Jump模式触发 - 地面状态:${player.onGround} 计时器:${tickTimer.hasTimePassed(jumpDelayValues.get())}")
+                if (player.onGround && tickTimer.hasTimePassed(jumpDelayValues.get())) {
+                    fakeJump()
+                    player.tryJump()
+                } else if (!player.onGround) {
+                    player.isAirBorne = false
+                    tickTimer.reset()
+                }
 
+            }
+            "motion" -> {
+                if (Debugger.towerDbg) chat("Motion模式更新 - Y轴速度:${player.motionY}")
+                if (player.onGround) {
+                    fakeJump()
+                    player.motionY = 0.42
+                } else if (player.motionY < 0.1) {
+                    player.motionY = -0.3
+                }
+
+            }
             // Old Name (Jump)
             "motionjump" -> if (player.onGround && tickTimer.hasTimePassed(jumpDelayValues.get())) {
                 fakeJump()
@@ -240,6 +277,7 @@ object Tower : MinecraftInstance(), Listenable {
             }
 
             "teleport" -> {
+                if (Debugger.towerDbg) chat("传送模式状态 - 地面:${player.onGround} 延迟:${teleportDelayValues.get()}")
                 if (teleportNoMotionValues.get()) {
                     player.motionY = 0.0
                 }
@@ -320,38 +358,6 @@ object Tower : MinecraftInstance(), Listenable {
                 player.setPosition(player.posX + 0.035, player.posY, player.posZ)
             }
 
-            "blocksmc" -> {
-                if (player.onGround) {
-                    offGroundTicks = 0
-                    sent = false
-                }
-
-                when (offGroundTicks) {
-                    0 -> {
-                        player.motionY = blocksmcMotion.get().toDouble()
-                        MovementUtils.strafe()
-                    }
-                    1 -> {
-                        if (!sent) {
-                            val randomFactor = 0.5f + (Math.random() * 0.44).toFloat()
-                            val playerPosition = player.position
-                            val adjustedY = if (playerPosition.y > 0) playerPosition.y - 255 else playerPosition.y + 255
-                            val inter = Vec3(playerPosition.x.toDouble(), adjustedY.toDouble(), playerPosition.z.toDouble())
-
-                            sendPacket(C08PacketPlayerBlockPlacement(BlockPos(inter.xCoord.toInt(), inter.yCoord.toInt(), inter.zCoord.toInt()), 255, player.heldItem, 0f, randomFactor, 0f))
-                            sent = true
-                        }
-                    }
-                    2 -> {
-                        player.setPosition(player.posX, player.posY.toInt().toDouble(), player.posZ)
-                    }
-                }
-
-                offGroundTicks++
-                if (offGroundTicks >= 3) {
-                    offGroundTicks = 0
-                }
-            }
         }
     }
 
@@ -360,7 +366,40 @@ object Tower : MinecraftInstance(), Listenable {
         val player = mc.thePlayer ?: return
 
         val packet = event.packet
-
+        if (packet is C08PacketPlayerBlockPlacement) {
+            // c08 item override to solve issues in scaffold and some other modules, maybe bypass some anticheat in future\
+            ReflectionUtil.setFieldValue(packet, "stack", mc.thePlayer.inventory.mainInventory[mc.thePlayer.inventory.currentItem])
+            // illegal facing checks
+            ReflectionUtil.setFieldValue(
+                packet,
+                "facingX",
+                (ReflectionUtil.getFieldValue<Float>(packet, "facingX")).coerceIn(-1.0f..1.0f)
+            )
+            ReflectionUtil.setFieldValue(
+                packet,
+                "facingY",
+                (ReflectionUtil.getFieldValue<Float>(packet, "facingY")).coerceIn(-1.0f..1.0f)
+            )
+            ReflectionUtil.setFieldValue(
+                packet,
+                "facingZ",
+                (ReflectionUtil.getFieldValue<Float>(packet, "facingZ")).coerceIn(-1.0f..1.0f)
+            )
+            if (towerModeValues.equals("BlocksMC") && isTowering) {
+                if (mc.thePlayer.motionY > -0.0784000015258789) {
+                    if (packet.position.equals(
+                            BlockPos(
+                                mc.thePlayer.posX,
+                                mc.thePlayer.posY - 1.4,
+                                mc.thePlayer.posZ
+                            )
+                        )
+                    ) {
+                        mc.thePlayer.motionY = -0.0784000015258789
+                    }
+                }
+            }
+        }
         if (towerModeValues.get() == "Vulcan2.9.0" && packet is C04PacketPlayerPosition &&
             !player.isMoving && player.ticksExisted % 2 == 0
         ) {

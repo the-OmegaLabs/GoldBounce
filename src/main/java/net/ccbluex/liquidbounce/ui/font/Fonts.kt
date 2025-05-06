@@ -29,12 +29,24 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Product Sans Medium", fontSize = 35)
     lateinit var font35: GameFontRenderer
 
-    @FontDetails(fontName = "Harmony Medium", fontSize = 40)
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 40)
     lateinit var font40: GameFontRenderer
 
-    @FontDetails(fontName = "Harmony Medium", fontSize = 72)
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 72)
     lateinit var font72: GameFontRenderer
-    @FontDetails(fontName = "Harmony Bold", fontSize = 180)
+
+    @FontDetails(fontName = "Honor Sans Regular", fontSize = 40)
+    lateinit var fontHonor40: GameFontRenderer
+
+    @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 35)
+    lateinit var fontNoto35: GameFontRenderer
+    @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 60)
+    lateinit var fontNoto60: GameFontRenderer
+    @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 80)
+    lateinit var fontNoto80: GameFontRenderer
+    @FontDetails(fontName = "Noto Sans Bold", fontSize = 180)
+    lateinit var fontBoldNoto180: GameFontRenderer
+    @FontDetails(fontName = "Product Sans Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
     @FontDetails(fontName = "notification60", fontSize = 30)
@@ -50,6 +62,11 @@ object Fonts : MinecraftInstance() {
         font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 35))
         font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
         font72 = GameFontRenderer(getFont("Product Sans Regular.ttf", 72))
+        fontHonor40 = GameFontRenderer(getFont("HONORSansCN-Regular.ttf", 40))
+        fontNoto35 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 35))
+        fontNoto60 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 60))
+        fontNoto80 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 80))
+        fontBoldNoto180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
         fontBold180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
         notification60 = GameFontRenderer(getFont("iconnovo.ttf", 30))
         try {

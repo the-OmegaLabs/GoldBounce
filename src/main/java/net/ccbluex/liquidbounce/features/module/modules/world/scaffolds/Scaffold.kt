@@ -138,7 +138,7 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
     // Basic stuff
     val sprint by boolean("Sprint", false)
     private val swing by boolean("Swing", true, subjective = true)
-    private val down by boolean("Down", true) { !sameY && scaffoldMode !in arrayOf("GodBridge", "Telly") }
+    private val down by boolean("Down", true) { !sameY.get() && scaffoldMode !in arrayOf("GodBridge", "Telly") }
 
     private val ticksUntilRotation: IntegerValue = object : IntegerValue("TicksUntilRotation", 3, 1..5) {
         override fun isSupported() = scaffoldMode == "Telly"
@@ -286,8 +286,8 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
     }
 
     // Safety
-    private val sameY by boolean("SameY", false) { scaffoldMode != "GodBridge" }
-    private val jumpOnUserInput by boolean("JumpOnUserInput", true) { sameY && scaffoldMode != "GodBridge" }
+    var sameY = boolean("sameY", false) { scaffoldMode != "GodBridge" }
+    private val jumpOnUserInput by boolean("JumpOnUserInput", true) { sameY.get() && scaffoldMode != "GodBridge" }
 
     private val safeWalkValue = boolean("SafeWalk", true) { scaffoldMode != "GodBridge" }
     private val airSafe by boolean("AirSafe", false) { safeWalkValue.isActive() }
@@ -306,7 +306,7 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
         get() = !jumpOnUserInput || !mc.gameSettings.keyBindJump.isKeyDown && mc.thePlayer.posY >= launchY && !mc.thePlayer.onGround
 
     private val shouldKeepLaunchPosition
-        get() = sameY && shouldJumpOnInput && scaffoldMode != "GodBridge"
+        get() = sameY.get() && shouldJumpOnInput && scaffoldMode != "GodBridge"
 
     // Zitter
     private var zitterDirection = false
@@ -326,7 +326,7 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
 
     // Downwards
     val shouldGoDown
-        get() = down && !sameY && GameSettings.isKeyDown(mc.gameSettings.keyBindSneak) && scaffoldMode !in arrayOf(
+        get() = down && !sameY.get() && GameSettings.isKeyDown(mc.gameSettings.keyBindSneak) && scaffoldMode !in arrayOf(
             "GodBridge",
             "Telly"
         ) && blocksAmount() > 1
@@ -528,29 +528,31 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
 
     @EventTarget
     fun onTick(event: GameTickEvent) {
-        val target = placeRotation?.placeInfo
-
-        if (extraClicks) {
-            val doubleClick = if (simulateDoubleClicking) RandomUtils.nextInt(-1, 1) else 0
-
-            repeat(extraClick.clicks + doubleClick) {
-                extraClick.clicks--
-
-                doPlaceAttempt()
-            }
-        }
-
-        if (target == null) {
+        val player = mc.thePlayer ?: return
+        val target = placeRotation?.placeInfo ?: run {
             if (placeDelayValue.isActive()) {
                 delayTimer.reset()
             }
             return
         }
 
+        val reach = mc.playerController?.blockReachDistance ?: return
+
+        if (extraClicks) {
+            val doubleClick = if (simulateDoubleClicking) RandomUtils.nextInt(-1, 1) else 0
+
+            repeat(extraClick.clicks + doubleClick) {
+                extraClick.clicks--
+                doPlaceAttempt()
+            }
+        }
+
         val raycastProperly = !(scaffoldMode == "Expand" && expandLength > 1 || shouldGoDown) && options.rotationsActive
 
-        performBlockRaytrace(currRotation, mc.playerController.blockReachDistance).let {
-            if (!options.rotationsActive || it != null && it.blockPos == target.blockPos && (!raycastProperly || it.sideHit == target.enumFacing)) {
+        val rotation = RotationUtils.currentRotation ?: player.rotation
+
+        performBlockRaytrace(rotation, reach)?.let {
+            if (!options.rotationsActive || it.blockPos == target.blockPos && (!raycastProperly || it.sideHit == target.enumFacing)) {
                 val result = if (raycastProperly && it != null) {
                     PlaceInfo(it.blockPos, it.sideHit, it.hitVec)
                 } else {
@@ -561,6 +563,7 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
             }
         }
     }
+
 
     @EventTarget
     fun onSneakSlowDown(event: SneakSlowDownEvent) {

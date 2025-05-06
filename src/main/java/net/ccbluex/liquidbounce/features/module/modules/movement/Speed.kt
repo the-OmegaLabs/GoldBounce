@@ -32,6 +32,8 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.speedmodes.veru
 import net.ccbluex.liquidbounce.features.module.modules.movement.speedmodes.vulcan.VulcanGround288
 import net.ccbluex.liquidbounce.features.module.modules.movement.speedmodes.vulcan.VulcanHop
 import net.ccbluex.liquidbounce.features.module.modules.movement.speedmodes.vulcan.VulcanLowHop
+import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
+import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Tower
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.value.*
 
@@ -129,7 +131,7 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
     private var modesList = speedModes
 
     val mode = choices("Mode", modesList.map { it.modeName }.toTypedArray(), "NCPBHop")
-
+    val disableSameY by boolean("DisableSameY", false)
     // Custom Speed
     val customY by float("CustomY", 0.42f, 0f..4f) { mode.get() == "Custom" }
     val customGroundStrafe by float("CustomGroundStrafe", 1.6f, 0f..2f) { mode.get() == "Custom" }
@@ -254,7 +256,9 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
     override fun onEnable() {
         if (mc.thePlayer == null)
             return
-
+        if (disableSameY){
+            Scaffold.sameY.set(false)
+        }
         mc.timer.timerSpeed = 1f
 
         modeModule.onEnable()
@@ -266,7 +270,9 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
 
         mc.timer.timerSpeed = 1f
         mc.thePlayer.speedInAir = 0.02f
-
+        if (disableSameY){
+            Scaffold.sameY.set(true)
+        }
         modeModule.onDisable()
     }
 

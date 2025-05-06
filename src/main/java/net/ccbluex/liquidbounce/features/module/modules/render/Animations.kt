@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.render.Animations.animations
 import net.ccbluex.liquidbounce.features.module.modules.render.Animations.defaultAnimation
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
+import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.float
@@ -51,14 +52,21 @@ object Animations : Module("Animations", Category.RENDER, gameDetecting = false,
         HeliumAnimation(),
         ArgonAnimation(),
         CesiumAnimation(),
-        SulfurAnimation()
+        SulfurAnimation(),
+        SpinAnimation(),
+        ModelSpinAnimation()
     )
 
     private val animationMode by choices("Mode", animations.map { it.name }.toTypedArray(), "Pushdown")
     val oddSwing by boolean("OddSwing", false)
     val swingSpeed by int("SwingSpeed", 15, 0..20)
-
-    val handItemScale by float("ItemScale", 0f, -5f..5f)
+    val cancelEquip by boolean("CancelEquip", false) {animationMode == "Spin" }
+    val scale by float("Scale", 0f, -5f..5f) {animationMode == "Spin" }
+    val spinSpeed by int("SpinSpeed", 72, 1..360) {animationMode == "ModelSpin" }
+    val modelCenterX by float("CenterX", 0f, -2f..2f) {animationMode == "ModelSpin" }
+    val modelCenterY by float("CenterY", -0.4f, -2f..2f) {animationMode == "ModelSpin" }
+    val modelCenterZ by float("CenterZ", 0f, -2f..2f) {animationMode == "ModelSpin" }
+    val handItemScale by float("ItemScale", 0f, -5f..5f) {animationMode == "ModelSpin" }
     val handX by float("X", 0f, -5f..5f)
     val handY by float("Y", 0f, -5f..5f)
     val handPosX by float("PositionRotationX", 0f, -50f..50f)
@@ -129,6 +137,79 @@ class OldAnimation : Animation("Old") {
     override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
         transformFirstPersonItem(f, f1)
         doBlockTransformations()
+    }
+}
+class ModelSpinAnimation : Animation("ModelSpin") {
+    private var rotationAngle = 0f
+    private val rotationTimer = MSTimer()
+
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        // 使用可配置中心点
+        val centerX = Animations.modelCenterX.toDouble()
+        val centerY = Animations.modelCenterY.toDouble()
+        val centerZ = Animations.modelCenterZ.toDouble()
+
+        // 动态计算角度增量
+        val anglePerTick = Animations.spinSpeed * 0.05f // 50ms间隔
+        // 变换流程
+        glTranslated(centerX, centerY, centerZ)
+        rotate(rotationAngle, 0f, 1f, 0f)
+        glTranslated(-centerX, -centerY, -centerZ)
+
+        transformFirstPersonItem(f, f1)
+        doBlockTransformations()
+
+        if (rotationTimer.hasTimePassed(50L)) {
+            rotationAngle += anglePerTick
+            rotationAngle %= 360f // 自动循环
+            rotationTimer.reset()
+        }
+    }
+}
+
+/**
+ * Spin animation
+ */
+class SpinAnimation : Animation("Spin") {
+    private var delay = 0f
+    private val rotateTimer = MSTimer()
+    private var lastUpdateTime = System.currentTimeMillis()
+
+    override fun transform(f1: Float, f: Float, clientPlayer: AbstractClientPlayer) {
+        // 应用位置变换
+        glTranslated(
+            Animations.handPosX.toDouble(),
+            Animations.handPosY.toDouble(),
+            Animations.handPosZ.toDouble()
+        )
+
+        // 旋转动画逻辑
+        rotate(delay, 0f, 0f, -0.1f)
+
+        // 装备动画控制
+        if (Animations.cancelEquip) {
+            transformFirstPersonItem(0f, 0f)
+        } else {
+            transformFirstPersonItem(f / 1.5f, 0f)
+        }
+
+        // 计时器更新
+        val currentTime = System.currentTimeMillis()
+        val elapsedTime = currentTime - lastUpdateTime
+        if (rotateTimer.hasTimePassed(1L)) {
+            delay += (elapsedTime * 360.0 / 850.0).toFloat()
+            rotateTimer.reset()
+        }
+        lastUpdateTime = currentTime
+
+        // 延迟值循环
+        if (delay > 360f) delay = 0f
+
+        // 执行方块变形
+        doBlockTransformations()
+
+        // 应用缩放
+        scale(Animations.scale + 1, Animations.scale + 1, Animations.scale + 1)
     }
 }
 

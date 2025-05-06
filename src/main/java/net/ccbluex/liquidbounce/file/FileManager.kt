@@ -36,7 +36,7 @@ object FileManager : MinecraftInstance() {
     val xrayConfig = XRayConfig(File(dir, "xray-blocks.json"))
     val hudConfig = HudConfig(File(dir, "hud.json"))
     val shortcutsConfig = ShortcutsConfig(File(dir, "shortcuts.json"))
-    val backgroundImageFile = File(dir, "userbackground.png")
+    val backgroundImageFile = File(dir, "background.png")
     val backgroundShaderFile = File(dir, "userbackground.frag")
     var firstStart = false
     val PRETTY_GSON: Gson = GsonBuilder().setPrettyPrinting().create()
@@ -158,14 +158,8 @@ object FileManager : MinecraftInstance() {
      */
     fun loadBackground() {
         var backgroundFile: File? = null
-        if (backgroundImageFile.exists()) {
-            backgroundFile = backgroundImageFile
-        } else if (backgroundShaderFile.exists()) {
-            backgroundFile = backgroundShaderFile
-        }
+        backgroundFile = backgroundImageFile
 
-        if (backgroundFile != null) {
-            background = createBackground(backgroundFile)
-        }
+        background = createBackground(backgroundFile)
     }
 }

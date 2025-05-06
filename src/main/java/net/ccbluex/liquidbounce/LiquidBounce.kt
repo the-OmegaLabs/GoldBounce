@@ -149,7 +149,11 @@ object LiquidBounce {
             registerListener(GApple)
             SysUtils().copyToFontDir("Product Sans Regular.ttf")
             SysUtils().copyToFontDir("Product Sans Bold.ttf")
+            SysUtils().copyToFontDir("HONORSansCN-Regular.ttf")
             SysUtils().copyToFontDir("iconnovo.ttf")
+            SysUtils().copyToFontDir("NotoSansSC-Regular.ttf")
+            SysUtils().copyToFontDir("NotoSansSC-Bold.ttf")
+            SysUtils().copyToGameDir("background.png","background.png")
             SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
             // Load client fonts
             loadFonts()

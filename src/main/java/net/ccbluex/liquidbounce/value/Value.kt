@@ -32,7 +32,7 @@ abstract class Value<T>(
     var hidden = false
         private set
 
-    fun set(newValue: T): Boolean {
+    open fun set(newValue: T): Boolean {
         if (newValue == value || hidden || excluded)
             return false
 
@@ -137,6 +137,7 @@ open class BoolValue(
     override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean {
         return super.getValue(thisRef, property) && isActive()
     }
+
 }
 
 /**
