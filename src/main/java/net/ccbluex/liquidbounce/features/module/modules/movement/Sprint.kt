@@ -38,7 +38,7 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
     { mode == "Vanilla" && allDirections }
 
     private val blindness by boolean("Blindness", true) { mode == "Vanilla" }
-    private val usingItem by boolean("UsingItem", false) { mode == "Vanilla" }
+    var usingItem = boolean("UsingItem", false) { mode == "Vanilla" }
     private val inventory by boolean("Inventory", false) { mode == "Vanilla" }
     private val food by boolean("Food", true) { mode == "Vanilla" }
 
@@ -114,7 +114,7 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
             return true
         }
 
-        if ((usingItem || isLegitModeActive) && !handleEvents() && isUsingItem) {
+        if ((usingItem.get() || isLegitModeActive) && !handleEvents() && isUsingItem) {
             return true
         }
 
@@ -130,7 +130,7 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
             return false
         }
 
-        val threshold = if ((!usingItem || handleEvents()) && isUsingItem) 0.2 else 0.8
+        val threshold = if ((!usingItem.get() || handleEvents()) && isUsingItem) 0.2 else 0.8
         val playerForwardInput = player.movementInput.moveForward
 
         if (!checkServerSide) {

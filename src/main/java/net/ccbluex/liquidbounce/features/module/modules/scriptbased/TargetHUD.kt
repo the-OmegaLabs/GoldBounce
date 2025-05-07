@@ -6,6 +6,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
+import net.ccbluex.liquidbounce.features.module.modules.render.WaterMark
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
@@ -54,7 +55,7 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         if (target == null) return
         // 抗机器人检测
         if (state && AntiBot.isBot(target!!)) return
-
+        WaterMark.setPillContent(target!!.name)
         when (hudStyle.lowercase()) {
             "health" -> renderHealthHUD(sr)
             "novoline" -> renderNovolineHUD(sr)

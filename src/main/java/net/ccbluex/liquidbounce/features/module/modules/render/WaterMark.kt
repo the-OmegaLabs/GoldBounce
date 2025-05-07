@@ -17,9 +17,27 @@ import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import org.lwjgl.opengl.GL11
 import java.awt.Color
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import kotlin.math.*
 
 object WaterMark : Module("WaterMark", Category.RENDER) {
+
+    // 新增药丸状态相关属性
+    private data class PillState(
+        var content: String = "", 
+        var progress: Float = 0f, 
+        var active: Boolean = false, 
+        var timer: ScheduledFuture<*>? = null,
+        var progressBar: Float = 0f // 新增进度条百分比
+    )
+
+    private val pillState = PillState()
+    private val scheduler = Executors.newSingleThreadScheduledExecutor()
+    private val pillAnimationSpeed = 0.1f
+    private val pillColor = Color(76, 175, 80)
+    private val pillTextColor = Color.WHITE
 
     private var posX = 0
     private var posY = 0
@@ -148,12 +166,85 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             )
         }
 
+        // 新增药丸渲染逻辑
+        if (pillState.content.isNotEmpty() || pillState.active) {
+            val pillText = pillState.content
+            val textWidth = Fonts.fontHonor40.getStringWidth(pillText)
+            val targetWidth = if (pillState.content.isNotEmpty()) textWidth + 40 else 0
+            val maxWidth = max(targetWidth, 0)
+            
+            pillState.progress = (pillState.progress + pillAnimationSpeed * if (pillState.content.isNotEmpty()) 1f else -1f).coerceIn(0f, 1f)
+            pillState.active = pillState.progress > 0
+            
+            if (pillState.active) {
+                val pillWidth = maxWidth * easeInOutQuint(pillState.progress) // 改为使用EaseIn-Out动画
+                val pillX = posX + animatedWidth/2 + 10
+                val pillY = posY + height/2 - 15
+                
+                // 绘制药丸背景（添加进度条）
+                RenderUtils.drawRoundedRect(
+                    pillX.toFloat(),
+                    pillY.toFloat(),
+                    (pillX + pillWidth).toFloat(),
+                    (pillY + 30).toFloat(),
+                    pillColor.rgb,
+                    15f
+                )
+                
+                // 绘制进度条
+                val progressWidth = pillWidth * pillState.progressBar
+                RenderUtils.drawRect(
+                    pillX.toFloat(),
+                    (pillY + 28).toFloat(),
+                    (pillX + progressWidth).toFloat(),
+                    (pillY + 30).toFloat(),
+                    Color(255, 255, 255, 150).rgb
+                )
+                
+                // 绘制药丸文字
+                if (pillWidth > 40) {
+                    Fonts.fontHonor40.drawString(
+                        pillText,
+                        pillX + 20f,
+                        pillY + (30 - Fonts.fontHonor40.FONT_HEIGHT)/2f,
+                        pillTextColor.rgb
+                    )
+                }
+            }
+        }
+        
         GL11.glDisable(GL11.GL_BLEND)
+    }
+
+    // 新增进度设置函数
+    fun setPillProgress(percentage: Float) {
+        pillState.progressBar = percentage.coerceIn(0f, 1f)
+    }
+
+    // 修改后的设置内容函数（添加进度重置参数）
+    fun setPillContent(text: String, autoCloseSeconds: Int = 3, resetProgress: Boolean = true) {
+        pillState.timer?.cancel(true)
+        
+        pillState.content = text
+        if (resetProgress) {
+            pillState.progressBar = 0f
+        }
+        
+        if (text.isNotEmpty()) {
+            pillState.timer = scheduler.schedule({
+                setPillContent("")
+            }, autoCloseSeconds.toLong(), TimeUnit.SECONDS)
+        }
     }
 
     override fun onDisable() {
         animationProgress = 0f
         isAnimating = true
+    }
+
+    // 修改后的动画缓动函数
+    private fun easeInOutQuint(x: Float): Float {
+        return if (x < 0.5f) 16f * x * x * x * x * x else 1f - (-2f * x + 2f).pow(5) / 2f
     }
 
     private fun easeOutBack(x: Float): Float {

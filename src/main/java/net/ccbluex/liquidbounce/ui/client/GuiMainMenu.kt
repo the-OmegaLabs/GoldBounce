@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.ui.client
 
+import net.ccbluex.liquidbounce.lang.translationMenu
 import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
@@ -19,19 +20,19 @@ class GuiMainMenu : GuiScreen() {
         val buttonSpacing = 24
 
         buttonList.run {
-            add(GuiButton(1, width / 2 - 100, defaultHeight, buttonWidth, buttonHeight, "单人游戏"))
-            add(GuiButton(2, width / 2 + 2, defaultHeight, buttonWidth, buttonHeight, "多人游戏"))
+            add(GuiButton(1, width / 2 - 100, defaultHeight, buttonWidth, buttonHeight, "Singleplayer"))
+            add(GuiButton(2, width / 2 + 2, defaultHeight, buttonWidth, buttonHeight, "Multiplayer"))
 
-            add(GuiButton(100, width / 2 - 100, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "账户管理器"))
-            add(GuiButton(103, width / 2 + 2, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "模组菜单"))
+            add(GuiButton(100, width / 2 - 100, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "AltManager"))
+            add(GuiButton(103, width / 2 + 2, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "Hack Settings"))
 
-            add(GuiButton(101, width / 2 - 100, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "服务器状态"))
-            add(GuiButton(102, width / 2 + 2, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "外挂设置"))
+            add(GuiButton(101, width / 2 - 100, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "Server Status"))
+            add(GuiButton(102, width / 2 + 2, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "Hack Settings"))
 
-            add(GuiButton(108, width / 2 - 100, defaultHeight + buttonSpacing * 3, buttonWidth * 2 + 4, buttonHeight, "贡献者"))
+            add(GuiButton(108, width / 2 - 100, defaultHeight + buttonSpacing * 3, buttonWidth * 2 + 4, buttonHeight, "Contributors"))
 
-            add(GuiButton(0, width / 2 - 100, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "设置"))
-            add(GuiButton(4, width / 2 + 2, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "退出"))
+            add(GuiButton(0, width / 2 - 100, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "Settings"))
+            add(GuiButton(4, width / 2 + 2, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "Exit"))
         }
     }
 
@@ -45,7 +46,7 @@ class GuiMainMenu : GuiScreen() {
             3F
         )
 
-        Fonts.fontBoldNoto180.drawCenteredString("金振口服液", width / 2F, height / 8F, 16433213, true)
+        Fonts.fontBoldNoto180.drawCenteredString("GoldBounce", width / 2F, height / 8F, 16433213, true)
         Fonts.fontNoto35.drawCenteredString("b09", width / 2F + 148, height / 8F + Fonts.font35.fontHeight, 0xffffff, true)
 
         super.drawScreen(mouseX, mouseY, partialTicks)
