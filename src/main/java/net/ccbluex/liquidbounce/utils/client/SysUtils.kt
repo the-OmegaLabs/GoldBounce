@@ -20,6 +20,8 @@ class SysUtils {
             Files.copy(inputStream, isFileInDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
             inputStream.close()
             LOGGER.info("Copied $filePath to ${isFileInDir.absolutePath}")
+        } else {
+            LOGGER.info("${filePath} already exists.")
         }
     }
 
@@ -32,6 +34,8 @@ class SysUtils {
             Files.copy(inputStream, isFileInDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
             inputStream.close()
             LOGGER.info("Copied $filePath to ${isFileInDir.absolutePath}")
+        } else {
+            LOGGER.info("${filePath} already exists.")
         }
     }
 

@@ -49,7 +49,7 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     private var isAnimating = true
     private var pulseTime = 0f
 
-    private val shadowEnabled = boolean("Shadow", true)
+    private val shadowEnabled = boolean("别打开我", false)
     private val shadowStrength = float("ShadowStrength", 5f, 1f..10f)
     private val showMemory = boolean("Show Memory", false)
 
