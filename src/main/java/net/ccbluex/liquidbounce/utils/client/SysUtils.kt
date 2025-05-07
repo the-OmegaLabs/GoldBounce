@@ -40,8 +40,12 @@ class SysUtils {
     }
 
     fun copyToClipboard(text: String) {
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        clipboard.setContents(StringSelection(text), null)
+        try {
+            val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+            clipboard.setContents(StringSelection(text), null)
+        } catch (e: Exception){
+            LOGGER.error("Failed to copy text to clipboard.", e)
+        }
     }
 
     fun isAndroid(): Boolean {
