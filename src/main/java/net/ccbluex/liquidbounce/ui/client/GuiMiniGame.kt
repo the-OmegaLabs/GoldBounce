@@ -1,25 +1,18 @@
-/*
- * GoldBounce Hacked Client
- * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
- * https://github.com/bzym2/GoldBounce/
- */
 package net.ccbluex.liquidbounce.ui.client
 
-
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.playMP3
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
-import net.minecraft.client.audio.PositionedSoundRecord
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
-import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.input.Keyboard
-import org.lwjgl.opengl.GL11.*
-import java.awt.Color
-import java.util.*
+import javazoom.jl.player.Player
+import java.io.BufferedInputStream
+import java.io.InputStream
+import kotlin.concurrent.thread
 
 class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
+
     private var playerX = 0f
     private val playerSpeed = 5f
     private var score = 0
@@ -33,9 +26,12 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
     )
     private val spawnRate = 40
     private var spawnCounter = 0
-    private var soundPlaying = false
-    val GIF_WIDTH = 133f
-    val GIF_HEIGHT = 86f
+    private val GIF_WIDTH = 133f
+    private val GIF_HEIGHT = 86f
+    private var musicPlayer: Player? = null
+    private var musicThread: Thread? = null
+    private var backgroundMusicPlaying = false
+
     override fun initGui() {
         playerX = width / 2f - GIF_WIDTH / 2
         buttonList.add(GuiButton(1, width / 2 - 100, height - 60, "Back"))
@@ -43,10 +39,13 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
     }
 
     private fun resetGame() {
+        stopMusic()
         fallingObjects.clear()
         score = 0
         isGameOver = false
-        soundPlaying = false
+        backgroundMusicPlaying = true
+        // 音乐:电警喵
+        playMP3("/assets/minecraft/liquidbounce/chuha.mp3")
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -55,6 +54,7 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
         if (!isGameOver) {
             updateGame()
         }
+
         RenderUtils.drawImage(
             ResourceLocation("liquidbounce/maodie/maodie.png"),
             playerX.toInt(),
@@ -67,9 +67,10 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
             RenderUtils.drawImage(obj.texture, obj.x.toInt(), obj.y.toInt(), obj.size, obj.size)
         }
 
-        Fonts.font40.drawString("Score: $score", 10f, 10f, Color.BLACK.rgb)
+        Fonts.font40.drawString("Score: $score", 10f, 10f, 0x000000) // 黑色字体
+
         if (isGameOver) {
-            Fonts.font40.drawCenteredString("Game Over! Click to restart", width/2f, height/2f, 0xFF0000)
+            Fonts.font40.drawCenteredString("Game Over! Click to restart", width / 2f, height / 2f, 0xFF0000)
         }
 
         super.drawScreen(mouseX, mouseY, partialTicks)
@@ -86,13 +87,15 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
 
         if (spawnCounter++ >= spawnRate) {
             spawnCounter = 0
-            fallingObjects.add(FallingObject(
-                texture = objectTextures.random(),
-                x = (Math.random() * (width - 50)).toFloat(),
-                y = 0f,
-                speed = (Math.random() * 3 + 2).toFloat(),
-                size = (Math.random() * 30 + 30).toInt()
-            ))
+            fallingObjects.add(
+                FallingObject(
+                    texture = objectTextures.random(),
+                    x = (Math.random() * (width - 50)).toFloat(),
+                    y = 0f,
+                    speed = (Math.random() * 3 + 2).toFloat(),
+                    size = (Math.random() * 30 + 30).toInt()
+                )
+            )
         }
 
         fallingObjects.forEach { it.y += it.speed }
@@ -106,9 +109,9 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
             )
 
             if (collision) {
-                if (!soundPlaying) {
-                    playMP3("/assets/minecraft/liquidbounce/chuha.mp3")
-                    soundPlaying = true
+                if (!isGameOver) {
+                    stopMusic()
+                    playMP3("/assets/minecraft/liquidbounce/baby.mp3") // 死亡音效
                 }
                 isGameOver = true
                 true
@@ -121,11 +124,7 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int) {
-        when (keyCode) {
-            Keyboard.KEY_A, Keyboard.KEY_LEFT -> playerX -= playerSpeed
-            Keyboard.KEY_D, Keyboard.KEY_RIGHT -> playerX += playerSpeed
-        }
-        playerX = playerX.coerceIn(0f, width - GIF_WIDTH)
+        // 保留回退用途，不处理移动
     }
 
     override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
@@ -137,7 +136,38 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
 
     override fun actionPerformed(button: GuiButton) {
         if (button.id == 1) {
+            stopMusic()
             mc.displayGuiScreen(prevGui)
+        }
+    }
+
+    override fun onGuiClosed() {
+        stopMusic()
+        super.onGuiClosed()
+    }
+
+    private fun stopMusic() {
+        try {
+            musicPlayer?.close()
+            musicPlayer = null
+            musicThread?.interrupt()
+            musicThread = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun playMP3(resourcePath: String) {
+        musicThread = thread(start = true) {
+            try {
+                val stream: InputStream = GuiMiniGame::class.java.getResourceAsStream(resourcePath)
+                    ?: throw IllegalArgumentException("音频资源未找到: $resourcePath")
+                val bufferedStream = BufferedInputStream(stream)
+                musicPlayer = Player(bufferedStream)
+                musicPlayer?.play()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -149,8 +179,10 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
         val size: Int
     )
 
-    private fun checkPixelCollision(x1: Float, y1: Float, x2: Float, y2: Float,
-                                    w1: Float, h1: Float, w2: Float, h2: Float): Boolean {
+    private fun checkPixelCollision(
+        x1: Float, y1: Float, x2: Float, y2: Float,
+        w1: Float, h1: Float, w2: Float, h2: Float
+    ): Boolean {
         return x1 < x2 + w2 && x1 + w1 > x2 &&
                 y1 < y2 + h2 && y1 + h1 > y2
     }
