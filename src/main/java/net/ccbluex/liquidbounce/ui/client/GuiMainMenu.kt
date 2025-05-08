@@ -61,7 +61,7 @@ class GuiMainMenu : GuiScreen() {
             3F
         )
 
-        Fonts.fontBoldNoto180.drawCenteredString("GoldBounce", width / 2F, height / 8F, 16433213, true)
+        Fonts.fontBold180.drawCenteredString("GoldBounce", width / 2F, height / 8F, 16433213, true)
         Fonts.fontNoto35.drawCenteredString("b10", width / 2F + 148, height / 8F + Fonts.font35.fontHeight, 0xffffff, true)
         gifX += velocityX
         gifY += velocityY

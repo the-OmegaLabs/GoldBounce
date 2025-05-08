@@ -47,9 +47,6 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 80)
     lateinit var fontNoto80: GameFontRenderer
 
-    @FontDetails(fontName = "Noto Sans Bold", fontSize = 180)
-    lateinit var fontBoldNoto180: GameFontRenderer
-
     @FontDetails(fontName = "Product Sans Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 
@@ -70,7 +67,6 @@ object Fonts : MinecraftInstance() {
         fontNoto35 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 35))
         fontNoto60 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 60))
         fontNoto80 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 80))
-        fontBoldNoto180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
         fontBold180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
         notification60 = GameFontRenderer(getFont("iconnovo.ttf", 30))
         try {
