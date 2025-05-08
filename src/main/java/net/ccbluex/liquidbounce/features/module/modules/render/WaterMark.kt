@@ -36,7 +36,8 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
 
     private val pillState = PillState()
     private val scheduler = Executors.newSingleThreadScheduledExecutor()
-    private val pillAnimationSpeed = 0.1f
+    private val pillAnimationSpeed = 0.07f
+
     private val pillColor = Color(76, 175, 80)
     private val pillTextColor = Color.WHITE
 
@@ -178,7 +179,7 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             pillState.active = pillState.progress > 0
             
             if (pillState.active) {
-                val pillWidth = maxWidth * easeInOutQuint(pillState.progress) // 改为使用EaseIn-Out动画
+                val pillWidth = maxWidth * easeInOutCubic(pillState.progress)
                 val pillX = posX + animatedWidth/2 + 10
                 val pillY = posY + height/2 - 15
                 
@@ -244,9 +245,10 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     }
 
     // 修改后的动画缓动函数
-    private fun easeInOutQuint(x: Float): Float {
-        return if (x < 0.5f) 16f * x * x * x * x * x else 1f - (-2f * x + 2f).pow(5) / 2f
+    private fun easeInOutCubic(x: Float): Float {
+        return if (x < 0.5f) 4 * x * x * x else 1 - (-2 * x + 2).toDouble().pow(3.0).toFloat() / 2
     }
+
 
     private fun easeOutBack(x: Float): Float {
         val c1 = 1.70158f
