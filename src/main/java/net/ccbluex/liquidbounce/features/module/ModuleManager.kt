@@ -267,7 +267,8 @@ object ModuleManager : Listenable {
             Insult,
             CustomTag,
             WaterMark,
-            Sounds
+            Sounds,
+            DickESP
         )
 
         InventoryManager.startCoroutine()
