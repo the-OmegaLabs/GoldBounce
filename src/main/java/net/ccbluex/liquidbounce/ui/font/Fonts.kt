@@ -40,12 +40,16 @@ object Fonts : MinecraftInstance() {
 
     @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 35)
     lateinit var fontNoto35: GameFontRenderer
+
     @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 60)
     lateinit var fontNoto60: GameFontRenderer
+
     @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 80)
     lateinit var fontNoto80: GameFontRenderer
+
     @FontDetails(fontName = "Noto Sans Bold", fontSize = 180)
     lateinit var fontBoldNoto180: GameFontRenderer
+
     @FontDetails(fontName = "Product Sans Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
 

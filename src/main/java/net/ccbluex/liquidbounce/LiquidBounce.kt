@@ -43,8 +43,6 @@ import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager.Companion.loa
 import net.ccbluex.liquidbounce.ui.client.clickgui.ClickGui
 import net.ccbluex.liquidbounce.ui.client.hud.HUD
 import net.ccbluex.liquidbounce.ui.font.Fonts.loadFonts
-import net.ccbluex.liquidbounce.ui.sound.TipSoundManager
-import net.ccbluex.liquidbounce.ui.sound.TipSoundPlayer
 import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClassUtils.hasForge
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
@@ -104,7 +102,6 @@ object LiquidBounce {
     val eventManager = EventManager
     val fileManager = FileManager
     val scriptManager = ScriptManager
-    lateinit var tipSoundManager: TipSoundManager
 
     // HUD & ClickGUI
     val hud = HUD
@@ -131,7 +128,6 @@ object LiquidBounce {
     fun startClient() {
         PacketManager().init()
         isStarting = true
-        tipSoundManager = TipSoundManager()
         LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
 
         try {

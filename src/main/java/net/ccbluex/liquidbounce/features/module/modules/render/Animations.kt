@@ -67,7 +67,7 @@ object Animations : Module("Animations", Category.RENDER, gameDetecting = false,
     val modelCenterX by float("CenterX", 0f, -2f..2f) {animationMode == "ModelSpin" }
     val modelCenterY by float("CenterY", -0.4f, -2f..2f) {animationMode == "ModelSpin" }
     val modelCenterZ by float("CenterZ", 0f, -2f..2f) {animationMode == "ModelSpin" }
-    val handItemScale by float("ItemScale", 0f, -5f..5f) {animationMode == "ModelSpin" }
+    val handItemScale by float("ItemScale", 0f, -5f..5f)
     val handX by float("X", 0f, -5f..5f)
     val handY by float("Y", 0f, -5f..5f)
     val handPosX by float("PositionRotationX", 0f, -50f..50f)

@@ -27,6 +27,7 @@ import net.ccbluex.liquidbounce.features.module.modules.settings.BPSCalculation
 import net.ccbluex.liquidbounce.features.module.modules.settings.Camera
 import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
+import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
 import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles
 import net.ccbluex.liquidbounce.features.module.modules.world.*
@@ -265,7 +266,8 @@ object ModuleManager : Listenable {
             MotionBlur,
             Insult,
             CustomTag,
-            WaterMark
+            WaterMark,
+            Sounds
         )
 
         InventoryManager.startCoroutine()

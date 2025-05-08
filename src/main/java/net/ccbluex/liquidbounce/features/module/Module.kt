@@ -7,9 +7,9 @@ package net.ccbluex.liquidbounce.features.module
 
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
-import net.ccbluex.liquidbounce.LiquidBounce.tipSoundManager
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
+import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.file.FileManager.modulesConfig
 import net.ccbluex.liquidbounce.file.FileManager.saveConfig
 import net.ccbluex.liquidbounce.lang.translation
@@ -110,9 +110,9 @@ open class Module(
             // Play sound and add notification
             if (!isStarting) {
                     if(value){
-                        tipSoundManager.enableSound.asyncPlay()
+                        Sounds.playEnableSound()
                     }else{
-                        tipSoundManager.disableSound.asyncPlay()
+                        Sounds.playDisableSound()
                     }
                     addNotification(
                         Notification(

@@ -236,8 +236,7 @@ public abstract class MixinMinecraft {
         CPSCounter.INSTANCE.registerClick(CPSCounter.MouseButton.RIGHT);
 
         final FastPlace fastPlace = FastPlace.INSTANCE;
-        final LegitScaffold legit = LegitScaffold.INSTANCE;
-        if (!fastPlace.handleEvents() || !legit.handleEvents()) return;
+        if (!fastPlace.handleEvents()) return;
 
         // Don't spam-click when the player isn't holding blocks
         if (fastPlace.getOnlyBlocks() && (thePlayer.getHeldItem() == null || !(thePlayer.getHeldItem().getItem() instanceof ItemBlock)))
