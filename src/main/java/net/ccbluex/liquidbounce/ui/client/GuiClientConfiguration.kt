@@ -32,12 +32,12 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         var particles = false
         var stylisedAlts = true
         var unformattedAlts = false
-        var altsLength = 4
+        var altsLength = 8
 
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle("xQc私生子在街头放私人笑声折磨群众")
+                Display.setTitle("github.com/bzym2/GoldBounce")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }
