@@ -96,6 +96,7 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
             "supercraft" -> StaffList.SUERPCRAFT
             "gommehd" -> StaffList.GOMMA
             "gamster" -> StaffList.GAMSTER
+            "vimemc" -> StaffList.VIMEMC
             else -> ""
         }
     }

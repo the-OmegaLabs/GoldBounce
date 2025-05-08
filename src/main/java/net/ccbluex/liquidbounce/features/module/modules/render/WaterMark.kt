@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.ShadowUtils
+import net.ccbluex.liquidbounce.value.TextValue
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.float
 import net.minecraft.client.Minecraft
@@ -52,7 +53,7 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     private val shadowEnabled = boolean("别打开我", false)
     private val shadowStrength = float("ShadowStrength", 5f, 1f..10f)
     private val showMemory = boolean("Show Memory", false)
-
+    private val clientName = TextValue("ClientName", "Obai")
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
         val sr = ScaledResolution(mc)
@@ -65,7 +66,7 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
         val memoryMax = Runtime.getRuntime().maxMemory() / (1024 * 1024)
 
         val watermarkText = buildString {
-            append("Obai | ${mc.session.username} | ${fps}fps | ${ping}ms")
+            append("${clientName.get()} | ${mc.session.username} | ${fps}fps | ${ping}ms")
             if (showMemory.get()) append(" | RAM: ${memoryUsed}/${memoryMax}MB")
         }
 

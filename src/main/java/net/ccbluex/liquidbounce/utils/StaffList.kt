@@ -591,7 +591,7 @@ object StaffList {
             "prijak125 " +
             "duartetops " +
             "YenSword "
-
+    const val VIMEMC: String = "Tori_que "
     const val GOMMA: String = "4ch3los " +
             "bemoty " +
             "Clexxer " +
