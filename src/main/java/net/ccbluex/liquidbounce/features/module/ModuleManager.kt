@@ -263,7 +263,6 @@ object ModuleManager : Listenable {
             TargetStrafe,
             Debugger,
             BPSCalculation,
-            MotionBlur,
             Insult,
             CustomTag,
             WaterMark,

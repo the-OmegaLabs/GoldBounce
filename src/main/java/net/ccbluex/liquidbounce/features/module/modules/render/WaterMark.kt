@@ -8,8 +8,8 @@ import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
+import net.ccbluex.liquidbounce.utils.render.EaseUtils.easeOutBack
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
-import net.ccbluex.liquidbounce.utils.render.ShadowUtils
 import net.ccbluex.liquidbounce.value.TextValue
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.float
@@ -47,14 +47,27 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     private val textColor = Color.WHITE
 
     private var animationProgress = 0f
-    private var animationSpeed = 0.05f
+    private val animationSpeed = 0.05f
     private var isAnimating = true
     private var pulseTime = 0f
-
-    private val shadowEnabled = boolean("别打开我", false)
-    private val shadowStrength = float("ShadowStrength", 5f, 1f..10f)
-    private val showMemory = boolean("Show Memory", false)
+    val showMemory = boolean("ShowMemory",false)
+    private val shadowEnabled = boolean("Shadow",false)
     private val clientName = TextValue("ClientName", "Obai")
+    // 修改动画缓动函数为弹性函数实现非线性伸缩
+    private fun easeOutElastic(x: Float): Float {
+        val c4 = (2 * Math.PI) / 3
+        return when (x) {
+            0f -> 0f
+            1f -> 1f
+            else -> (2.0.pow((-10 * x).toDouble()) * sin((x * 10 - 0.75) * c4) + 1).toFloat()
+        }
+    }
+
+    // 新增二次缓动函数用于药丸动画
+    private fun easeInOutQuad(x: Float): Float {
+        return if (x < 0.5f) 2 * x * x else 1 - (-2 * x + 2).pow(2) / 2
+    }
+
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
         val sr = ScaledResolution(mc)
@@ -81,44 +94,40 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             if (animationProgress >= 1f) isAnimating = false
         }
 
-        val easedProgress = easeOutBack(animationProgress)
+        val easedProgress = easeOutElastic(animationProgress)
         val animatedWidth = totalWidth * easedProgress
 
         pulseTime += 0.05f
         val pulseWidth = 20 + 10 * sin(pulseTime)
 
         if (shadowEnabled.get()) {
-            ShadowUtils.shadow(
-                strength = shadowStrength.get(),
-                drawMethod = {
-                    RenderUtils.drawRoundedRect(
-                        (posX - animatedWidth / 2).toFloat(),
-                        posY.toFloat(),
-                        (posX + animatedWidth / 2).toFloat(),
-                        (posY + height).toFloat(),
-                        bgColor.rgb,
-                        15f
-                    )
-                    RenderUtils.drawRoundedRect(
-                        (posX - animatedWidth / 2).toFloat(),
-                        (posY + height - 3).toFloat(),
-                        (posX - animatedWidth / 2 + pulseWidth).toFloat(),
-                        (posY + height).toFloat(),
-                        Color(255, 255, 255, 80).rgb,
-                        2f
-                    )
-                },
-                cutMethod = {
-                    RenderUtils.drawRoundedRect(
-                        (posX - animatedWidth / 2).toFloat() - 5,
-                        posY.toFloat() - 5,
-                        (posX + animatedWidth / 2).toFloat() + 5,
-                        (posY + height).toFloat() + 5,
-                        Color.WHITE.rgb,
-                        15f
-                    )
-                }
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+
+            repeat(60) { i ->
+                val alpha = (120 - i * 2).coerceAtLeast(0)  // 更平缓的透明度衰减
+                val offset = (i + 1) * 0.5f  // 更密集的偏移量
+                
+                RenderUtils.drawRoundedRect(
+                    (posX - animatedWidth / 2 - offset).toFloat(),
+                    (posY - offset).toFloat(),
+                    (posX + animatedWidth / 2 + offset).toFloat(),
+                    (posY + height + offset).toFloat(),
+                    Color(0, 0, 0, alpha).rgb,
+                    15f
+                )
+            }
+
+            // 主面板绘制
+            RenderUtils.drawRoundedRect(
+                (posX - animatedWidth / 2).toFloat(),
+                posY.toFloat(),
+                (posX + animatedWidth / 2).toFloat(),
+                (posY + height).toFloat(),
+                bgColor.rgb,
+                15f
             )
+
         } else {
             RenderUtils.drawRoundedRect(
                 (posX - animatedWidth / 2).toFloat(),
@@ -147,8 +156,8 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             val stateWidth = Fonts.fontHonor40.getStringWidth(stateText) + 30
             val stateHeight = 30
 
-            val slideOffset = if (isAnimating) 0f else easeOutBack(1f - animationProgress) * stateWidth
-            val stateX = posX - animatedWidth / 2 - stateWidth - 10 + slideOffset
+            val slideOffset = if (isAnimating) 0f else easeOutBack((1f - animationProgress).toDouble()) * stateWidth
+            val stateX = posX - animatedWidth / 2 - stateWidth - 10 + slideOffset.toInt()
             val stateY = posY
 
             RenderUtils.drawRoundedRect(
@@ -179,7 +188,7 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             pillState.active = pillState.progress > 0
             
             if (pillState.active) {
-                val pillWidth = maxWidth * easeInOutCubic(pillState.progress)
+                val pillWidth = maxWidth * easeInOutQuad(pillState.progress)
                 val pillX = posX + animatedWidth/2 + 10
                 val pillY = posY + height/2 - 15
                 
@@ -242,17 +251,5 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     override fun onDisable() {
         animationProgress = 0f
         isAnimating = true
-    }
-
-    // 修改后的动画缓动函数
-    private fun easeInOutCubic(x: Float): Float {
-        return if (x < 0.5f) 4 * x * x * x else 1 - (-2 * x + 2).toDouble().pow(3.0).toFloat() / 2
-    }
-
-
-    private fun easeOutBack(x: Float): Float {
-        val c1 = 1.70158f
-        val c3 = c1 + 1f
-        return 1 + c3 * (x - 1).pow(3) + c1 * (x - 1).pow(2)
     }
 }

@@ -57,7 +57,6 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         if (target == null) return
         // 抗机器人检测
         if (state && AntiBot.isBot(target!!)) return
-        WaterMark.setContent("/icons/sword.png", "TargetHUD",  "正在攻击 ${target!!.name}")
 
         when (hudStyle.lowercase()) {
             "health" -> renderHealthHUD(sr)
