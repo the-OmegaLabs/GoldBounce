@@ -34,7 +34,8 @@ object Fonts : MinecraftInstance() {
 
     @FontDetails(fontName = "Product Sans Medium", fontSize = 72)
     lateinit var font72: GameFontRenderer
-
+    @FontDetails("Honor Sans Regular", fontSize = 35)
+    lateinit var fontHonor35: GameFontRenderer
     @FontDetails(fontName = "Honor Sans Regular", fontSize = 40)
     lateinit var fontHonor40: GameFontRenderer
 
@@ -64,6 +65,7 @@ object Fonts : MinecraftInstance() {
         font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
         font72 = GameFontRenderer(getFont("Product Sans Regular.ttf", 72))
         fontHonor40 = GameFontRenderer(getFont("HONORSansCN-Regular.ttf", 40))
+        fontHonor35 = GameFontRenderer(getFont("HONORSansCN-Regular.ttf", 35))
         fontNoto35 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 35))
         fontNoto60 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 60))
         fontNoto80 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 80))

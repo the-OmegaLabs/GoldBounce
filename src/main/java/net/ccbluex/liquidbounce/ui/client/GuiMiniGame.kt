@@ -126,6 +126,9 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
     override fun keyTyped(typedChar: Char, keyCode: Int) {
         // 保留回退用途，不处理移动
     }
+    fun getMusicPlayer(): Player? {
+        return musicPlayer
+    }
 
     override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
         if (isGameOver) {
@@ -146,16 +149,30 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
         super.onGuiClosed()
     }
 
-    private fun stopMusic() {
+    fun stopMusic() {
         try {
-            musicPlayer?.close()
-            musicPlayer = null
-            musicThread?.interrupt()
-            musicThread = null
+            musicPlayer?.let {
+                println("Closing music player.")
+                it.close()
+                musicPlayer = null
+            }
+            musicThread?.let {
+                println("Interrupting and waiting for music thread to stop.")
+                it.interrupt()
+                try {
+                    it.join()
+                } catch (e: InterruptedException) {
+                    println("Music thread interrupted during join.")
+                    e.printStackTrace()
+                }
+                musicThread = null
+            }
         } catch (e: Exception) {
+            println("Error while stopping music:")
             e.printStackTrace()
         }
     }
+
 
     private fun playMP3(resourcePath: String) {
         musicThread = thread(start = true) {

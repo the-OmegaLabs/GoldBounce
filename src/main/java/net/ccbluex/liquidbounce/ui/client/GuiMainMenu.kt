@@ -28,7 +28,7 @@ class GuiMainMenu : GuiScreen() {
         val buttonWidth = 98
         val buttonHeight = 20
         val buttonSpacing = 24
-
+        GuiMiniGame(this).stopMusic()
         buttonList.run {
             add(GuiButton(1, width / 2 - 100, defaultHeight, buttonWidth, buttonHeight, "Singleplayer"))
             add(GuiButton(2, width / 2 + 2, defaultHeight, buttonWidth, buttonHeight, "Multiplayer"))

@@ -7,6 +7,7 @@ package net.ccbluex.liquidbounce
 
 import de.florianmichael.viamcp.ViaMCP
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.ccbluex.liquidbounce.api.loadSettings
 import net.ccbluex.liquidbounce.api.messageOfTheDay
 import net.ccbluex.liquidbounce.cape.CapeService
@@ -53,7 +54,6 @@ import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
-import net.ccbluex.liquidbounce.utils.render.ShadowUtils
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
@@ -113,15 +113,6 @@ object LiquidBounce {
 
     // Discord RPC
     val clientRichPresence = ClientRichPresence
-    fun initializeShadowUtils() {
-        try {
-            val scaledResolution = ScaledResolution(mc)
-            ShadowUtils.initShaderIfRequired(scaledResolution, 5.0f) // 初始化，强度可以调整
-        } catch (e: Exception) {
-            println("Error initializing ShadowUtils: ${e.message}")
-            e.printStackTrace()
-        }
-    }
     /**
      * Execute if client will be started
      */
@@ -162,9 +153,11 @@ object LiquidBounce {
             SysUtils().copyToFontDir("NotoSansSC-Bold.ttf")
             SysUtils().copyToGameDir("background.png","background.png")
             SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
-            // Load client fonts
-            loadFonts()
 
+            // Load client fonts
+            runBlocking {
+                loadFonts()
+            }
             // Load settings
             loadSettings(false) {
                 LOGGER.info("Successfully loaded ${it.size} settings.")
@@ -191,7 +184,6 @@ object LiquidBounce {
 
             // Load configs
             loadAllConfigs()
-            initializeShadowUtils()
             // Update client window
             updateClientWindow()
 

@@ -19,7 +19,9 @@ import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.ResourceLocation
 import java.awt.Color
+import javax.annotation.Resource
 
 object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
 
@@ -55,7 +57,8 @@ object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
         if (target == null) return
         // 抗机器人检测
         if (state && AntiBot.isBot(target!!)) return
-        WaterMark.setPillContent(target!!.name)
+        WaterMark.setContent("/icons/sword.png", "TargetHUD",  "正在攻击 ${target!!.name}")
+
         when (hudStyle.lowercase()) {
             "health" -> renderHealthHUD(sr)
             "novoline" -> renderNovolineHUD(sr)

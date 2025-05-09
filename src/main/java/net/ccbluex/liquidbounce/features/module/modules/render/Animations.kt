@@ -75,7 +75,6 @@ object Animations : Module("Animations", Category.RENDER, gameDetecting = false,
     val handPosZ by float("PositionRotationZ", 0f, -50f..50f)
 
     fun getAnimation() = animations.firstOrNull { it.name == animationMode }
-
 }
 
 /**
