@@ -156,17 +156,6 @@ class GuiMiniGame(private val prevGui: GuiScreen) : GuiScreen() {
                 it.close()
                 musicPlayer = null
             }
-            musicThread?.let {
-                println("Interrupting and waiting for music thread to stop.")
-                it.interrupt()
-                try {
-                    it.join()
-                } catch (e: InterruptedException) {
-                    println("Music thread interrupted during join.")
-                    e.printStackTrace()
-                }
-                musicThread = null
-            }
         } catch (e: Exception) {
             println("Error while stopping music:")
             e.printStackTrace()
