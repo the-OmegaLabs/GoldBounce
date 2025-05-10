@@ -13,11 +13,13 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.extensions.toRadians
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
+import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBorder
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.makeScissorBox
 import net.ccbluex.liquidbounce.utils.render.SafeVertexBuffer
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowShader
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
@@ -42,29 +44,23 @@ class Radar(x: Double = 5.0, y: Double = 130.0) : Element(x, y) {
     private val size by float("Size", 90f, 30f..500f)
     private val viewDistance by float("View Distance", 4F, 0.5F..32F)
 
-    private val playerShape by choices("Player Shape", arrayOf("Triangle", "Rectangle", "Circle"), "Triangle")
-    private val playerSize by float("Player Size", 2f, 0.5f..20F)
-    private val useESPColors by boolean("Use ESP Colors", true)
-    private val fovSize by float("FOV Size", 10F, 0F..50F)
-    private val fovAngle by float("FOV Angle", 70F, 30F..160F)
-
+    private val playerShape by choices("Player Shape", arrayOf("Triangle", "Rectangle", "Circle", "RoundedRect","CSGO"), "RoundedRect")
+    private val playerSize by float("Player Size", 4f, 0.5f..20F)
+    private val useESPColors by boolean("Use ESP Colors", false)
+    private val colorAlpha by float("Color Alpha", 0.8f, 0f..1f)
+    private val fovAngle by float("FOV Angle", 90f, 0f..180f)
     private val minimap by boolean("Minimap", true)
-
-    private val backgroundRed by int("Background Red", 0, 0..255)
-    private val backgroundGreen by int("Background Green", 0, 0..255)
-    private val backgroundBlue by int("Background Blue", 0, 0..255)
-    private val backgroundAlpha by int("Background Alpha", 50, 0..255)
-
-    private val borderStrength by float("Border Strength", 2F, 1F..5F)
+    private val fovSize by float("FOV Size", 0.5f, 0.1f..1f)
+    private val borderStrength by float("Border Strength", 1.5F, 1F..5F)
 
     private val borderRainbow by boolean("Border Rainbow", false)
     private val rainbowX by float("Rainbow-X", -1000F, -2000F..2000F) { borderRainbow }
     private val rainbowY by float("Rainbow-Y", -1000F, -2000F..2000F) { borderRainbow }
 
-    private val borderRed by int("Border Red", 0, 0..255) { !borderRainbow }
-    private val borderGreen by int("Border Green", 0, 0..255) { !borderRainbow }
-    private val borderBlue by int("Border Blue", 0, 0..255) { !borderRainbow }
-    private val borderAlpha by int("Border Alpha", 150, 0..255) { !borderRainbow }
+    private val borderRed by int("Border Red", 200, 0..255) { !borderRainbow }
+    private val borderGreen by int("Border Green", 200, 0..255) { !borderRainbow }
+    private val borderBlue by int("Border Blue", 200, 0..255) { !borderRainbow }
+    private val borderAlpha by int("Border Alpha", 100, 0..255) { !borderRainbow }
 
     private var fovMarkerVertexBuffer: VertexBuffer? = null
     private var lastFov = 0f
@@ -83,7 +79,8 @@ class Radar(x: Double = 5.0, y: Double = 130.0) : Element(x, y) {
         val size = size
 
         if (!minimap) {
-            drawRect(0F, 0F, size, size, Color(backgroundRed, backgroundGreen, backgroundBlue, backgroundAlpha).rgb)
+            RenderUtils.drawRoundedRect(0F, 0F, size, size,
+                Color(255, 255, 255, 100).rgb, 8F)
         }
 
         val viewDistance = viewDistance * 16f
@@ -196,13 +193,13 @@ class Radar(x: Double = 5.0, y: Double = 130.0) : Element(x, y) {
                     glRotatef(entity.rotationYaw, 0f, 0f, 1f)
                 }
 
-                if (fovSize > 0F) {
+                if (playerShape != "CSGO" && fovSize > 0F) {
                     glPushMatrix()
                     glRotatef(180f, 0f, 0f, 1f)
                     val sc = (fovSize / viewDistance) * size
                     glScalef(sc, sc, sc)
 
-                    glColor4f(1f, 1f, 1f, if (minimap) 0.75f else 0.25f)
+                    glColor4f(0.3f, 0.3f, 0.3f, if (minimap) 0.15f else 0.08f)
 
                     val vbo = fovMarkerVertexBuffer!!
 
@@ -219,34 +216,58 @@ class Radar(x: Double = 5.0, y: Double = 130.0) : Element(x, y) {
                     glPopMatrix()
                 }
 
-                if (triangleMode) {
-                    if (useESPColors) {
-                        val color = ESP.getColor(entity)
-
-                        glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
-                    } else {
-                        glColor4f(1f, 1f, 1f, 1f)
+                val color = if (useESPColors) ESP.getColor(entity) else Color(255, 255, 255)
+                when {
+                    playerShape == "RoundedRect" -> {
+                        val halfPlayerSize = playerSize * 0.5f
+                        RenderUtils.drawRoundedRect(
+                            -halfPlayerSize, -halfPlayerSize,
+                            halfPlayerSize, halfPlayerSize,
+                            color.rgb,2f
+                        )
                     }
+                    playerShape == "CSGO" -> {
+                        glEnable(GL_POINT_SMOOTH)
+                        glPointSize(playerSize)
+                        if (entity == mc.thePlayer) {
+                            glColor4f(0f, 1f, 0f, colorAlpha) // 绿色
+                        } else {
+                            glColor4f(1f, 0f, 0f, colorAlpha) // 红色
+                        }
+                    }
+                    circleMode -> {
+                        glEnable(GL_POINT_SMOOTH)
+                        glPointSize(playerSize)
+                        glColor4f(color.red/255f, color.green/255f, color.blue/255f, colorAlpha)
+                    }
+                    triangleMode -> {
+                        if (useESPColors) {
+                            val color = ESP.getColor(entity)
 
-                    glBegin(GL_TRIANGLES)
+                            glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 1f)
+                        } else {
+                            glColor4f(1f, 1f, 1f, 1f)
+                        }
 
-                    glVertex2f(-playerSize * 0.25f, playerSize * 0.5f)
-                    glVertex2f(playerSize * 0.25f, playerSize * 0.5f)
-                    glVertex2f(0f, -playerSize * 0.5f)
+                        glBegin(GL_TRIANGLES)
 
-                    glEnd()
-                } else {
-                    val color = ESP.getColor(entity)
+                        glVertex2f(-playerSize * 0.25f, playerSize * 0.5f)
+                        glVertex2f(playerSize * 0.25f, playerSize * 0.5f)
+                        glVertex2f(0f, -playerSize * 0.5f)
 
-                    worldRenderer.pos(
-                        ((positionRelativeToPlayer.x / viewDistance) * size).toDouble(),
-                        ((positionRelativeToPlayer.y / viewDistance) * size).toDouble(),
-                        0.0
-                    )
-                        .color(
-                            color.red / 255f, color.green / 255f,
-                            color.blue / 255f, 1f
-                        ).endVertex()
+                        glEnd()
+                    }
+                    else -> {
+                        worldRenderer.pos(
+                            ((positionRelativeToPlayer.x / viewDistance) * size).toDouble(),
+                            ((positionRelativeToPlayer.y / viewDistance) * size).toDouble(),
+                            0.0
+                        )
+                            .color(
+                                color.red / 255f, color.green / 255f,
+                                color.blue / 255f, 1f
+                            ).endVertex()
+                    }
                 }
 
                 if (transform) {

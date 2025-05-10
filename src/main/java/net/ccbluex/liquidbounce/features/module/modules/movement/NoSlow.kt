@@ -10,10 +10,11 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
-import net.ccbluex.liquidbounce.features.module.modules.player.GApple
+import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.utils.BlinkUtils
 import net.ccbluex.liquidbounce.utils.MovementUtils.hasMotion
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
+import net.ccbluex.liquidbounce.utils.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
@@ -54,7 +55,8 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             "Blink",
             "PostPlace",
             "GrimAC",
-            "BlocksMC"
+            "BlocksMC",
+            "HYTBW32",
         ),
         "None"
     )
@@ -67,7 +69,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val consumeMode by choices(
         "ConsumeMode",
-        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop"),
+        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32"),
         "None"
     )
 
@@ -102,7 +104,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     private var hasDropped = false
 
     private val BlinkTimer = TickTimer()
-
+    private var slow = false
     private var randomFactor = 0f
     private var sent = false
 
@@ -121,6 +123,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             if (heldItem.item !is ItemSword && heldItem.item !is ItemBow && (consumeFoodOnly && heldItem.item is ItemFood ||
                         consumeDrinkOnly && (heldItem.item is ItemPotion || heldItem.item is ItemBucketMilk))
             ) {
+                val stack = mc.thePlayer.getHeldItem()
                 when (consumeMode.lowercase()) {
                     "aac5" ->
                         sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
@@ -151,11 +154,26 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                             sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.UP))
                         }
                     }
+
+                    "hytbw32" -> {
+                        if (event.eventState.stateName == "PRE") {
+                            if (stack.getItem() is ItemFood) {
+                                mc.getNetHandler().addToSendQueue(
+                                    C07PacketPlayerDigging(
+                                        C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK,
+                                        BlockPos(mc.thePlayer.getPosition().up()),
+                                        EnumFacing.UP
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
 
         if (heldItem.item is ItemBow && (isUsingItem || shouldSwap)) {
+            val stack = mc.thePlayer.getHeldItem()
             when (bowPacket.lowercase()) {
                 "aac5" ->
                     sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
@@ -183,7 +201,8 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             }
         }
 
-        if (heldItem.item is ItemSword && isUsingItem && !GApple.eating) {
+        if (heldItem.item is ItemSword && isUsingItem && !Gapple.eating) {
+            val stack = mc.thePlayer.getHeldItem()
             when (swordMode.lowercase()) {
                 "postplace" ->
                     if (event.eventState == EventState.PRE) {
@@ -290,6 +309,25 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                     }
                     return
                 }
+
+                "hytbw32" -> {
+                    if (event.eventState.stateName == "PRE") {
+                        if (stack.getItem() is ItemSword || stack.getItem() is ItemBow) {
+                            mc.getNetHandler()
+                                .addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem + 1))
+                            mc.getNetHandler()
+                                .addToSendQueue(C17PacketCustomPayload("sbhyt", PacketBuffer(Unpooled.buffer())))
+                            mc.getNetHandler()
+                                .addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                        }
+                    }
+                    if (event.eventState.stateName == "POST") {
+                        if (stack.getItem() is ItemSword || stack.getItem() is ItemBow) {
+                            mc.getNetHandler()
+                                .addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()))
+                        }
+                    }
+                }
             }
         }
     }
@@ -332,7 +370,32 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                 player.inventory.mainInventory[SilentHotbar.currentSlot] = packet.func_149174_e()
             }
         }
+        if (consumeMode == "HYTSW") {
+            val heldItem = player.heldItem?.item
 
+            // 仅处理食物类物品
+            if (heldItem is ItemFood || heldItem is ItemPotion || heldItem is ItemBucketMilk) {
+                when (packet) {
+                    // 拦截放置数据包
+                    is C08PacketPlayerBlockPlacement -> {
+                        if (packet.stack == player.heldItem && !slow) {
+                            sendPacket(C07PacketPlayerDigging(DROP_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                            slow = true
+                            event.cancelEvent() // 取消原始数据包
+                        }
+                    }
+
+                    // 处理服务端物品更新
+                    is S2FPacketSetSlot -> {
+                        if (slow && ReflectionUtil.getFieldValue<Int>(packet,"slot") == player.inventory.currentItem + 36) {
+                            event.cancelEvent()
+                            slow = false
+                            player.inventory.mainInventory[SilentHotbar.currentSlot] = packet.func_149174_e()
+                        }
+                    }
+                }
+            }
+        }
         if (swordMode == "Blink") {
             when (packet) {
                 is C00Handshake, is C00PacketServerQuery, is C01PacketPing, is C01PacketChatMessage, is S01PacketPong -> return
@@ -396,7 +459,12 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             }
         }
     }
-
+    @EventTarget
+    fun onUpdate(event: UpdateEvent) {
+        if (!mc.gameSettings.keyBindUseItem.isKeyDown) {
+            slow = false
+        }
+    }
     @EventTarget
     fun onSlowDown(event: SlowDownEvent) {
         val heldItem = mc.thePlayer.heldItem?.item
@@ -416,15 +484,21 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         event.strafe = getMultiplier(heldItem, false)
     }
 
-    private fun getMultiplier(item: Item?, isForward: Boolean) = when (item) {
-        is ItemFood, is ItemPotion, is ItemBucketMilk -> if (isForward) consumeForwardMultiplier else consumeStrafeMultiplier
+    private fun getMultiplier(item: Item?, isForward: Boolean): Float {
+        if (consumeMode == "HYTSW" && slow) return 1.0f
 
-        is ItemSword -> if (isForward) blockForwardMultiplier else blockStrafeMultiplier
-
-        is ItemBow -> if (isForward) bowForwardMultiplier else bowStrafeMultiplier
-
-        else -> 0.2F
+        return when (item) {
+            is ItemFood, is ItemPotion, is ItemBucketMilk ->
+                if (isForward) consumeForwardMultiplier else consumeStrafeMultiplier
+            is ItemSword ->
+                if (isForward) blockForwardMultiplier else blockStrafeMultiplier
+            is ItemBow ->
+                if (isForward) bowForwardMultiplier else bowStrafeMultiplier
+            else ->
+                0.2f
+        }
     }
+
 
     fun isUNCPBlocking() =
         swordMode == "UpdatedNCP" && mc.gameSettings.keyBindUseItem.isKeyDown && (mc.thePlayer.heldItem?.item is ItemSword)
@@ -436,6 +510,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         SilentHotbar.selectSlotSilently(this, (SilentHotbar.currentSlot + 1) % 9, immediate = true)
         SilentHotbar.resetSlot(this, true)
     }
+
     override val tag
         get() = "$swordMode $consumeMode $bowPacket"
 }

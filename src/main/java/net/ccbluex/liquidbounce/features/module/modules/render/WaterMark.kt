@@ -10,6 +10,8 @@ import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.EaseUtils.easeOutBack
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.render.RoundedRectRenderer
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.value.TextValue
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.float
@@ -27,9 +29,9 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
 
     // 新增药丸状态相关属性
     private data class PillState(
-        var content: String = "", 
-        var progress: Float = 0f, 
-        var active: Boolean = false, 
+        var content: String = "",
+        var progress: Float = 0f,
+        var active: Boolean = false,
         var timer: ScheduledFuture<*>? = null,
         var progressBar: Float = 0f // 新增进度条百分比
     )
@@ -107,7 +109,7 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             repeat(60) { i ->
                 val alpha = (120 - i * 2).coerceAtLeast(0)  // 更平缓的透明度衰减
                 val offset = (i + 1) * 0.5f  // 更密集的偏移量
-                
+
                 RenderUtils.drawRoundedRect(
                     (posX - animatedWidth / 2 - offset).toFloat(),
                     (posY - offset).toFloat(),
@@ -183,15 +185,15 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             val textWidth = Fonts.fontHonor40.getStringWidth(pillText)
             val targetWidth = if (pillState.content.isNotEmpty()) textWidth + 40 else 0
             val maxWidth = max(targetWidth, 0)
-            
+
             pillState.progress = (pillState.progress + pillAnimationSpeed * if (pillState.content.isNotEmpty()) 1f else -1f).coerceIn(0f, 1f)
             pillState.active = pillState.progress > 0
-            
+
             if (pillState.active) {
                 val pillWidth = maxWidth * easeInOutQuad(pillState.progress)
                 val pillX = posX + animatedWidth/2 + 10
                 val pillY = posY + height/2 - 15
-                
+
                 // 绘制药丸背景（添加进度条）
                 RenderUtils.drawRoundedRect(
                     pillX.toFloat(),

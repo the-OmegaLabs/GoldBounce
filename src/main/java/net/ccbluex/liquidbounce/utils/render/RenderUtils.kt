@@ -27,6 +27,7 @@ import net.minecraft.item.ItemSword
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL14
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -641,13 +642,14 @@ object RenderUtils : MinecraftInstance() {
         alpha: Float,
         radius: Float
     ) {
-        val segments = 18
+        val segments = 36
         val step = 90.0 / segments
 
         val (newX1, newY1, newX2, newY2) = orderPoints(x1, y1, x2, y2)
 
         glPushMatrix()
         glEnable(GL_BLEND)
+        glEnable(GL_MULTISAMPLE)
         glDisable(GL_TEXTURE_2D)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glEnable(GL_LINE_SMOOTH)
@@ -681,6 +683,7 @@ object RenderUtils : MinecraftInstance() {
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_LINE_SMOOTH)
         glDisable(GL_BLEND)
+        glDisable(GL_MULTISAMPLE)
         glPopMatrix()
     }
     private fun quickPolygonCircle(x: Float, y: Float, xRadius: Float, yRadius: Float, start: Int, end: Int) {

@@ -142,7 +142,7 @@ open class Module(
 
 
     // HUD
-    val hue = nextFloat()
+    open val hue = nextFloat()
     var slide = 0F
     var yAnim = 0f
 

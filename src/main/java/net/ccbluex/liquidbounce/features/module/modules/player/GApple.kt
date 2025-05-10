@@ -1,208 +1,220 @@
 package net.ccbluex.liquidbounce.features.module.modules.player
 
-import net.ccbluex.liquidbounce.LiquidBounce
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
+import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
-import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.MinecraftInstance
-import net.ccbluex.liquidbounce.utils.ReflectionUtil
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura.autoBlock
+import net.ccbluex.liquidbounce.features.module.modules.render.WaterMark
+import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.StuckUtils
 import net.ccbluex.liquidbounce.utils.chat
+import net.ccbluex.liquidbounce.utils.client.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.packet.BlinkUtils
-import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.BoolValue
-import net.ccbluex.liquidbounce.value.IntegerValue
+import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
+import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.int
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.init.Items
-import net.minecraft.network.Packet
 import net.minecraft.network.play.client.*
-import net.minecraft.network.play.server.S12PacketEntityVelocity
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import java.util.*
-import kotlin.math.min
+import net.minecraft.util.BlockPos
 
-object GApple : Module("GApple", Category.PLAYER) {
-    // Values
-    private val heal by IntegerValue("Health", 15, 0..20)
-    private val noMove by BoolValue("StopMove", true)
-    private val autoValue by BoolValue("Auto", true)
-    private val stuckValue by BoolValue("Stuck", false)
-    private val notValue by BoolValue("Notify", false)
-    private val hudValue by BoolValue("HUD", false)
-    private val sendDelay by IntegerValue("SendDelay", 3, 1..10)
+object Gapple : Module("Gapple",Category.PLAYER) {
+    private val heal by int("health", 20, 0..40)
+    private val sendDelay by int("SendDelay",3,1..10)
 
-    // State
-    var eating = false
-    private var movingPackets = 0
+    private val stuck by boolean("Stuck",false)
+    private val stopMove by boolean("StopMove",false)
+    private val sendPerTick by int("PacketsPerTick", 3, 1..20)
+    private val sendOnceTicks = sendPerTick;
+    val doLogs by boolean("Logs",false)
+    var noCancelC02 by boolean("NoCancelC02", false)
+    var noC02 by boolean("NoC02", false) //这俩玩意本来是备着花雨庭更新grim搞得，结果就是他一直不更新，然后目前lastest Grim也绕不过。
+
+    private val autoGapple by boolean("AutoGapple", false)
+
     private var slot = -1
-    private val packets = LinkedList<Packet<*>>()
-    private var needSkip = false
-    private val stopWatch = MSTimer()
-    private var target: EntityLivingBase? = null
-//    init {
-//        arrayOf(heal, noMove, autoValue, stuckValue, notValue, hudValue, sendDelay, noCancelC02, noC02)
-//    }
+    private var c03s = 0
+    private var c02s = 0
+    private var canStart = false
+
+    var eating: Boolean = false //强制减速了。
+    var pulsing: Boolean = false
+    var target: EntityLivingBase? = null
+
 
     override fun onEnable() {
-        packets.clear()
-        slot = -1
-        needSkip = false
-        movingPackets = 0
-        eating = false
-        stopWatch.reset()
+
+        c03s = 0
+
+        slot = InventoryUtils.findItem(36, 44, Items.golden_apple) ?: -1
+        if (slot != -1) {
+            slot -= 36
+        } else {
+            if (doLogs) chat("没有金屁股。")
+            state = false
+            return
+        }
+        WaterMark.setPillProgress(0F)
+        WaterMark.setPillContent("")
     }
+
 
     override fun onDisable() {
         eating = false
-        releasePackets()
-        BlinkUtils.stopBlink()
-        if (stuckValue) StuckUtils.stopStuck()
-    }
 
-    @EventTarget
-    fun onWorld(event: WorldEvent) {
-        eating = false
-        releasePackets()
-    }
-
-    @EventTarget
-    fun onTick(event: TickEvent) {
-        chat("""
-            [DEBUG] 状态：
-            Health=${mc.thePlayer.health}
-            Slot=$slot
-            Eating=$eating
-            Packets=${packets.size}
-            thPlayerState${if(mc.thePlayer!=null)"true" else "false"}
-        """.trimIndent())
-
-        if (mc.thePlayer == null || !mc.thePlayer.isEntityAlive) {
+        if (canStart) {
+            pulsing = false
             eating = false
-            packets.clear()
-            return
+            BlinkUtils.stopBlink()
         }
 
-        slot = InventoryUtils.findItem(36, 45, Items.golden_apple)?.minus(36) ?: -1
-        if (slot == -1) {
-            chat("未找到金苹果！当前背包内容：${mc.thePlayer.inventory}")
+        if (stuck) {
+            StuckUtils.stopStuck()
         }
-        chat("当前生命值：${mc.thePlayer.health} 阈值：$heal")
+        sendPacket(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+        WaterMark.setPillProgress(0F)
+        WaterMark.setPillContent("")
+    }
+    @EventTarget
+    fun onTick(event: GameTickEvent){
+        WaterMark.setPillContent("GApple Running")
+        WaterMark.setPillProgress(c03s / 32f)
+        if (doLogs) {
+            chat("[GApple] 当前状态: eating=$eating, slot=$slot, heal=${heal}, c03s=$c03s")
+        }
+        if(mc.thePlayer.health < heal) {
+            if (!eating) {
+                target = KillAura.target
 
-        if (slot == -1 || mc.thePlayer.health >= heal.toFloat()) {
+                c03s = 0
+
+                slot = InventoryUtils.findItem(36, 44, Items.golden_apple) ?: -1
+                if (slot != -1) {
+                    slot -= 36
+                } else {
+                    if (doLogs) chat("没有金屁股。")
+                    state = false
+                    return
+                }
+            }
+
+            if (MinecraftInstance.mc.thePlayer == null || MinecraftInstance.mc.thePlayer.isDead) {
+                BlinkUtils.stopBlink()
+                state = false
+                return
+            }
+            if (slot != -1) {
+                slot -= 36
+            } else {
+                if (doLogs) chat("没有金屁股。")
+                state = false
+                return
+            }
             if (eating) {
+                if (stuck) {
+                    StuckUtils.stuck()
+                }
+                if (!BlinkUtils.blinking) {
+                    BlinkUtils.blink(
+                        C09PacketHeldItemChange::class.java,
+                        C0EPacketClickWindow::class.java,
+                        C0DPacketCloseWindow::class.java
+                    )
+                    BlinkUtils.setCancelReturnPredicate(C07PacketPlayerDigging::class.java) { it -> (it as C07PacketPlayerDigging).status == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM }
+                    BlinkUtils.setCancelReturnPredicate(C08PacketPlayerBlockPlacement::class.java) { it ->
+                        ((it as C08PacketPlayerBlockPlacement).position.y == -1)
+                    }
+                    BlinkUtils.setCancelReturnPredicate(C02PacketUseEntity::class.java) { it -> noCancelC02 }
+                    BlinkUtils.setCancelReturnPredicate(C0APacketAnimation::class.java) { it -> noCancelC02 }
+                    BlinkUtils.setCancelAction(C03PacketPlayer::class.java) { packet -> c03s++ }
+                    BlinkUtils.setReleaseAction(C03PacketPlayer::class.java) { packet -> c03s-- }
+                    BlinkUtils.setReleaseReturnPredicateMap(C02PacketUseEntity::class.java) { packet -> !eating && noC02 }
+                    BlinkUtils.setCancelAction(C02PacketUseEntity::class.java) { packet -> c02s++ }
+                    BlinkUtils.setReleaseAction(C02PacketUseEntity::class.java) { packet -> c02s-- }
+                    canStart = true
+                }
+            } else {
+                eating = true
+                if (doLogs) {
+                    chat("§a开始吃苹果 | 槽位:${slot} | 健康:${mc.thePlayer.health}")
+                    chat("[GApple] 正在发送 ${sendPerTick} 个数据包/ticks")
+                }
+            }
+            if (c03s >= 32) {
                 eating = false
-                releasePackets()
-                if (autoValue) toggle()
+                pulsing = true
+                BlinkUtils.resetBlackList()
+                sendPacket(C09PacketHeldItemChange(slot), false)
+                println("Start!")
+                sendPacket(
+                    C08PacketPlayerBlockPlacement(
+                        MinecraftInstance.mc.thePlayer.inventoryContainer.getSlot(
+                            slot + 36
+                        ).stack
+                    ), false
+                )
+                if (ViaLoadingBase.getInstance().targetVersion.newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
+                    sendPacket(
+                        C08PacketPlayerBlockPlacement(BlockPos(-1, -2, -1), 255, null, 0.0f, 0.0f, 0.0f), false
+                    )
+                }
+
+                BlinkUtils.stopBlink()
+                println("Stop!")
+//                chat("吃完了")
+                sendPacket(C09PacketHeldItemChange(MinecraftInstance.mc.thePlayer.inventory.currentItem), false)
+                pulsing = false
+                if (autoGapple) {
+                    c03s = 0
+
+                    slot = InventoryUtils.findItem(36, 45, Items.golden_apple) ?: -1;
+
+                    if (slot != -1) {
+                        slot = slot - 36
+                    }
+                } else {
+                    state = false
+                }
+//                if (autoBlock != "Off" && (!blinked || !net.ccbluex.liquidbounce.utils.client.BlinkUtils.isBlinking) && target != null) {
+//                    if (autoBlock == "QuickMarco") {
+//                        sendOffHandUseItem()
+//                    } else if (autoBlock == "Packet") {
+//                        sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+//                    }
+////                    chat("发送防砍包")
+//                }
+                return
             }
-            return
-        }
 
-        if (!eating) {
-            eating = true
-            if (notValue) Notification("Started eating!")
-        }
+            if ((MinecraftInstance.mc.thePlayer.ticksExisted % sendDelay) == 0) {
+                for (i in 0 until sendOnceTicks) {
+                    BlinkUtils.releasePacket(true)
+                }
+            }
+        }else{
+            eating = false
 
-        handleEatingLogic()
-    }
+            if (canStart) {
+                pulsing = false
+                eating = false
+                BlinkUtils.stopBlink()
+            }
 
-    private fun handleEatingLogic() {
-        target = KillAura.target
-
-        if (movingPackets >= 32) {
-            sendPackets(
-                C09PacketHeldItemChange(slot),
-                C08PacketPlayerBlockPlacement(mc.thePlayer.inventoryContainer.getSlot(slot + 36).stack),
-            )
-            releasePackets()
-            sendPackets(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-            stopWatch.reset()
-            if (autoValue) slot = InventoryUtils.findItem(36, 45, Items.golden_apple)?.minus(36) ?: -1
-        } else if (mc.thePlayer.ticksExisted % sendDelay == 0) {
-            processPacketQueue()
-        }
-    }
-
-    @EventTarget
-    fun onPacket(event: PacketEvent) {
-        val packet = event.packet
-
-        when {
-            packet is S12PacketEntityVelocity && packet.entityID == mc.thePlayer.entityId -> needSkip = true
-            eating && !isWhitelistedPacket(packet) -> {
-                event.cancelEvent()
-                packets.add(packet)
+            if (stuck) {
+                StuckUtils.stopStuck()
             }
         }
     }
 
-    private fun isWhitelistedPacket(packet: Packet<*>) = packet is C09PacketHeldItemChange ||
-            packet is C0EPacketClickWindow ||
-            packet is C16PacketClientStatus ||
-            packet is C0DPacketCloseWindow
-
     @EventTarget
-    fun onSlowDown(event: SlowDownEvent) {
-        if (eating) {
-            event.forward = 0.2f
-            event.strafe = 0.2f
-        }
-    }
-
-    @EventTarget
-    fun onMoveInput(event: MoveEvent) {
-        chat("移动状态：eating=$eating, noMove=$noMove")
-        if (eating && noMove) {
-            event.cancelEvent()
-        }
-    }
-
-    @EventTarget
-    fun onRender2D(event: Render2DEvent) {
-        if (eating && hudValue) {
-            val progress = min(movingPackets.toFloat() / 32, 1f)
-            chat("§7Eating: §f${(progress * 100).toInt()}%")
-        }
-    }
-
-    private fun sendPackets(vararg packets: Packet<*>) {
-        packets.forEach { mc.netHandler.addToSendQueue(it) }
-    }
-
-    private fun processPacketQueue() {
-        while (packets.isNotEmpty()) {
-            val packet = packets.poll()
-            if (packet is C01PacketChatMessage) break
-            if (packet is C03PacketPlayer) movingPackets--
-            mc.netHandler.addToSendQueue(packet)
-        }
-    }
-
-    private fun releasePackets() {
-        packets.removeAll { it is C01PacketChatMessage || it is C08PacketPlayerBlockPlacement }
-        packets.forEach { mc.netHandler.addToSendQueue(it) }
-        packets.clear()
-        movingPackets = 0
-    }
-
-    @EventTarget
-    fun onMotion(event: MotionEvent) {
-        when (event.eventState) {
-            EventState.PRE -> handlePreMotion()
-            EventState.POST -> if (eating) movingPackets++
-        }
-    }
-
-    private fun handlePreMotion() {
-        val positionUpdateTicks: Int = ReflectionUtil.getFieldValue(mc.thePlayer, "positionUpdateTicks")
-
-        if (eating && stuckValue && positionUpdateTicks < 20 && !needSkip) {
-            mc.thePlayer.motionX = 0.0
-            mc.thePlayer.motionZ = 0.0
-        } else {
-            needSkip = false
+    fun onMovementInput(event: MovementInputEvent){
+        if(eating && stopMove){
+            event.originalInput.moveStrafe = 0F
+            event.originalInput.moveForward = 0F
         }
     }
 }

@@ -1,292 +1,325 @@
-/*
- * GoldBounce Hacked Client
- * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
- * https://github.com/bzym2/GoldBounce/
- */
 package net.ccbluex.liquidbounce.features.module.modules.misc
 
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import net.ccbluex.liquidbounce.chat.Client
-import net.ccbluex.liquidbounce.chat.packet.packets.*
 import net.ccbluex.liquidbounce.event.EventTarget
-import net.ccbluex.liquidbounce.event.SessionEvent
-import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.PacketEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
-import net.ccbluex.liquidbounce.utils.chat
-import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
-import net.ccbluex.liquidbounce.utils.login.UserUtils
-import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.BoolValue
-import net.ccbluex.liquidbounce.value.ListValue
-import net.minecraft.event.ClickEvent
+import net.ccbluex.liquidbounce.utils.ReflectionUtil
+import net.ccbluex.liquidbounce.value.TextValue
+import net.ccbluex.liquidbounce.value.int
+import net.minecraft.network.play.client.C01PacketChatMessage
+import net.minecraft.network.play.server.S02PacketChat
+import net.minecraft.network.play.server.S38PacketPlayerListItem
+import net.minecraft.network.play.server.S38PacketPlayerListItem.AddPlayerData
 import net.minecraft.util.ChatComponentText
-import net.minecraft.util.EnumChatFormatting
-import net.minecraft.util.IChatComponent
-import java.net.URI
-import java.net.URISyntaxException
-import java.util.regex.Pattern
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
-object IRC : Module("LiquidChat", Category.MISC, subjective = true, gameDetecting = false) {
+object IRC : Module("IRC", Category.MISC) {
 
-    init {
-        state = true
-        inArray = false
-    }
-    val host by ListValue("Host",arrayOf("LiquidChat","Incomplete"),"LiquidChat")
-    var jwt by object : BoolValue("JWT", false) {
-        override fun onChanged(oldValue: Boolean, newValue: Boolean) {
-            if (state) {
-                state = false
-                state = true
-            }
-        }
-    }
+    // 配置项
+    private val host by TextValue("Host", "127.0.0.1")
+    private val port by int("Port", 6666)
+    private val commandPrefix by TextValue("Prefix", "/irc ")
+    private val executor = Executors.newSingleThreadScheduledExecutor()
 
-    var jwtToken = ""
+    // 连接相关
+    private var socket: Socket? = null
+    private var reader: BufferedReader? = null
+    private var writer: BufferedWriter? = null
+    private var reconnectAttempts = 0
 
-    val client = object : Client() {
+    // 数据存储
+    private var loggedInNick: String? = null
 
-        /**
-         * Handle connect to web socket
-         */
-        override fun onConnect() = chat("§7[§a§lChat§7] §eConnecting to chat server...")
+    @JvmField
+    val nameMap = mutableMapOf<String, Pair<String, String>>() // <UUID, (GameID, Nick)>
 
-        /**
-         * Handle connect to web socket
-         */
-        override fun onConnected() = chat("§7[§a§lChat§7] §eConnected to chat server!")
+    // 颜色常量
+    private const val COLOR_ERROR = "§c"
+    private const val COLOR_SUCCESS = "§a"
+    private const val COLOR_INFO = "§b"
+    private const val COLOR_CHAT = "§7"
 
-        /**
-         * Handle handshake
-         */
-        override fun onHandshake(success: Boolean) {}
-
-        /**
-         * Handle disconnect
-         */
-        override fun onDisconnect() = chat("§7[§a§lChat§7] §cDisconnected from chat server!")
-
-        /**
-         * Handle logon to web socket with minecraft account
-         */
-        override fun onLogon() = chat("§7[§a§lChat§7] §eLogging in...")
-
-        /**
-         * Handle incoming packets
-         */
-        override fun onPacket(packet: Packet) {
-            when (packet) {
-                is ClientMessagePacket -> {
-                    val thePlayer = mc.thePlayer
-
-                    if (thePlayer == null) {
-                        LOGGER.info("[LiquidChat] ${packet.user.name}: ${packet.content}")
-                        return
-                    }
-
-                    val chatComponent = ChatComponentText("§7[§a§lChat§7] §e${packet.user.name}: ")
-                    val messageComponent = toChatComponent(packet.content)
-                    chatComponent.appendSibling(messageComponent)
-
-                    thePlayer.addChatMessage(chatComponent)
-                }
-
-                is ClientPrivateMessagePacket -> chat("§7[§a§lChat§7] §c(P)§e ${packet.user.name}: §7${packet.content}")
-                is ClientErrorPacket -> {
-                    val message = when (packet.message) {
-                        "NotSupported" -> "This method is not supported!"
-                        "LoginFailed" -> "Login Failed!"
-                        "NotLoggedIn" -> "You must be logged in to use the chat! Enable LiquidChat."
-                        "AlreadyLoggedIn" -> "You are already logged in!"
-                        "MojangRequestMissing" -> "Mojang request missing!"
-                        "NotPermitted" -> "You are missing the required permissions!"
-                        "NotBanned" -> "You are not banned!"
-                        "Banned" -> "You are banned!"
-                        "RateLimited" -> "You have been rate limited. Please try again later."
-                        "PrivateMessageNotAccepted" -> "Private message not accepted!"
-                        "EmptyMessage" -> "You are trying to send an empty message!"
-                        "MessageTooLong" -> "Message is too long!"
-                        "InvalidCharacter" -> "Message contains a non-ASCII character!"
-                        "InvalidId" -> "The given ID is invalid!"
-                        "Internal" -> "An internal server error occurred!"
-                        else -> packet.message
-                    }
-
-                    chat("§7[§a§lChat§7] §cError: §7$message")
-                }
-
-                is ClientSuccessPacket -> {
-                    when (packet.reason) {
-                        "Login" -> {
-                            chat("§7[§a§lChat§7] §eLogged in!")
-
-                            chat("====================================")
-                            chat("§c>> §lLiquidChat")
-                            chat("§7Write message: §a.chat <message>")
-                            chat("§7Write private message: §a.pchat <user> <message>")
-                            chat("====================================")
-
-                            loggedIn = true
-                        }
-
-                        "Ban" -> chat("§7[§a§lChat§7] §eSuccessfully banned user!")
-                        "Unban" -> chat("§7[§a§lChat§7] §eSuccessfully unbanned user!")
-                    }
-                }
-
-                is ClientNewJWTPacket -> {
-                    jwtToken = packet.token
-                    jwt = true
-
-                    state = false
-                    state = true
-                }
-            }
-        }
-
-        /**
-         * Handle error
-         */
-        override fun onError(cause: Throwable) =
-            chat("§7[§a§lChat§7] §c§lError: §7${cause.javaClass.name}: ${cause.message}")
-    }
-
-    private var loggedIn = false
-
-    private var loginJob: Job? = null
-
-    private val connectTimer = MSTimer()
-
-    override fun onDisable() {
-        if(host == "LiquidChat") {
-            loggedIn = false
-            client.disconnect()
-        }
-    }
-
-    @EventTarget
-    fun onSession(sessionEvent: SessionEvent) {
-        if(host == "LiquidChat") {
-            client.disconnect()
-            connect()
-        }
-    }
-
-    @EventTarget
-    fun onUpdate(updateEvent: UpdateEvent) {
-        if(host == "LiquidChat") {
-            if (client.isConnected() || (loginJob?.isActive == true)) return
-
-            if (connectTimer.hasTimePassed(5000)) {
-                connect()
-                connectTimer.reset()
-            }
-        }
-    }
+    override fun onEnable() = connect()
 
     private fun connect() {
-        if(host == "LiquidChat"){
-            if (client.isConnected() || (loginJob?.isActive == true)) return
-
-            if (jwt && jwtToken.isEmpty()) {
-                chat("§7[§a§lChat§7] §cError: §7No token provided!")
-                state = false
-                return
-            }
-
-            loggedIn = false
-
-            loginJob = SharedScopes.IO.launch {
-                try {
-                    client.connect()
-
-                    if (jwt)
-                        client.loginJWT(jwtToken)
-                    else if (UserUtils.isValidTokenOffline(mc.session.token)) {
-                        client.loginMojang()
-                    }
-                } catch (cause: Exception) {
-                    LOGGER.error("LiquidChat error", cause)
-                    chat("§7[§a§lChat§7] §cError: §7${cause.javaClass.name}: ${cause.message}")
-                }
-
-                loginJob = null
-            }
-        }
-    }
-
-    /**
-     * Forge Hooks
-     *
-     * @author Forge
-     */
-
-    private val urlPattern = Pattern.compile(
-        "((?:[a-z0-9]{2,}:\\/\\/)?(?:(?:[0-9]{1,3}\\.){3}[0-9]{1,3}|(?:[-\\w_\\.]{1,}\\.[a-z]{2,}?))(?::[0-9]{1,5})?.*?(?=[!\"\u00A7 \n]|$))",
-        Pattern.CASE_INSENSITIVE
-    )
-
-    private fun toChatComponent(string: String): IChatComponent {
-        var component: IChatComponent? = null
-        val matcher = urlPattern.matcher(string)
-        var lastEnd = 0
-
-        while (matcher.find()) {
-            val start = matcher.start()
-            val end = matcher.end()
-
-            // Append the previous leftovers.
-            val part = string.substring(lastEnd, start)
-            if (part.isNotEmpty()) {
-                if (component == null) {
-                    component = ChatComponentText(part)
-                    component.chatStyle.color = EnumChatFormatting.GRAY
-                } else
-                    component.appendText(part)
-            }
-
-            lastEnd = end
-
-            val url = string.substring(start, end)
-
+        connectionLock.withLock {
             try {
-                if (URI(url).scheme != null) {
-                    // Set the click event and append the link.
-                    val link: IChatComponent = ChatComponentText(url)
-
-                    link.chatStyle.chatClickEvent = ClickEvent(ClickEvent.Action.OPEN_URL, url)
-                    link.chatStyle.underlined = true
-                    link.chatStyle.color = EnumChatFormatting.GRAY
-
-                    if (component == null)
-                        component = link
-                    else
-                        component.appendSibling(link)
-                    continue
+                resetConnection()
+                Socket().apply {
+                    connect(InetSocketAddress(host, port), 5000)
+                    soTimeout = 15000
+                    keepAlive = true
+                    socket = this
+                    writer = BufferedWriter(OutputStreamWriter(getOutputStream()))
+                    reader = BufferedReader(InputStreamReader(getInputStream()))
+                    state = true
                 }
-            } catch (_: URISyntaxException) {
+                reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+                writer = BufferedWriter(OutputStreamWriter(socket!!.getOutputStream()))
+
+                executor.scheduleWithFixedDelay({ readLoop() }, 0, 50, TimeUnit.MILLISECONDS)
+                scheduleHeartbeat()
+                attemptAutoLogin()
+
+            } catch (e: Exception) {
+                handleConnectError(e)
             }
-
-            if (component == null) {
-                component = ChatComponentText(url)
-                component.chatStyle.color = EnumChatFormatting.GRAY
-            } else
-                component.appendText(url)
         }
-
-        // Append the rest of the message.
-        val end = string.substring(lastEnd)
-
-        if (component == null) {
-            component = ChatComponentText(end)
-            component.chatStyle.color = EnumChatFormatting.GRAY
-        } else if (end.isNotEmpty())
-            component.appendText(string.substring(lastEnd))
-
-        return component
     }
 
+    private fun scheduleHeartbeat() {
+        executor.scheduleAtFixedRate({
+            writer?.apply {
+                write("PING ${System.currentTimeMillis()}\n")
+                flush()
+            }
+        }, 30, 30, TimeUnit.SECONDS)
+    }
+
+    private fun attemptAutoLogin() {
+        // 自动登录逻辑（需实现凭证存储）
+    }
+
+    private fun handleConnectError(e: Exception) {
+        mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] 连接失败: ${e.message}"))
+        if (reconnectAttempts++ < 3) {
+            executor.schedule({ connect() }, 5, TimeUnit.SECONDS)
+        } else {
+            toggle()
+        }
+    }
+
+    override fun onDisable() {
+        executor.shutdownNow()
+        writer?.apply {
+            write("LOGOUT\n")
+            flush()
+            close()
+        }
+        reader?.close()
+        socket?.close()
+        nameMap.clear()
+    }
+
+    private fun readLoop() {
+        try {
+            while (reader?.ready() == true) {
+                reader!!.readLine()?.let { processLine(it) }
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun processLine(line: String) {
+        when {
+            line.startsWith("OK REGISTER") ->
+                mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_SUCCESS[IRC] 注册成功，请使用/login登录"))
+
+            line.startsWith("OK LOGIN ") -> handleLoginSuccess(line)
+            line.startsWith("NAMES ") -> updateNameMap(line)
+            line.startsWith("MSG ") -> showChatMessage(line)
+            line.startsWith("ERROR ") -> {
+                val errorMsg = when (line.substringAfter("ERROR ")) {
+                    "USER_EXISTS" -> "用户已存在"
+                    "AUTH_FAILED" -> "认证失败"
+                    else -> line.substringAfter("ERROR ")
+                }
+                mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] $errorMsg"))
+            }
+
+            line.startsWith("PONG ") -> showLatency(line)
+            else -> {/* 其他协议处理 */
+            }
+        }
+    }
+
+    private fun handleLoginSuccess(line: String) {
+        loggedInNick = line.substringAfter("OK LOGIN ").trim()
+        mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_SUCCESS[IRC] 登录成功"))
+    }
+
+    private fun updateNameMap(line: String) {
+        nameMap.clear()
+        line.substringAfter("NAMES ").split(",").forEach {
+            val (uuid, gameId, nick) = it.split(":", limit = 3)
+            nameMap[uuid] = Pair(gameId, nick)
+        }
+    }
+
+    private fun showChatMessage(line: String) {
+        val (gameId, msg) = line.substringAfter("MSG ").split(":", limit = 2)
+        nameMap.values.find { it.first == gameId }?.let {
+            mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_CHAT$gameId[${it.second}]§7: $msg"))
+        }
+    }
+
+    private fun showErrorMessage(line: String) {
+        val error = line.substringAfter("ERROR ")
+        mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] $error"))
+    }
+
+    private fun showLatency(line: String) {
+        val latency = System.currentTimeMillis() - line.substringAfter("PONG ").toLong()
+        mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_INFO[IRC] 延迟: ${latency}ms"))
+    }
+
+    @EventTarget
+    fun onPacketSend(event: PacketEvent) {
+        val packet = event.packet
+        if (packet is C01PacketChatMessage && packet.message.startsWith(commandPrefix)) {
+            event.cancelEvent()
+            handleCommand(packet.message.removePrefix(commandPrefix))
+        }
+    }
+
+    private fun handleCommand(cmd: String) {
+        val parts = cmd.trim().split(" ", limit = 3)
+        when (parts[0].uppercase()) {
+            "REGISTER" -> registerUser(parts)
+            "LOGIN" -> loginUser(parts)
+            "MSG" -> sendMessage(parts)
+            "STATUS" -> showStatus()
+            else -> showHelp()
+        }
+    }
+
+    private val connectionLock = ReentrantLock()
+
+    private fun checkConnection(): Boolean = connectionLock.withLock {
+        socket?.run { !isClosed && isConnected } ?: false
+    }
+
+    private fun registerUser(parts: List<String>) {
+        if (parts.size < 3) {
+            mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] 用法: /irc register 用户名 密码"))
+            return
+        }
+
+        writer?.apply {
+            write("REGISTER ${parts[1]} ${parts[2]}\n")
+            flush()
+            mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_INFO[IRC] 注册请求已发送"))
+        }
+    }
+
+    private fun loginUser(parts: List<String>) {
+        if (parts.size < 3) {
+            mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] 用法: /irc login 用户名 密码"))
+            return
+        }
+
+        writer?.apply {
+            write("LOGIN ${parts[1]} ${parts[2]}\n")
+            flush()
+            mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_INFO[IRC] 登录请求已发送"))
+        }
+    }
+
+    private fun showStatus() {
+        val status = buildString {
+            appendLine("§6=== IRC状态 ===")
+            appendLine("§a连接状态: ${if (socket?.isConnected == true) "已连接" else "断开"}")
+            appendLine("§b服务器: $host:$port")
+            appendLine("§e登录用户: ${loggedInNick ?: "未登录"}")
+            appendLine("§d在线人数: ${nameMap.size}")
+            appendLine("§7使用/irc help查看帮助")
+        }
+        mc.thePlayer.addChatMessage(ChatComponentText(status))
+    }
+
+    private fun showHelp() {
+        val help = """
+        §6=== IRC帮助 ===
+        §a/irc register <用户名> <密码> §7- 注册新账户
+        §a/irc login <用户名> <密码> §7- 登录账户
+        §a/irc msg <消息> §7- 发送聊天消息
+        §a/irc status §7- 查看连接状态
+        §a/irc help §7- 显示本帮助
+    """.trimIndent()
+        mc.thePlayer.addChatMessage(ChatComponentText(help))
+    }
+
+    private fun sendMessage(parts: List<String>) {
+        if (!checkConnection()) {
+            mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] 未连接服务器"))
+            return
+        }
+
+        connectionLock.withLock {
+            try {
+                writer?.apply {
+                    write("MSG ${parts.drop(1).joinToString(" ")}\n")
+                    flush()
+                } ?: throw IOException("Writer is null")
+            } catch (e: IOException) {
+                handleSendError(e)
+            }
+        }
+    }
+
+    private fun resetConnection() {
+        connectionLock.withLock {
+            try {
+                writer?.close()
+                reader?.close()
+                socket?.close()
+            } catch (e: IOException) {
+                // 忽略关闭异常
+            } finally {
+                writer = null
+                reader = null
+                socket = null
+                state = false
+            }
+        }
+    }
+
+    private fun handleSendError(e: Exception) {
+        mc.thePlayer.addChatMessage(ChatComponentText("$COLOR_ERROR[IRC] 发送失败: ${e.message}"))
+        resetConnection()
+        if (state) { // 仅在模块启用时重连
+            executor.schedule({ connect() }, 1, TimeUnit.SECONDS)
+        }
+    }
+
+    @EventTarget
+    fun onPacketReceive(event: PacketEvent) {
+        when (val packet = event.packet) {
+            is S38PacketPlayerListItem -> updatePlayerList(packet)
+            is S02PacketChat -> modifyChatMessage(packet)
+        }
+    }
+
+    private fun updatePlayerList(packet: S38PacketPlayerListItem) {
+        packet.entries.forEach { entry ->
+            entry.profile.id.toString().let { uuid ->
+                nameMap[uuid]?.let { (gameId, nick) ->
+                    ReflectionUtil.setFieldValue(
+                        entry, "displayName",
+                        ChatComponentText("§b$gameId§7[§f$nick§7]")
+                    )
+                }
+            }
+        }
+    }
+
+    private fun modifyChatMessage(packet: S02PacketChat) {
+        var text = packet.chatComponent.unformattedText
+        nameMap.values.forEach { (gameId, nick) ->
+            text = text.replace(gameId, "$gameId[$nick]")
+        }
+        ReflectionUtil.setFieldValue(packet, "chatComponent", ChatComponentText(text))
+    }
 }

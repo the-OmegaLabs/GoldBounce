@@ -245,7 +245,7 @@ object ModuleManager : Listenable {
             Clutch,
             NameProtect,
             AntiVoid,
-            GApple,
+            Gapple,
             FollowTargetHud,
             HitBubbles,
             FireFlies,
@@ -267,7 +267,8 @@ object ModuleManager : Listenable {
             CustomTag,
             WaterMark,
             Sounds,
-            DickESP
+            DickESP,
+            HYTScaffold
         )
 
         InventoryManager.startCoroutine()

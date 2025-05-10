@@ -5,15 +5,10 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.combat
 
-import net.ccbluex.liquidbounce.event.AttackEvent
-import net.ccbluex.liquidbounce.event.EventTarget
-import net.ccbluex.liquidbounce.event.PacketEvent
-import net.ccbluex.liquidbounce.event.UpdateEvent
+import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.ModuleManager.getModule
-import net.ccbluex.liquidbounce.features.module.modules.movement.Fly
-import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.extensions.component1
 import net.ccbluex.liquidbounce.utils.extensions.component2
@@ -25,6 +20,7 @@ import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
 
@@ -45,22 +41,24 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
             "LowJump",
             "CustomMotion",
             "Visual",
-            "AutoFreeze"
+            "AutoFreeze",
+            "HuaYuTing"
         ),
         "Packet"
     )
-
+    private var attacking = false
     val delay by int("Delay", 0, 0..500)
     private val hurtTime by int("HurtTime", 10, 0..10)
     private val customMotionY by float("Custom-Y", 0.2f, 0.01f..0.42f) { mode == "CustomMotion" }
-    private val lookValue = BoolValue("UseC06Packet", false) {mode == "BMCPacket"}
+    private val lookValue = BoolValue("UseC06Packet", false) { mode == "BMCPacket" }
     var stuckEnabled = false
     val msTimer = MSTimer()
-
+    var offGroundTicks = 0
     override fun onEnable() {
         if (mode == "NoGround")
             mc.thePlayer.tryJump()
     }
+
     fun sendCriticalPacket(
         xOffset: Double = 0.0,
         yOffset: Double = 0.0,
@@ -85,22 +83,46 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
             mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(x, y, z, ground))
         }
     }
+
     @EventTarget
-    fun onUpdate(event: UpdateEvent) {
-        if(mode == "AutoFreeze"){
-            if (KillAura.target != null && mc.thePlayer.onGround) {
-                    mc.thePlayer.jump()
+    fun onMotion(event: MotionEvent) {
+        if (mode == "HuaYuTing") {
+            if (event.eventState.stateName == "PRE") {
+                if (mode == "HuaYuTing") {
+                    if (KillAura.target != null && attacking) {
+                        if (mc.thePlayer.fallDistance > 0 || offGroundTicks > 3) {
+                            event.onGround = false
+                        }
+                    } else {
+                        attacking = false
+                    }
                 }
-                if (mc.thePlayer.fallDistance > 0) {
-                    getModule("Freeze")?.let { it.state = true }
-                    stuckEnabled = true
-                }
-                if (KillAura.target == null && stuckEnabled) {
-                    getModule("Freeze")?.let { it.state = false }
-                    stuckEnabled = false
-                }
+            }
         }
     }
+
+    @EventTarget
+    fun onUpdate(event: UpdateEvent) {
+        if (mc.thePlayer.onGround) {
+            offGroundTicks = 0
+        } else {
+            offGroundTicks++
+        }
+        if (mode == "AutoFreeze") {
+            if (KillAura.target != null && mc.thePlayer.onGround) {
+                mc.thePlayer.jump()
+            }
+            if (mc.thePlayer.fallDistance > 0) {
+                getModule("Freeze")?.let { it.state = true }
+                stuckEnabled = true
+            }
+            if (KillAura.target == null && stuckEnabled) {
+                getModule("Freeze")?.let { it.state = false }
+                stuckEnabled = false
+            }
+        }
+    }
+
     @EventTarget
     fun onAttack(event: AttackEvent) {
         if (event.targetEntity is EntityLivingBase) {
@@ -132,11 +154,13 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
                     )
                     mc.thePlayer.onCriticalHit(entity)
                 }
+
                 "bmcpacket" -> {
                     sendCriticalPacket(yOffset = 0.0825080378093, ground = false)
                     sendCriticalPacket(yOffset = 0.0215634532004, ground = false)
                     sendCriticalPacket(yOffset = 0.1040220332227, ground = false)
                 }
+
                 "blocksmc" -> {
                     sendPackets(
                         C04PacketPlayerPosition(x, y + 0.001091981, z, true),
@@ -182,9 +206,18 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val packet = event.packet
+        if (mode == "HuaYuTing") {
+            if (packet is C02PacketUseEntity) {
+                val wrapped = packet
 
+                if (wrapped.getAction() == C02PacketUseEntity.Action.ATTACK) {
+                    attacking = true
+                }
+            }
+        }
         if (packet is C03PacketPlayer && mode == "NoGround")
             packet.onGround = false
+
     }
 
     override val tag
