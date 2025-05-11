@@ -76,7 +76,6 @@
     "gui.MixinGuiAchievement",
     "gui.MixinGuiContainer",
     "gui.MixinGuiTextField",
-    "gui.MixinPlayerGuiTabOverlay",
     "render.MixinItemRenderer",
     "render.MixinRenderGlobal",
     "tweaks.MixinEntityFX"

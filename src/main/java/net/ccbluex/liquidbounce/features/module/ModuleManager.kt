@@ -152,7 +152,6 @@ object ModuleManager : Listenable {
             Kick,
             KillAura,
             LadderJump,
-            IRC,
             LiquidWalk,
             Liquids,
             LongJump,
