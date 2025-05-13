@@ -42,10 +42,12 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
             "CustomMotion",
             "Visual",
             "AutoFreeze",
-            "HuaYuTing"
+            "HuaYuTing",
+            "BMCSmart"
         ),
         "Packet"
     )
+    private var attacks = 0
     private var attacking = false
     val delay by int("Delay", 0, 0..500)
     private val hurtTime by int("HurtTime", 10, 0..10)
@@ -55,6 +57,7 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     val msTimer = MSTimer()
     var offGroundTicks = 0
     override fun onEnable() {
+        attacks = 0
         if (mode == "NoGround")
             mc.thePlayer.tryJump()
     }
@@ -167,7 +170,15 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
                         C04PacketPlayerPosition(x, y, z, false)
                     )
                 }
+                "bmcsmart" -> {
+                    attacks++
+                    if (attacks > 4) {
+                        attacks = 0
 
+                        sendCriticalPacket(yOffset = 0.001, ground = true)
+                        sendCriticalPacket(ground = false)
+                    }
+                }
                 "blocksmc2" -> {
                     if (thePlayer.ticksExisted % 4 == 0) {
                         sendPackets(

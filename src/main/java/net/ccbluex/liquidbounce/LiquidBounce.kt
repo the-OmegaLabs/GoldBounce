@@ -113,6 +113,17 @@ object LiquidBounce {
 
     // Discord RPC
     val clientRichPresence = ClientRichPresence
+    fun cpFiles(){
+        SysUtils().copyToFontDir("Product Sans Regular.ttf")
+        SysUtils().copyToFontDir("Product Sans Bold.ttf")
+        SysUtils().copyToFontDir("HONORSansCN-Regular.ttf")
+        SysUtils().copyToFontDir("iconnovo.ttf")
+        SysUtils().copyToFontDir("NotoSansSC-Regular.ttf")
+        SysUtils().copyToFontDir("NotoSansSC-Bold.ttf")
+        SysUtils().copyToGameDir("background.png","background.png")
+        SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
+
+    }
     /**
      * Execute if client will be started
      */
@@ -144,15 +155,10 @@ object LiquidBounce {
             registerListener(SilentHotbar)
             registerListener(WaitMsUtils)
             registerListener(BPSUtils)
-            SysUtils().copyToFontDir("Product Sans Regular.ttf")
-            SysUtils().copyToFontDir("Product Sans Bold.ttf")
-            SysUtils().copyToFontDir("HONORSansCN-Regular.ttf")
-            SysUtils().copyToFontDir("iconnovo.ttf")
-            SysUtils().copyToFontDir("NotoSansSC-Regular.ttf")
-            SysUtils().copyToFontDir("NotoSansSC-Bold.ttf")
-            SysUtils().copyToGameDir("background.png","background.png")
-            SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
-
+            // Waiting for copy files
+            runBlocking {
+                cpFiles()
+            }
             // Load client fonts
             runBlocking {
                 loadFonts()

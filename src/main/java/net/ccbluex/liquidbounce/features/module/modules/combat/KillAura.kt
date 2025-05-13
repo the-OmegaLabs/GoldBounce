@@ -148,7 +148,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val onDestroyBlock by boolean("OnDestroyBlock", false)
 
     // AutoBlock
-    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC"), "Packet")
+    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "WatchDogBlinkLess"), "Packet")
     // Block$MC
     private var blocksmcJohnState = false
     private var blocksmcClickCounter = 0
@@ -162,28 +162,28 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         "Stop"
     ) { (autoBlock == "Packet") ||(autoBlock == "QuickMarco") }
     private val releaseAutoBlock by boolean("ReleaseAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
     val forceBlockRender by boolean("ForceBlockRender", true)
-    { autoBlock !in arrayOf("Off", "Fake") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && releaseAutoBlock }
     private val ignoreTickRule by boolean("IgnoreTickRule", false)
-    { autoBlock !in arrayOf("Off", "Fake") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && releaseAutoBlock }
     private val blockRate by int("BlockRate", 100, 1..100)
-    { autoBlock !in arrayOf("Off", "Fake") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && releaseAutoBlock }
 
     private val uncpAutoBlock by boolean("UpdatedNCPAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake") && !releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && !releaseAutoBlock }
 
     private val switchStartBlock by boolean("SwitchStartBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
 
     private val interactAutoBlock by boolean("InteractAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
 
     val blinkAutoBlock by boolean("BlinkAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
 
     private val blinkBlockTicks by int("BlinkBlockTicks", 3, 2..5)
-    { autoBlock !in arrayOf("Off", "Fake") && blinkAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && blinkAutoBlock }
 
     // AutoBlock conditions
     private val smartAutoBlock by boolean("SmartAutoBlock", false) { autoBlock == "Packet" }
