@@ -52,6 +52,7 @@ import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
+import net.minecraft.network.Packet
 import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
 import net.minecraft.network.play.client.C07PacketPlayerDigging
@@ -148,12 +149,15 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val onDestroyBlock by boolean("OnDestroyBlock", false)
 
     // AutoBlock
-    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "WatchDogBlinkLess"), "Packet")
+    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "HypixelFull"), "Packet")
     // Block$MC
     private var blocksmcJohnState = false
     private var blocksmcClickCounter = 0
     private val blocksmcAttackInterval by int("BlocksMCAttackInterval", 2, 1..5) { autoBlock == "BlocksMC" }
     private val blocksmcBlockRate by int("BlocksMCBlockRate", 50, 1..100) { autoBlock == "BlocksMC" }
+    private var hypixelBlinking = false
+    private var hypixelBlockTicks = 0
+    private val hypixelBlockInterval by int("HypixelBlockInterval", 1, 1..5) { autoBlock == "HypixelFull" }
 
     private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
     private val unblockMode by choices(
@@ -162,28 +166,28 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         "Stop"
     ) { (autoBlock == "Packet") ||(autoBlock == "QuickMarco") }
     private val releaseAutoBlock by boolean("ReleaseAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
     val forceBlockRender by boolean("ForceBlockRender", true)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && releaseAutoBlock }
     private val ignoreTickRule by boolean("IgnoreTickRule", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && releaseAutoBlock }
     private val blockRate by int("BlockRate", 100, 1..100)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && releaseAutoBlock }
 
     private val uncpAutoBlock by boolean("UpdatedNCPAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && !releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && !releaseAutoBlock }
 
     private val switchStartBlock by boolean("SwitchStartBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
 
     private val interactAutoBlock by boolean("InteractAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
 
     val blinkAutoBlock by boolean("BlinkAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
 
     private val blinkBlockTicks by int("BlinkBlockTicks", 3, 2..5)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC") && blinkAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && blinkAutoBlock }
 
     // AutoBlock conditions
     private val smartAutoBlock by boolean("SmartAutoBlock", false) { autoBlock == "Packet" }
@@ -315,7 +319,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         "Off",
         subjective = true
     )
-
     // Visuals
     private val mark by choices("Mark", arrayOf("None", "Platform", "Box"), "Platform", subjective = true)
     private val boxOutline by boolean("Outline", true, subjective = true) { mark == "Box" }
@@ -369,7 +372,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         attackTickTimes.clear()
         attackTimer.reset()
         clicks = 0
-
+        if (!state && autoBlock == "HypixelFull") {
+            BlinkUtils.unblink()
+            hypixelBlinking = false
+        }
         if (blinkAutoBlock) {
             BlinkUtils.unblink()
             blinked = false
@@ -798,7 +804,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             }
             blocksmcJohnState = !blocksmcJohnState
         }
-
         // Start blocking after attack
         if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && isLastClick || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
@@ -1049,7 +1054,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private fun stopBlocking(forceStop: Boolean = false) {
         val player = mc.thePlayer ?: return
-
+        if (autoBlock == "HypixelFull" && hypixelBlinking) {
+            BlinkUtils.unblink()
+            hypixelBlinking = false
+            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+        }
         if (!forceStop) {
             if (blockStatus && !mc.thePlayer.isBlocking) {
 
@@ -1091,7 +1100,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onPacket(event: PacketEvent) {
         val player = mc.thePlayer ?: return
         val packet = event.packet
-
+        if (autoBlock == "HypixelFull" && !hypixelBlinking) {
+            BlinkUtils.blink(packet,event, true, false)
+            sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
+            hypixelBlinking = true
+            hypixelBlockTicks = 0
+        }
         if (autoBlock == "Off" || !blinkAutoBlock || !blinked)
             return
 

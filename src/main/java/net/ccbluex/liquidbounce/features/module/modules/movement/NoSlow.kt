@@ -9,6 +9,7 @@ import io.netty.buffer.Unpooled
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.utils.BlinkUtils
@@ -24,6 +25,7 @@ import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
+import net.minecraft.client.settings.KeyBinding
 import net.minecraft.item.*
 import net.minecraft.network.PacketBuffer
 import net.minecraft.network.handshake.client.C00Handshake
@@ -39,6 +41,9 @@ import net.minecraft.network.status.server.S01PacketPong
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
+import net.minecraftforge.client.event.MouseEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
+import org.lwjgl.input.Mouse
 
 
 object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
@@ -102,12 +107,10 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     private var shouldNoSlow = false
 
     private var hasDropped = false
-
     private val BlinkTimer = TickTimer()
     private var slow = false
     private var randomFactor = 0f
     private var sent = false
-
     @EventTarget
     fun onMotion(event: MotionEvent) {
         val player = mc.thePlayer ?: return
