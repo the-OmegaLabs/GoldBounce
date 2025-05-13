@@ -266,8 +266,7 @@ object ModuleManager : Listenable {
             CustomTag,
             WaterMark,
             Sounds,
-            DickESP,
-            HYTScaffold
+            HalfLifeWarn
         )
 
         InventoryManager.startCoroutine()

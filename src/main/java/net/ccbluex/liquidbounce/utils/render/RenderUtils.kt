@@ -74,7 +74,30 @@ object RenderUtils : MinecraftInstance() {
         glEndList()
     }
 
+    fun setGLCap(cap: Int, flag: Boolean) {
+        glCapMap[cap] = glGetBoolean(cap)
+        if (flag) {
+            glEnable(cap)
+        } else {
+            glDisable(cap)
+        }
+    }
+    private fun revertGLCap(cap: Int) {
+        val origCap: Boolean = glCapMap[cap] == true
+        if (origCap) {
+            glEnable(cap)
+        } else {
+            glDisable(cap)
+        }
+    }
 
+    fun revertAllCaps() {
+        val localIterator: Iterator<*> = glCapMap.keys.iterator()
+        while (localIterator.hasNext()) {
+            val cap = localIterator.next() as Int
+            revertGLCap(cap)
+        }
+    }
     fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean) {
         val renderManager = mc.renderManager
 
