@@ -21,6 +21,7 @@ import net.ccbluex.liquidbounce.features.command.CommandManager.registerCommands
 import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.ModuleManager.registerModules
 import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
+import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds.playStartupSound
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Tower
 import net.ccbluex.liquidbounce.features.special.BungeeCordSpoof
 import net.ccbluex.liquidbounce.features.special.ClientFixes
@@ -238,6 +239,7 @@ object LiquidBounce {
             // Load background
             FileManager.loadBackground()
             PacketManager().init()
+            playStartupSound()
         } catch (e: Exception) {
             LOGGER.error("Failed to start client ${e.message}")
         } finally {
