@@ -55,7 +55,9 @@ object Tower : MinecraftInstance(), Listenable {
             "AAC3.6.4",
             "Vulcan2.9.0",
             "Pulldown",
-            "BlocksMC"
+            "BlocksMC",
+            "Hypixel",
+            "NCP"
         ),
         "None"
     )
@@ -102,8 +104,10 @@ object Tower : MinecraftInstance(), Listenable {
     // Mode stuff
     private val tickTimer = TickTimer()
     private var jumpGround = 0.0
-    private var offGroundTicks = 0
+    private var fallTicks = 0
     private var sent = false
+    private var wasOnGround = false
+    private var checkGround = false
     // Handle motion events
     @EventTarget
     fun onMove(event: MoveEvent) {
@@ -123,7 +127,18 @@ object Tower : MinecraftInstance(), Listenable {
         val player = mc.thePlayer ?: return
 
         isTowering = false
-
+        if (eventState == EventState.PRE) {
+            if (player.onGround) {
+                fallTicks = 0
+                wasOnGround = true
+            } else {
+                // 使用 0.001 容差防止梯子/蛛网误判
+                if (player.motionY < -0.001 && !wasOnGround) {
+                    fallTicks++
+                }
+                wasOnGround = false
+            }
+        }
         if (towerModeValues.get() == "None" || notOnMoveValues.get() && player.isMoving ||
             onJumpValues.get() && !mc.gameSettings.keyBindJump.isKeyDown
         ) {
@@ -357,7 +372,53 @@ object Tower : MinecraftInstance(), Listenable {
                 player.motionY = -0.5
                 player.setPosition(player.posX + 0.035, player.posY, player.posZ)
             }
+            "ncp" -> {
+                if (player.onGround) {
+                    jumpGround = player.posY
+                    player.motionY = 0.42
+                    fakeJump()
+                    if (Debugger.towerDbg) chat("NCP模式触发跳跃")
+                }
+                if (player.posY > jumpGround + 0.79) {
+                    player.setPosition(
+                        player.posX,
+                        truncate(player.posY),
+                        player.posZ
+                    )
+                    player.motionY = 0.42
+                    jumpGround = player.posY
+                    if (Debugger.towerDbg) chat("NCP高度修正")
+                }
+            }
 
+            "hypixel" -> {
+                when {
+                    player.onGround -> {
+                        checkGround = true
+                        if (Debugger.towerDbg) chat("Hypixel地面检测")
+                    }
+                    checkGround && fallTicks >= 18 -> {
+                        isTowering = false
+                        if (Debugger.towerDbg) chat("Hypixel停止塔模式")
+                    }
+                    else -> {
+                        when (fallTicks % 3) {
+                            0 -> {
+                                val speedBoost = if (player.isPotionActive(Potion.moveSpeed)) {
+                                    0.08 * (player.getActivePotionEffect(Potion.moveSpeed).amplifier + 1)
+                                } else 0.0
+
+                                MovementUtils.strafe(0.22f + speedBoost.toFloat())
+                                player.motionY = 0.42
+                                fakeJump()
+                            }
+                            1 -> player.motionY = 0.33
+                            2 -> player.motionY = (player.posY + 1.0) - player.posY
+                        }
+                        if (Debugger.towerDbg) chat("Hypixel阶段处理 ${fallTicks % 3}")
+                    }
+                }
+            }
         }
     }
 

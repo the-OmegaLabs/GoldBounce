@@ -149,7 +149,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val onDestroyBlock by boolean("OnDestroyBlock", false)
 
     // AutoBlock
-    val autoBlock by choices("AutoBlock", arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "HypixelFull"), "Packet")
+    val autoBlock by choices(
+        "AutoBlock",
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "HypixelFull"),
+        "Packet"
+    )
+
     // Block$MC
     private var blocksmcJohnState = false
     private var blocksmcClickCounter = 0
@@ -157,37 +162,41 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val blocksmcBlockRate by int("BlocksMCBlockRate", 50, 1..100) { autoBlock == "BlocksMC" }
     private var hypixelBlinking = false
     private var hypixelBlockTicks = 0
-    private val hypixelBlockInterval by int("HypixelBlockInterval", 1, 1..5) { autoBlock == "HypixelFull" }
+    private val maxBlinkPackets by int("MaxBlinkPackets", 20, 5..100) { autoBlock == "HypixelFull" }
 
-    private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
+    private val blockMaxRange by float(
+        "BlockMaxRange",
+        3f,
+        0f..8f
+    ) { autoBlock == "Packet" || autoBlock == "QuickMarco" }
     private val unblockMode by choices(
         "UnblockMode",
         arrayOf("Stop", "Switch", "Empty"),
         "Stop"
-    ) { (autoBlock == "Packet") ||(autoBlock == "QuickMarco") }
+    ) { (autoBlock == "Packet") || (autoBlock == "QuickMarco") }
     private val releaseAutoBlock by boolean("ReleaseAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
     val forceBlockRender by boolean("ForceBlockRender", true)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && releaseAutoBlock }
     private val ignoreTickRule by boolean("IgnoreTickRule", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && releaseAutoBlock }
     private val blockRate by int("BlockRate", 100, 1..100)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && releaseAutoBlock }
 
     private val uncpAutoBlock by boolean("UpdatedNCPAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && !releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && !releaseAutoBlock }
 
     private val switchStartBlock by boolean("SwitchStartBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
 
     private val interactAutoBlock by boolean("InteractAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
 
     val blinkAutoBlock by boolean("BlinkAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
 
     private val blinkBlockTicks by int("BlinkBlockTicks", 3, 2..5)
-    { autoBlock !in arrayOf("Off", "Fake","BlocksMC","HypixelFull") && blinkAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && blinkAutoBlock }
 
     // AutoBlock conditions
     private val smartAutoBlock by boolean("SmartAutoBlock", false) { autoBlock == "Packet" }
@@ -319,6 +328,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         "Off",
         subjective = true
     )
+
     // Visuals
     private val mark by choices("Mark", arrayOf("None", "Platform", "Box"), "Platform", subjective = true)
     private val boxOutline by boolean("Outline", true, subjective = true) { mark == "Box" }
@@ -330,6 +340,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val circleGreen by IntegerValue("Green", 255, 0..255) { circle }
     private val circleBlue by IntegerValue("Blue", 255, 0..255) { circle }
     private val circleAlpha by IntegerValue("Alpha", 255, 0..255) { circle }
+
     /**
      * MODULE
      */
@@ -362,6 +373,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Swing fails
     private val swingFails = mutableListOf<SwingFailData>()
     var slotChangeAutoBlock = false
+
     /**
      * Disable kill aura module
      */
@@ -529,6 +541,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private val hittableColor = Color(37, 126, 255, 70)
     private val notHittableColor = Color(255, 0, 0, 70)
+
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         if (circle) {
@@ -637,17 +650,20 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         } else {
             var targets = 0
             for (entity in world.loadedEntityList) {
-                if (entity is EntityLivingBase && isEnemy(entity) && player.getDistanceToEntityBox(entity) <= getRange(entity)) {
+                if (entity is EntityLivingBase && isEnemy(entity) && player.getDistanceToEntityBox(entity) <= getRange(
+                        entity
+                    )
+                ) {
                     attackEntity(entity, isLastClick)
 
-                     targets += 1
-                    if(limitedMultiTargets != 0 && limitedMultiTargets <= targets) break
+                    targets += 1
+                    if (limitedMultiTargets != 0 && limitedMultiTargets <= targets) break
 
                 }
             }
         }
         if (!isLastClick)
-                return
+            return
 
         val switchMode = targetMode == "Switch"
 
@@ -668,7 +684,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private fun updateTarget() {
         if (KillAura.shouldPrioritize()) return
-                // Reset fixed target to null
+        // Reset fixed target to null
         target = null
 
         val switchMode = targetMode == "Switch"
@@ -687,7 +703,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
             var distance = 0.0
             Backtrack.runWithNearestTrackedDistance(entity) {
-               distance = thePlayer.getDistanceToEntityBox(entity)
+                distance = thePlayer.getDistanceToEntityBox(entity)
             }
             if (switchMode && distance > range && prevTargetEntities.isNotEmpty()) continue
 
@@ -792,7 +808,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (blocksmcJohnState) {
                 // 发送攻击包
                 sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
-                
+
                 blocksmcClickCounter++
                 if (blocksmcClickCounter > blocksmcAttackInterval && Math.random() > 0.5) {
                     blocksmcClickCounter = 0
@@ -809,9 +825,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
         }
         if (autoBlock != "Off" && slotChangeAutoBlock && (!blinked || !BlinkUtils.isBlinking)) {
-            if(autoBlock == "QuickMarco"){
+            if (autoBlock == "QuickMarco") {
                 sendOffHandUseItem()
-            }else if (autoBlock == "Packet") {
+            } else if (autoBlock == "Packet") {
                 sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
             }
             slotChangeAutoBlock = false
@@ -918,10 +934,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         if (raycast) {
             chosenEntity = raycastEntity(
-                        range.toDouble(),
-                        currentRotation.yaw,
-                        currentRotation.pitch
-                    ) { entity -> !livingRaycast || entity is EntityLivingBase && entity !is EntityArmorStand }
+                range.toDouble(),
+                currentRotation.yaw,
+                currentRotation.pitch
+            ) { entity -> !livingRaycast || entity is EntityLivingBase && entity !is EntityArmorStand }
 
             if (chosenEntity != null && chosenEntity is EntityLivingBase && (NoFriends.handleEvents() || !(chosenEntity is EntityPlayer && chosenEntity.isClientFriend()))) {
                 if (raycastIgnored && target != chosenEntity) {
@@ -1101,10 +1117,25 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         val player = mc.thePlayer ?: return
         val packet = event.packet
         if (autoBlock == "HypixelFull" && !hypixelBlinking) {
-            BlinkUtils.blink(packet,event, true, false)
-            sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
-            hypixelBlinking = true
-            hypixelBlockTicks = 0
+            if (BlinkUtils.isProcessing) {
+                return
+            }
+            BlinkUtils.isProcessing = true // 标记开始处理
+
+            try {
+                // 添加队列容量检查
+                if (BlinkUtils.queuedPacketsCount < maxBlinkPackets) {
+                    BlinkUtils.blink(packet, event, true, false)
+                    sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
+                    hypixelBlinking = true
+                    hypixelBlockTicks = 0
+                } else {
+                    BlinkUtils.unblink() // 超过限制立即释放
+                    hypixelBlinking = false
+                }
+            } finally {
+                BlinkUtils.isProcessing = false
+            }
         }
         if (autoBlock == "Off" || !blinkAutoBlock || !blinked)
             return
@@ -1175,6 +1206,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private fun shouldPrioritize(): Boolean = when {
         !onScaffold && (Scaffold.handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) ||
                 Tower.handleEvents() && Tower.isTowering) -> true
+
         !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
         else -> false
     }
@@ -1251,7 +1283,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
             // BlocksMC模式跳过常规检查
             if (autoBlock == "BlocksMC") return true
-            
+
             return false
         }
 

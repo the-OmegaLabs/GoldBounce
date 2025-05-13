@@ -20,7 +20,7 @@ import net.minecraft.network.status.client.C01PacketPing
 import net.minecraft.util.Vec3
 
 object BlinkUtils {
-
+    var isProcessing = false
     val publicPacket: Packet<*>? = null
     val packets = mutableListOf<Packet<*>>()
     val packetsReceived = mutableListOf<Packet<*>>()
@@ -28,75 +28,60 @@ object BlinkUtils {
     val positions = mutableListOf<Vec3>()
     val isBlinking
         get() = (packets.size + packetsReceived.size) > 0
+    val queuedPacketsCount: Int
+        get() = synchronized(packets) {
+            packets.size
+        } + synchronized(packetsReceived) {
+            packetsReceived.size
+        }
 
     // TODO: Make better & more reliable BlinkUtils.
     fun blink(packet: Packet<*>, event: PacketEvent, sent: Boolean? = true, receive: Boolean? = true) {
         val player = mc.thePlayer ?: return
-
-        if (event.isCancelled || player.isDead)
-            return
-
-        when (packet) {
-            is C00Handshake, is C00PacketServerQuery, is C01PacketPing, is S02PacketChat, is C01PacketChatMessage -> {
+        if (isProcessing) return
+        isProcessing = true
+        try {
+            if (event.isCancelled || player.isDead)
                 return
-            }
 
-            is S29PacketSoundEffect -> {
-                if (packet.soundName == "game.player.hurt") {
+            when (packet) {
+                is C00Handshake, is C00PacketServerQuery, is C01PacketPing, is S02PacketChat, is C01PacketChatMessage -> {
                     return
                 }
-            }
-        }
 
-
-        // Don't blink on singleplayer
-        if (mc.currentServerData != null) {
-            if (sent == true && receive == false) {
-                if (event.eventType == EventState.RECEIVE) {
-                    synchronized(packetsReceived) {
-                        schedulePacketProcess(packetsReceived)
+                is S29PacketSoundEffect -> {
+                    if (packet.soundName == "game.player.hurt") {
+                        return
                     }
-                    packetsReceived.clear()
                 }
-                if (event.eventType == EventState.SEND) {
-                    event.cancelEvent()
-                    synchronized(packets) {
-                        packets += packet
+            }
+
+
+            // Don't blink on singleplayer
+            if (mc.currentServerData != null) {
+                if (sent == true && receive == false) {
+                    if (event.eventType == EventState.RECEIVE) {
+                        synchronized(packetsReceived) {
+                            schedulePacketProcess(packetsReceived)
+                        }
+                        packetsReceived.clear()
                     }
-                    if (packet is C03PacketPlayer && packet.isMoving) {
-                        val packetPos = Vec3(packet.x, packet.y, packet.z)
-                        synchronized(positions) {
-                            positions += packetPos
+                    if (event.eventType == EventState.SEND) {
+                        event.cancelEvent()
+                        synchronized(packets) {
+                            packets += packet
+                        }
+                        if (packet is C03PacketPlayer && packet.isMoving) {
+                            val packetPos = Vec3(packet.x, packet.y, packet.z)
+                            synchronized(positions) {
+                                positions += packetPos
+                            }
                         }
                     }
                 }
             }
-        }
 
-        if (receive == true && sent == false) {
-            if (event.eventType == EventState.RECEIVE && player.ticksExisted > 10) {
-                event.cancelEvent()
-                synchronized(packetsReceived) {
-                    packetsReceived += packet
-                }
-            }
-            if (event.eventType == EventState.SEND) {
-                synchronized(packets) {
-                    sendPackets(*packets.toTypedArray(), triggerEvents = false)
-                }
-                if (packet is C03PacketPlayer && packet.isMoving) {
-                    val packetPos = Vec3(packet.x, packet.y, packet.z)
-                    synchronized(positions) {
-                        positions += packetPos
-                    }
-                }
-                packets.clear()
-            }
-        }
-
-        // Don't blink on singleplayer
-        if (mc.currentServerData != null) {
-            if (sent == true && receive == true) {
+            if (receive == true && sent == false) {
                 if (event.eventType == EventState.RECEIVE && player.ticksExisted > 10) {
                     event.cancelEvent()
                     synchronized(packetsReceived) {
@@ -104,9 +89,8 @@ object BlinkUtils {
                     }
                 }
                 if (event.eventType == EventState.SEND) {
-                    event.cancelEvent()
                     synchronized(packets) {
-                        packets += packet
+                        sendPackets(*packets.toTypedArray(), triggerEvents = false)
                     }
                     if (packet is C03PacketPlayer && packet.isMoving) {
                         val packetPos = Vec3(packet.x, packet.y, packet.z)
@@ -114,12 +98,40 @@ object BlinkUtils {
                             positions += packetPos
                         }
                     }
+                    packets.clear()
                 }
             }
+
+            // Don't blink on singleplayer
+            if (mc.currentServerData != null) {
+                if (sent == true && receive == true) {
+                    if (event.eventType == EventState.RECEIVE && player.ticksExisted > 10) {
+                        event.cancelEvent()
+                        synchronized(packetsReceived) {
+                            packetsReceived += packet
+                        }
+                    }
+                    if (event.eventType == EventState.SEND) {
+                        event.cancelEvent()
+                        synchronized(packets) {
+                            packets += packet
+                        }
+                        if (packet is C03PacketPlayer && packet.isMoving) {
+                            val packetPos = Vec3(packet.x, packet.y, packet.z)
+                            synchronized(positions) {
+                                positions += packetPos
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (sent == false && receive == false)
+                unblink()
+        } finally {
+            isProcessing = false
         }
 
-        if (sent == false && receive == false)
-            unblink()
     }
 
     @EventTarget
