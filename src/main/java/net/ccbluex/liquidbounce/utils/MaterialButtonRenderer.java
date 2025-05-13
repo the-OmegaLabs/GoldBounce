@@ -25,7 +25,7 @@ public class MaterialButtonRenderer {
     private static final int ACCENT_ALPHA = 255;
     private static final int SHADOW_ALPHA = 60;
     private static final float RADIUS = 4.0f;
-    
+
     public static void draw(GuiButton button, Minecraft mc, int mouseX, int mouseY) {
         if (!button.visible) return;
 
