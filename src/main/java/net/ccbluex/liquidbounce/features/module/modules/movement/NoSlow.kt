@@ -62,6 +62,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             "GrimAC",
             "BlocksMC",
             "HYTBW32",
+            "Hypixel"
         ),
         "None"
     )
@@ -74,7 +75,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val consumeMode by choices(
         "ConsumeMode",
-        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32"),
+        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "Hypixel"),
         "None"
     )
 
@@ -120,6 +121,16 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         if (!hasMotion && !shouldSwap)
             return
 
+        if (hyp()){
+            if (player.isUsingItem && player.onGround) {
+                event.y += 1E-14
+            }
+            if (shouldSwap && player.onGround) {
+                KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.keyCode, false)
+                player.jump()
+                shouldSwap = false
+            }
+        }
 
 
         if (isUsingItem || shouldSwap) {
@@ -342,7 +353,27 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
         if (event.isCancelled || shouldSwap)
             return
+        if (hyp()){
+            if (packet is C08PacketPlayerBlockPlacement) {
+                if (player.heldItem?.item is ItemFood ||
+                    player.heldItem?.item is ItemPotion ||
+                    player.heldItem?.item is ItemBucketMilk) {
 
+                    event.cancelEvent()
+                    if (player.onGround) {
+                        player.jump()
+                    }
+                    shouldSwap = true
+                }
+            }
+
+            if (packet is S2FPacketSetSlot) {
+                if (ReflectionUtil.getFieldValue<Int>(packet, "slot") == player.inventory.currentItem + 36) {
+                    event.cancelEvent()
+                    player.inventory.mainInventory[SilentHotbar.currentSlot] = packet.func_149174_e()
+                }
+            }
+        }
         // Credit: @ManInMyVan
         // TODO: Not sure how to fix random grim simulation flag. (Seem to only happen in Loyisa).
         if (consumeMode == "Drop") {
@@ -464,6 +495,17 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     }
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
+        val player = mc.thePlayer ?: return
+        if (hyp()) {
+            if (player.isUsingItem && player.ticksExisted % 3 == 0) {
+                sendPacket(C08PacketPlayerBlockPlacement(
+                    BlockPos(-1, -1, -1),
+                    255,
+                    player.heldItem,
+                    0f, 0f, 0f
+                ))
+            }
+        }
         if (!mc.gameSettings.keyBindUseItem.isKeyDown) {
             slow = false
         }
@@ -481,12 +523,18 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
             if (consumeMode == "Drop" && !shouldNoSlow)
                 return
+            if (hyp()) {
+                event.forward = 1f
+                event.strafe = 1f
+            }
         }
 
         event.forward = getMultiplier(heldItem, true)
         event.strafe = getMultiplier(heldItem, false)
     }
-
+    private fun hyp(): Boolean {
+        return (consumeMode == "Hypixel" || swordMode == "Hypixel")
+    }
     private fun getMultiplier(item: Item?, isForward: Boolean): Float {
         if (consumeMode == "HYTSW" && slow) return 1.0f
 
