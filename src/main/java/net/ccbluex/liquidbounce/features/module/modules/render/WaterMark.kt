@@ -57,9 +57,8 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     private var pulseTime = 0f
     val showMemory = boolean("ShowMemory", false)
     private val shadowEnabled = boolean("Shadow", false)
-    val shadowStrengh = int("ShadowStrength", 5, 1..20)
+    val shadowStrengh = int("ShadowStrength", 20, 1..20)
     private val clientName = TextValue("ClientName", "Obai")
-
     // 修改动画缓动函数为弹性函数实现非线性伸缩
     private fun easeOutElastic(x: Float): Float {
         val c4 = (2 * Math.PI) / 3
@@ -128,7 +127,6 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
 
         GlStateManager.color(1f, 1f, 1f, 1f)
         RenderUtils.drawCircle((posX - animatedWidth / 2 + 15).toFloat(), (posY + height / 2).toFloat(), 8f, 0, 360)
-
         Fonts.fontHonor40.drawString(
             watermarkText,
             (posX - animatedWidth / 2 + logoWidth + 10).toFloat(),

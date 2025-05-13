@@ -1207,7 +1207,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         !onScaffold && (Scaffold.handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) ||
                 Tower.handleEvents() && Tower.isTowering) -> true
 
-        !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
+        !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHitValue.get() && Fucker.pos != null || Nuker.handleEvents()) -> true
         else -> false
     }
 

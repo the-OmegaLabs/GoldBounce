@@ -12,6 +12,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.value.boolean
+import net.minecraft.util.BlockPos
 
 object AutoTool : Module("AutoTool", Category.PLAYER, subjective = true, gameDetecting = false, hideModule = false) {
 
@@ -48,5 +49,23 @@ object AutoTool : Module("AutoTool", Category.PLAYER, subjective = true, gameDet
 
         SilentHotbar.selectSlotSilently(this, slot, render = false, resetManually = true)
     }
+    fun switchSlot(blockPos: BlockPos) {
+        var bestSpeed = 1F
+        var bestSlot = -1
 
+        val block = mc.theWorld.getBlockState(blockPos).block
+
+        for (i in 0..8) {
+            val item = mc.thePlayer.inventory.getStackInSlot(i) ?: continue
+            val speed = item.getStrVsBlock(block)
+
+            if (speed > bestSpeed) {
+                bestSpeed = speed
+                bestSlot = i
+            }
+        }
+
+        if (bestSlot != -1)
+            mc.thePlayer.inventory.currentItem = bestSlot
+    }
 }
