@@ -31,25 +31,7 @@ public class MaterialButtonRenderer {
     public static void draw(GuiButton button, Minecraft mc, int mouseX, int mouseY) {
         if (!button.visible) return;
 
-        boolean hovered = mouseX >= button.xPosition && mouseY >= button.yPosition &&
-                mouseX < button.xPosition + button.width &&
-                mouseY < button.yPosition + button.height;
 
-        // Ripple on click
-        if (button.enabled && hovered && Keyboard.isKeyDown(0)) {
-            RippleData data = rippleMap.computeIfAbsent(button, b -> new RippleData());
-            data.rippleX.add(mouseX - button.xPosition);
-            data.rippleY.add(mouseY - button.yPosition);
-            data.rippleTime.add(System.currentTimeMillis());
-        }
-        if (hovered && button.enabled) {
-            int hoverOverlay = new Color(255, 255, 255, 15).getRGB();
-            RenderUtils.INSTANCE.drawRoundedRect(
-                    button.xPosition, button.yPosition,
-                    button.xPosition + button.width, button.yPosition + button.height,
-                    hoverOverlay, RADIUS
-            );
-        }
 
         // Shadow for elevation
         RenderUtils.INSTANCE.drawRoundedRect(
@@ -65,30 +47,7 @@ public class MaterialButtonRenderer {
                 button.xPosition + button.width, button.yPosition + button.height,
                 bg, RADIUS
         );
-
-        // Ripples
-        RippleData data = rippleMap.get(button);
-        if (data != null) {
-            for (int i = data.rippleTime.size() - 1; i >= 0; i--) {
-                long start = data.rippleTime.get(i);
-                float elapsed = (System.currentTimeMillis() - start) / 300f;
-                if (elapsed >= 1f) {
-                    data.rippleTime.remove(i);
-                    data.rippleX.remove(i);
-                    data.rippleY.remove(i);
-                    continue;
-                }
-                int alpha = (int)(ACCENT_ALPHA * (1 - elapsed));
-                float radius = MathHelper.clamp_float(elapsed, 0, 1) * Math.max(button.width, button.height);
-                int color = (alpha << 24) | ACCENT_RGB;
-                RenderUtils.INSTANCE.drawFilledCircle(
-                        button.xPosition + data.rippleX.get(i),
-                        button.yPosition + data.rippleY.get(i),
-                        radius, new Color(color)
-                );
-            }
-        }
-
+        
         // Text
         AWTFontRenderer.Companion.setAssumeNonVolatile(true);
         FontRenderer fontRenderer = Fonts.font35;
@@ -101,11 +60,5 @@ public class MaterialButtonRenderer {
         );
         AWTFontRenderer.Companion.setAssumeNonVolatile(false);
         resetColor();
-    }
-
-    private static class RippleData {
-        public final List<Integer> rippleX = new LinkedList<>();
-        public final List<Integer> rippleY = new LinkedList<>();
-        public final List<Long> rippleTime = new LinkedList<>();
     }
 }
