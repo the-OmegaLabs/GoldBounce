@@ -264,7 +264,7 @@ object ModuleManager : Listenable {
             BPSCalculation,
             Insult,
             CustomTag,
-            WaterMark,
+            _root_ide_package_.net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark,
             Sounds,
             HalfLifeWarn
         )

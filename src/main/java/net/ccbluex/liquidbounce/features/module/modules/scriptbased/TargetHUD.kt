@@ -6,7 +6,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
-import net.ccbluex.liquidbounce.features.module.modules.render.WaterMark
+import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
@@ -25,7 +25,7 @@ import java.awt.Color
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.Resource
 
-object TargetHUD : Module("TargetHUD", Category.SCRIPT, hideModule = false) {
+object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
     // 配置系统
     private val hudStyle by ListValue(

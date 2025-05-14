@@ -1,6 +1,5 @@
-package net.ccbluex.liquidbounce.features.module.modules.render
+package net.ccbluex.liquidbounce.features.module.modules.hud
 
-import javafx.scene.effect.Glow
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.features.module.Category
@@ -12,11 +11,8 @@ import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.EaseUtils.easeOutBack
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
-import net.ccbluex.liquidbounce.utils.render.RoundedRectRenderer
-import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.value.TextValue
 import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
@@ -26,11 +22,12 @@ import java.awt.Color
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import kotlin.math.*
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sin
 
-object WaterMark : Module("WaterMark", Category.RENDER) {
+object WaterMark : Module("WaterMark", Category.HUD) {
 
-    // 新增药丸状态相关属性
     private data class PillState(
         var content: String = "",
         var progress: Float = 0f,
@@ -59,7 +56,6 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
     private val shadowEnabled = boolean("Shadow", false)
     val shadowStrengh = int("ShadowStrength", 20, 1..20)
     private val clientName = TextValue("ClientName", "Obai")
-    // 修改动画缓动函数为弹性函数实现非线性伸缩
     private fun easeOutElastic(x: Float): Float {
         val c4 = (2 * Math.PI) / 3
         return when (x) {
@@ -68,8 +64,6 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             else -> (2.0.pow((-10 * x).toDouble()) * sin((x * 10 - 0.75) * c4) + 1).toFloat()
         }
     }
-
-    // 新增二次缓动函数用于药丸动画
     private fun easeInOutQuad(x: Float): Float {
         return if (x < 0.5f) 2 * x * x else 1 - (-2 * x + 2).pow(2) / 2
     }
@@ -171,7 +165,6 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
             )
         }
 
-        // 新增药丸渲染逻辑
         if (pillState.content.isNotEmpty() || pillState.active) {
             val pillText = pillState.content
             val textWidth = Fonts.fontHonor40.getStringWidth(pillText)
@@ -225,12 +218,10 @@ object WaterMark : Module("WaterMark", Category.RENDER) {
         GL11.glDisable(GL11.GL_BLEND)
     }
 
-    // 新增进度设置函数
     fun setPillProgress(percentage: Float) {
         pillState.progressBar = percentage.coerceIn(0f, 1f)
     }
 
-    // 修改后的设置内容函数（添加进度重置参数）
     fun setPillContent(text: String, autoCloseSeconds: Int = 3, resetProgress: Boolean = true) {
         pillState.timer?.cancel(true)
 

@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
 import net.ccbluex.liquidbounce.features.module.modules.misc.Teams
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
@@ -100,16 +101,16 @@ object FollowTargetHud : Module(name = "FollowTargetHud", category = Category.RE
 
     private fun renderNameTag(entity: EntityLivingBase, tag: String) {
         xChange = translateX.get() * 20
-        val targ = Target()
-        if (entity != targ.getTargetEntity() && entity.name != entityKeep) {
+        val targ = KillAura.target
+        if (entity != targ && entity.name != entityKeep) {
             return
-        } else if (entity == targ.getTargetEntity()) {
+        } else if (entity == targ) {
             entityKeep = entity.name
             targetTicks++
             if (targetTicks >= zoomTicks.get() + 2) {
                 targetTicks = zoomTicks.get() + 1
             }
-        } else if (targ.getTargetEntity() == null) {
+        } else if (targ == null) {
             targetTicks--
             if (targetTicks <= -1) {
                 targetTicks = 0

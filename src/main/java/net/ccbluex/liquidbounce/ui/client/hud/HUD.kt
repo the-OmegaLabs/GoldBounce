@@ -31,12 +31,9 @@ object HUD : MinecraftInstance() {
         Image::class.java,
         Inventory::class.java,
         Model::class.java,
-        TabGUI::class.java,
         Text::class.java,
         ScoreboardElement::class.java,
-        Target::class.java,
         Radar::class.java,
-        SpeedGraph::class.java,
         Cooldown::class.java,
         BlockCounter::class.java,
         Taco::class.java,
@@ -48,15 +45,8 @@ object HUD : MinecraftInstance() {
     /** Create default HUD */
     fun setDefault() {
         elements.clear()
-
-        addElement(Image.defaultClientLogo())
-        addElement(Text.defaultBlockCount())
         addElement(Arraylist())
-        addElement(ScoreboardElement())
-        addElement(Armor())
-        addElement(Effects())
         addElement(Notifications())
-        addElement(Keystrokes())
     }
 
     /** Render all elements */

@@ -16,5 +16,5 @@ enum class Category(val displayName: String) {
     EXPLOIT("Exploit"),
     FUN("Fun"),
     SETTINGS("Settings"),
-    SCRIPT("ScriptBased");
+    HUD("HUD");
 }

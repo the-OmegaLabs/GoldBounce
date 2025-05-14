@@ -24,8 +24,8 @@ object MoreKB : Module(name = "MoreKB", category = Category.COMBAT) {
 
     @EventTarget
     fun onAttack(event: AttackEvent) {
-        if (Target().getTargetEntity() is EntityLivingBase) {
-            target = Target().getTargetEntity() as EntityLivingBase
+        if (KillAura.target is EntityLivingBase) {
+            target = KillAura.target as EntityLivingBase
             ticks = 2
         }
     }

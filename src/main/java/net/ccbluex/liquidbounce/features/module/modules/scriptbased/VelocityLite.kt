@@ -23,12 +23,12 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-object VelocityLite : Module("VelocityLite", Category.SCRIPT) {
+object VelocityLite : Module("VelocityLite", Category.COMBAT) {
     val desc = TextValue("Author","RN_Random_Name")
     val versionDesc = TextValue("Version","1.2.1")
     // Settings
     private val veloMode =
-        ListValue("Mode", arrayOf("IntaveA", "IntaveB", "Jump", "KKC[Patched4-4]", "Polar"), "IntaveA")
+        ListValue("Mode", arrayOf("IntaveA", "Intav963.*e0B", "Jump", "KKC[Patched4-4]", "Polar"), "IntaveA")
     private val intaveFactor = FloatValue("IntaveAFactor", 0.6f, 0f..1f)
     private val noFire = BoolValue("noFire", true)
     private val noFluid = BoolValue("NoFluid", true)
