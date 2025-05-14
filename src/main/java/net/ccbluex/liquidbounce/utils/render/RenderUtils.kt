@@ -13,17 +13,10 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
-import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
-import net.minecraft.item.ItemArmor
-import net.minecraft.item.ItemBow
-import net.minecraft.item.ItemStack
-import net.minecraft.item.ItemSword
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
@@ -74,6 +67,35 @@ object RenderUtils : MinecraftInstance() {
         glEndList()
     }
 
+    fun drawGradientSideways(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
+        val f = (col1 shr 24 and 0xFF) / 255.0f
+        val f2 = (col1 shr 16 and 0xFF) / 255.0f
+        val f3 = (col1 shr 8 and 0xFF) / 255.0f
+        val f4 = (col1 and 0xFF) / 255.0f
+        val f5 = (col2 shr 24 and 0xFF) / 255.0f
+        val f6 = (col2 shr 16 and 0xFF) / 255.0f
+        val f7 = (col2 shr 8 and 0xFF) / 255.0f
+        val f8 = (col2 and 0xFF) / 255.0f
+        glEnable(3042)
+        glDisable(3553)
+        glBlendFunc(770, 771)
+        glEnable(2848)
+        glShadeModel(7425)
+        glPushMatrix()
+        glBegin(7)
+        glColor4f(f2, f3, f4, f)
+        glVertex2d(left, top)
+        glVertex2d(left, bottom)
+        glColor4f(f6, f7, f8, f5)
+        glVertex2d(right, bottom)
+        glVertex2d(right, top)
+        glEnd()
+        glPopMatrix()
+        glEnable(3553)
+        glDisable(3042)
+        glDisable(2848)
+        glShadeModel(7424)
+    }
     fun setGLCap(cap: Int, flag: Boolean) {
         glCapMap[cap] = glGetBoolean(cap)
         if (flag) {

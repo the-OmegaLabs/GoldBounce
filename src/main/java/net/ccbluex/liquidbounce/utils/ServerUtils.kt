@@ -17,13 +17,13 @@ import net.minecraft.network.handshake.client.C00Handshake
 import net.minecraft.network.login.client.C00PacketLoginStart
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
+import scala.remote
 import java.net.InetAddress
 
 
 @SideOnly(Side.CLIENT)
 object ServerUtils : MinecraftInstance() {
     var serverData: ServerData? = null
-
     @JvmOverloads
     fun connectToLastServer(noGLContext: Boolean = false) {
         if (serverData == null) return
@@ -70,7 +70,9 @@ object ServerUtils : MinecraftInstance() {
             address.split(":")[0]
         }
     }
-
+    fun grmip(): String {
+        return hideSensitiveInformation(remoteIp)
+    }
     val remoteIp: String
         get() {
             var serverIp = "Singleplayer"

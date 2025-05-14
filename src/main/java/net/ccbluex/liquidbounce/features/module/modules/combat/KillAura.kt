@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.combat
 
+import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
@@ -53,11 +54,13 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
 import net.minecraft.network.Packet
+import net.minecraft.network.handshake.client.C00Handshake
 import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.network.play.server.S45PacketTitle
 import net.minecraft.potion.Potion
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
@@ -1210,7 +1213,51 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
         else -> false
     }
+    object CombatListener : Listenable {
+        private var syncEntity: EntityLivingBase? = null
+        private var totalPlayed = 0
+        private var startTime = System.currentTimeMillis()
+        var win = 0
+        var killCounts = 0
 
+        @EventTarget
+        private fun onAttack(event: AttackEvent) {
+            syncEntity = event.targetEntity as EntityLivingBase?
+        }
+
+        @EventTarget
+        private fun onUpdate(event: UpdateEvent) {
+            if (syncEntity != null && syncEntity!!.isDead) {
+                ++killCounts
+                syncEntity = null
+            }
+        }
+
+        @EventTarget(ignoreCondition = true)
+        private fun onPacket(event: PacketEvent) {
+            val packet = event.packet
+            if (event.packet is C00Handshake) startTime = System.currentTimeMillis()
+
+            if (packet is S45PacketTitle) {
+                val title = packet.message.formattedText
+                if (title.contains("Winner")) {
+                    win++
+                }
+                if (title.contains("BedWar")) {
+                    totalPlayed++
+                }
+                if (title.contains("SkyWar")) {
+                    totalPlayed++
+                }
+            }
+        }
+
+        override fun handleEvents() = true
+
+        init {
+            LiquidBounce.eventManager.registerListener(this)
+        }
+    }
     private fun handleFailedSwings() {
         if (!renderBoxOnSwingFail)
             return

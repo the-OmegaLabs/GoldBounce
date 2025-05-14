@@ -32,7 +32,6 @@ object VelocityLite : Module("VelocityLite", Category.COMBAT) {
     private val intaveFactor = FloatValue("IntaveAFactor", 0.6f, 0f..1f)
     private val noFire = BoolValue("noFire", true)
     private val noFluid = BoolValue("NoFluid", true)
-    private val blockCheck = BoolValue("BlockCheck", true)
     private val noVehicle = BoolValue("NoVehicle", true)
     private val invCheck = BoolValue("InvCheck", true)
     private val onlyAura = BoolValue("OnlyAura", false)

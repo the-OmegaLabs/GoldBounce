@@ -18,6 +18,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Side.Horizontal
 import net.ccbluex.liquidbounce.ui.client.hud.element.Side.Vertical
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.render.AnimationUtils
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsFloat
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -99,7 +100,8 @@ class Arraylist(
     private val rainbowY by float("Rainbow-Y", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
     private val gradientX by float("Gradient-X", -1000F, -2000F..2000F) { isColorModeUsed("Gradient") }
     private val gradientY by float("Gradient-Y", -1000F, -2000F..2000F) { isColorModeUsed("Gradient") }
-
+    private val shadow by boolean("Shadow", true)
+    private val shadowRadius by int("ShadowRadius", 10, 0..20)
     private val tags by boolean("Tags", true)
     private val tagsStyle by object : ListValue("TagsStyle", arrayOf("[]", "()", "<>", "-", "|", "Space"), "Space") {
         override fun isSupported() = tags
@@ -284,6 +286,16 @@ class Arraylist(
                                 },
                                 roundedBackgroundRadius
                             )
+                            if (shadow){
+                                GlowUtils.drawGlow(
+                                    xPos - if (rectMode == "Right") 5 else 2,
+                                    yPos,
+                                    if (rectMode == "Right") -3F else 0F,
+                                    yPos + textSpacer,
+                                    shadowRadius,
+                                    Color.BLACK
+                                )
+                            }
                         }
                     }
 
@@ -407,6 +419,16 @@ class Arraylist(
                                 },
                                 roundedBackgroundRadius
                             )
+                            if (shadow){
+                                GlowUtils.drawGlow(
+                                    xPos.toFloat(),
+                                    yPos.toFloat(),
+                                    (xPos + width + if (rectMode == "Right") 5 else 2).toFloat(),
+                                    (yPos + textSpacer).toFloat(),
+                                    shadowRadius,
+                                    Color.BLACK
+                                )
+                            }
                         }
                     }
 

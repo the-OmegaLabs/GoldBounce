@@ -112,6 +112,8 @@ object LiquidBounce {
     // Menu Background
     var background: Background? = null
 
+    // skibidi dumb dumb  yes yes
+    var playTimeStart: Long = 0
     // Discord RPC
     val clientRichPresence = ClientRichPresence
     fun cpFiles(){
@@ -199,7 +201,7 @@ object LiquidBounce {
                 ExploitsTab()
                 HeadsTab()
             }
-
+            playTimeStart = System.currentTimeMillis()
             // Disable optifine fastrender
             disableFastRender()
 

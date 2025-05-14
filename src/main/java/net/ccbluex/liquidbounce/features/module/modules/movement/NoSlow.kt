@@ -215,7 +215,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             }
         }
 
-        if (heldItem.item is ItemSword && isUsingItem && !Gapple.eating) {
+        if (heldItem.item is ItemSword && isUsingItem) {
             val stack = mc.thePlayer.getHeldItem()
             when (swordMode.lowercase()) {
                 "postplace" ->

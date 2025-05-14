@@ -5,8 +5,13 @@
  */
 package net.ccbluex.liquidbounce.utils.timing
 
+import lombok.Getter
+import lombok.Setter
+
 class MSTimer {
-    private var time = -1L
+    @Getter
+    @Setter
+    var time = -1L
 
     fun hasTimePassed(ms: Number) = System.currentTimeMillis() >= time + ms.toLong()
 

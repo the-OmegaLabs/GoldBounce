@@ -39,7 +39,8 @@ object HUD : MinecraftInstance() {
         Taco::class.java,
         Keystrokes::class.java,
         Notifications::class.java,
-        CPSHudCounter::class.java
+        CPSHudCounter::class.java,
+        SessionInfo::class.java
     )
 
     /** Create default HUD */
