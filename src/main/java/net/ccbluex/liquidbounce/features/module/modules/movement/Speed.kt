@@ -89,7 +89,6 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
         HypixelHop,
         HypixelLowHop,
         BlocksMCHop,
-        BlocksMCGround,
 
         // Other
         Boost,
@@ -187,6 +186,7 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
     val bmcDamageBoost by boolean("DamageBoost", true) { mode.get() == "BlocksMCHop" }
     val damageLowHop by boolean("DamageLowHop", false) { mode.get() == "BlocksMCHop" }
     val safeY by boolean("SafeY", true) { mode.get() == "BlocksMCHop" }
+    val groundSpeed by boolean("GroundSpeed", false) {mode.get() == "BlocksMCHop"}
     var playerOnGroundTicks = 0
 
     @EventTarget
@@ -224,13 +224,6 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
 
     @EventTarget
     fun onTick(event: GameTickEvent) {
-        if (mc.thePlayer?.isSneaking == true)
-            return
-        if (mc.thePlayer.onGround){
-            playerOnGroundTicks++
-        } else {
-            playerOnGroundTicks = 0
-        }
         modeModule.onTick()
     }
 

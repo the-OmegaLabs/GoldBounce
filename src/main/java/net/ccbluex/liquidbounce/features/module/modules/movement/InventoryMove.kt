@@ -10,7 +10,9 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.clickgui.ClickGui
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
+import net.ccbluex.liquidbounce.utils.JumpUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils
+import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.canClickInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.hasScheduledInLastLoop
@@ -34,6 +36,7 @@ object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting 
     val aacAdditionPro by boolean("AACAdditionPro", false)
     private val intave by boolean("Intave", false)
     private val saveC0E by boolean("SaveC0E",true)
+    private val ncpJump by boolean("NCPJump", false)
     private val noSprintWhenClosed by boolean("NoSprintWhenClosed",false) { saveC0E }
     private val isIntave = (mc.currentScreen is GuiInventory || mc.currentScreen is GuiChest) && intave
     private val clickWindowList = mutableListOf<C0EPacketClickWindow>()
@@ -102,6 +105,13 @@ object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting 
     fun onPacket(event:PacketEvent){
         val packet = event.packet
         val player = mc.thePlayer ?: return
+        if (ncpJump && player.isMoving && packet is C0EPacketClickWindow) {
+            JumpUtils().jump()
+            event.cancelEvent()
+            mc.addScheduledTask {
+                PacketUtils.sendPacket(packet, false)
+            }
+        }
         if (!saveC0E)
             return
 

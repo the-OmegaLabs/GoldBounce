@@ -1223,42 +1223,46 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         @EventTarget
         private fun onAttack(event: AttackEvent) {
-            // 每次攻击都记录一下实体和时间
             syncEntity = event.targetEntity as? EntityLivingBase
             startTime = System.currentTimeMillis()
+            println("onAttack: Target entity set to $syncEntity")
         }
 
         @EventTarget
         private fun onUpdate(event: UpdateEvent) {
             val e = syncEntity ?: return
 
-            // 只要 deathTime>0 就说明它刚进入死亡状态
-            if (e.deathTime > 0) {
+            if (e is EntityPlayer && e.health <= 0) {
+                println("Player ${e.name} killed.")
                 killCounts++
                 playKillSound()
                 syncEntity = null
                 return
             }
 
-            // 超过 3 秒还没死，防止卡死
+            if (e.deathTime > 0) {
+                println("Entity ${e.name} killed.")
+                killCounts++
+                playKillSound()
+                syncEntity = null
+                return
+            }
+
             if (System.currentTimeMillis() - startTime > 3000) {
+                println("Timeout: Entity $syncEntity reset.")
                 syncEntity = null
             }
         }
+
         @EventTarget(ignoreCondition = true)
         private fun onPacket(event: PacketEvent) {
             val packet = event.packet
-            if (event.packet is C00Handshake) startTime = System.currentTimeMillis()
-
             if (packet is S45PacketTitle) {
                 val title = packet.message.formattedText
                 if (title.contains("Winner")) {
                     win++
                 }
-                if (title.contains("BedWar")) {
-                    totalPlayed++
-                }
-                if (title.contains("SkyWar")) {
+                if (title.contains("BedWar") || title.contains("SkyWar")) {
                     totalPlayed++
                 }
             }
@@ -1270,6 +1274,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             LiquidBounce.eventManager.registerListener(this)
         }
     }
+
     private fun handleFailedSwings() {
         if (!renderBoxOnSwingFail)
             return
