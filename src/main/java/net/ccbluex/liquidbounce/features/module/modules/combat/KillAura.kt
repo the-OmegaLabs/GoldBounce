@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
+import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds.playKillSound
 import net.ccbluex.liquidbounce.features.module.modules.world.ChestAura
 import net.ccbluex.liquidbounce.features.module.modules.world.Fucker
 import net.ccbluex.liquidbounce.features.module.modules.world.Nuker
@@ -1229,6 +1230,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         private fun onUpdate(event: UpdateEvent) {
             if (syncEntity != null && syncEntity!!.isDead) {
                 ++killCounts
+                playKillSound()
                 syncEntity = null
             }
         }
