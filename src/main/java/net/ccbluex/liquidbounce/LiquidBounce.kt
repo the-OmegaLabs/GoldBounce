@@ -83,6 +83,7 @@ object LiquidBounce {
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy
     val clientCommit = ""
     val clientBranch = "main"
+    val development = true
     var inited = false
     var local: Boolean = false
     var clientSoundsEnabled = true
@@ -126,6 +127,13 @@ object LiquidBounce {
         SysUtils().copyToGameDir("background.png","background.png")
         SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
 
+    }
+    fun isInDev(): String {
+        if(development){
+            return "Development"
+        }else{
+            return "Release"
+        }
     }
     /**
      * Execute if client will be started

@@ -59,7 +59,9 @@ fun asyncPlay(resourcePath: String) {
 }
 fun playWavSound(filePath: String) {
     try {
-        val audioInputStream = AudioSystem.getAudioInputStream(File(filePath))
+        val audioStream = GuiMiniGame::class.java.getResourceAsStream(filePath)
+            ?: throw IllegalArgumentException("资源未找到: $filePath")
+        val audioInputStream = AudioSystem.getAudioInputStream(BufferedInputStream(audioStream))
         val clip = AudioSystem.getClip()
         clip.open(audioInputStream)
         clip.start()

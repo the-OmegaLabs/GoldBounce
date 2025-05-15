@@ -1215,26 +1215,36 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         else -> false
     }
     object CombatListener : Listenable {
-        private var syncEntity: EntityLivingBase? = null
         private var totalPlayed = 0
-        private var startTime = System.currentTimeMillis()
         var win = 0
+        private var syncEntity: EntityLivingBase? = null
+        private var startTime = System.currentTimeMillis()
         var killCounts = 0
 
         @EventTarget
         private fun onAttack(event: AttackEvent) {
-            syncEntity = event.targetEntity as EntityLivingBase?
+            // 每次攻击都记录一下实体和时间
+            syncEntity = event.targetEntity as? EntityLivingBase
+            startTime = System.currentTimeMillis()
         }
 
         @EventTarget
         private fun onUpdate(event: UpdateEvent) {
-            if (syncEntity != null && syncEntity!!.isDead) {
-                ++killCounts
+            val e = syncEntity ?: return
+
+            // 只要 deathTime>0 就说明它刚进入死亡状态
+            if (e.deathTime > 0) {
+                killCounts++
                 playKillSound()
+                syncEntity = null
+                return
+            }
+
+            // 超过 3 秒还没死，防止卡死
+            if (System.currentTimeMillis() - startTime > 3000) {
                 syncEntity = null
             }
         }
-
         @EventTarget(ignoreCondition = true)
         private fun onPacket(event: PacketEvent) {
             val packet = event.packet

@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.features.module.modules.movement
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.collideBlock
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.value.boolean
@@ -23,11 +24,11 @@ import org.lwjgl.input.Keyboard
 
 object LiquidWalk : Module("LiquidWalk", Category.MOVEMENT, Keyboard.KEY_J) {
 
-    val mode by choices("Mode", arrayOf("Vanilla", "NCP", "AAC", "AAC3.3.11", "AACFly", "Spartan", "Dolphin"), "NCP")
+    val mode by choices("Mode", arrayOf("Vanilla", "NCP", "AAC", "AAC3.3.11", "AACFly", "Spartan", "Dolphin", "BlocksMC"), "NCP")
     private val aacFly by float("AACFlyMotion", 0.5f, 0.1f..1f) { mode == "AACFly" }
 
     private val noJump by boolean("NoJump", false)
-
+    var waterTick = 0;
     private var nextTick = false
 
     @EventTarget
@@ -158,7 +159,30 @@ object LiquidWalk : Module("LiquidWalk", Category.MOVEMENT, Keyboard.KEY_J) {
         if (noJump && block is BlockLiquid)
             event.cancelEvent()
     }
-
+    @EventTarget
+    fun onMotion(event: MotionEvent){
+        if (event.eventState.stateName != "PRE") return
+        if (mc.gameSettings.keyBindJump.isKeyDown()) return
+        if (mode == "BlocksMC"){
+            if (mc.thePlayer.isInWater()) {
+                waterTick++
+            } else {
+                waterTick = 0
+            }
+            if (mc.theWorld.getBlockState(BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ))
+                    .getBlock() is BlockLiquid
+            ) {
+                if (waterTick >= 1) {
+                    mc.thePlayer.onGround = true
+                    mc.thePlayer.motionY = 0.1F.toDouble()
+                    MovementUtils.strafe(0.1f)
+                }
+                if (waterTick == 0) {
+                    mc.thePlayer.motionY = -0.09800000190734863
+                }
+            }
+        }
+    }
     override val tag
         get() = mode
 }
