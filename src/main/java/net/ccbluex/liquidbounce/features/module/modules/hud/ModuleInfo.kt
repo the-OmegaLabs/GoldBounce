@@ -6,6 +6,7 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.movement.LiquidWalk
+import net.ccbluex.liquidbounce.features.module.modules.movement.NoSlow
 import net.ccbluex.liquidbounce.features.module.modules.movement.Speed
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.extensions.isInLiquid
@@ -68,7 +69,7 @@ object ModuleInfo : Module("ModuleInfo", Category.HUD, hideModule = false) {
         val sorted = elements.sortedBy { it.priority }
 
         // 字体高度
-        val fr = Fonts.font40
+        val fr = Fonts.fontNoto35
         val lineHeight = fr.FONT_HEIGHT + 2
 
         // 从下向上渲染
@@ -100,6 +101,17 @@ object ModuleInfo : Module("ModuleInfo", Category.HUD, hideModule = false) {
             }
         } else {
             removeTextElement("liquidwalk")
+        }
+        if (NoSlow.state) {
+            if (!mc.thePlayer.isBlocking){
+                removeTextElement("nslow")
+                setTextElement("nslow","NS", Color(255,255,255),6)
+            } else {
+                removeTextElement("nslow")
+                setTextElement("nslow","NS", Color(255,70,70),6)
+            }
+        } else {
+            removeTextElement("nslow")
         }
     }
 }
