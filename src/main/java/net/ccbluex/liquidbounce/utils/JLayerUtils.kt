@@ -1,15 +1,18 @@
 package net.ccbluex.liquidbounce.utils
 
 import javazoom.jl.player.Player
+import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.ui.client.GuiMiniGame
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import java.io.BufferedInputStream
-import java.io.InputStream
-import kotlin.concurrent.thread
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.net.URLDecoder
 import java.util.jar.JarFile
 import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.UnsupportedAudioFileException
+import kotlin.concurrent.thread
 
 
 fun playMP3(resourcePath: String) {
@@ -25,6 +28,7 @@ fun playMP3(resourcePath: String) {
         }
     }
 }
+
 private fun validateSoundPath(path: String) {
     if (getMP3S(path).isEmpty()) {
         LOGGER.warn("声音目录 [$path] 存在但未找到WAV文件，请检查：")
@@ -57,18 +61,26 @@ fun asyncPlay(resourcePath: String) {
         }
     }
 }
-fun playWavSound(filePath: String) {
+
+fun playWavSound(path: String) {
     try {
-        val audioStream = GuiMiniGame::class.java.getResourceAsStream(filePath)
-            ?: throw IllegalArgumentException("资源未找到: $filePath")
-        val audioInputStream = AudioSystem.getAudioInputStream(BufferedInputStream(audioStream))
+        val audioStream = AudioSystem.getAudioInputStream(
+            BufferedInputStream(
+                Sounds::class.java.getResourceAsStream(path)
+            )
+        )
         val clip = AudioSystem.getClip()
-        clip.open(audioInputStream)
+        clip.open(audioStream)
         clip.start()
-    } catch (e: Exception) {
+    } catch (e: UnsupportedAudioFileException) {
+        println("不支持的音频格式: $path")
+        e.printStackTrace()
+    } catch (e: IOException) {
+        println("文件加载失败: $path")
         e.printStackTrace()
     }
 }
+
 fun getWAVS(resourcePath: String): List<String> {
     val resourceDir = if (resourcePath.endsWith("/")) resourcePath else "$resourcePath/"
     val mp3Files = mutableListOf<String>()
@@ -90,7 +102,8 @@ fun getWAVS(resourcePath: String): List<String> {
                         if (!entry.isDirectory &&
                             entry.name.startsWith(normalizedPath) &&
                             entry.name.equals("$normalizedPath${entry.name.substringAfterLast('/')}", true) &&
-                            entry.name.endsWith(".wav", true)) {
+                            entry.name.endsWith(".wav", true)
+                        ) {
                             val baseName = entry.name
                                 .substringAfterLast('/')
                                 .substringBeforeLast('.')
@@ -99,6 +112,7 @@ fun getWAVS(resourcePath: String): List<String> {
                     }
                 }
             }
+
             "file" -> {
                 val fileDir = File(URLDecoder.decode(resourceUrl.toURI().path, "UTF-8"))
                 if (fileDir.exists() && fileDir.isDirectory) {
@@ -136,7 +150,8 @@ fun getMP3S(resourcePath: String): List<String> {
                         if (!entry.isDirectory &&
                             entry.name.startsWith(normalizedPath) &&
                             entry.name.equals("$normalizedPath${entry.name.substringAfterLast('/')}", true) &&
-                            entry.name.endsWith(".mp3", true)) {
+                            entry.name.endsWith(".mp3", true)
+                        ) {
                             val baseName = entry.name
                                 .substringAfterLast('/')
                                 .substringBeforeLast('.')
@@ -145,6 +160,7 @@ fun getMP3S(resourcePath: String): List<String> {
                     }
                 }
             }
+
             "file" -> {
                 val fileDir = File(URLDecoder.decode(resourceUrl.toURI().path, "UTF-8"))
                 if (fileDir.exists() && fileDir.isDirectory) {

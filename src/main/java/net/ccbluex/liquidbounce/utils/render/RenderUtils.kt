@@ -5,7 +5,11 @@
  */
 package net.ccbluex.liquidbounce.utils.render
 
+import net.ccbluex.liquidbounce.features.module.modules.settings.Interface.overrideGlow
+import net.ccbluex.liquidbounce.features.module.modules.settings.Interface.overrideRoundedRectShadow
+import net.ccbluex.liquidbounce.features.module.modules.settings.Interface.overrideStrength
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.ImageUtils
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
@@ -720,11 +724,22 @@ object RenderUtils : MinecraftInstance() {
                 glVertex2d(x, y)
             }
         }
-
+        if (overrideRoundedRectShadow.get()){
+            var pAlpha = 255F
+            var rr = 0F
+            var rg = 0F
+            var rb = 0F
+            if (overrideGlow.get()){
+                pAlpha = alpha
+                rr = red
+                rg = green
+                rb = blue
+            }
+            GlowUtils.drawGlow(x1, y1, max(x2,x1)-min(x2,x1), max(y2,y1)-min(y2,y1), overrideStrength.get(), Color(rr, rg, rb, pAlpha))
+        }
         glEnd()
 
         resetColor()
-
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_LINE_SMOOTH)
         glDisable(GL_BLEND)

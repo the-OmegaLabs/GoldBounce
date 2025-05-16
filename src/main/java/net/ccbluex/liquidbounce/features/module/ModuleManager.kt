@@ -13,8 +13,10 @@ import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.command.CommandManager.registerCommand
 import net.ccbluex.liquidbounce.features.module.modules.combat.*
 import net.ccbluex.liquidbounce.features.module.modules.exploit.*
+import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.Derp
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.SkinDerp
+import net.ccbluex.liquidbounce.features.module.modules.hud.ModuleInfo
 import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.features.module.modules.misc.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.*
@@ -267,7 +269,9 @@ object ModuleManager : Listenable {
             CustomTag,
             WaterMark,
             Sounds,
-            HalfLifeWarn
+            HalfLifeWarn,
+            AuraZoom,
+            ModuleInfo
         )
 
         InventoryManager.startCoroutine()

@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.ui.client.hud
 
+import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
@@ -180,12 +181,14 @@ object HUD : MinecraftInstance() {
 
     /** Add [notification] */
     fun addNotification(notification: Notification): Boolean {
+        if (AuraZoom.state && notification.severityType != Notifications.SeverityType.INFO && notification.severityType != Notifications.SeverityType.WARNING){
+            return true
+        }
         when (notification.severityType) {
             Notifications.SeverityType.SUCCESS -> Sounds.playEnableSound()
             Notifications.SeverityType.RED_SUCCESS -> Sounds.playDisableSound()
             else -> Sounds.playInfoSound()
         }
-
         return elements.any { it is Notifications } && notifications.add(notification)
     }
 

@@ -2,6 +2,7 @@ package net.ccbluex.liquidbounce.features.module.modules.settings
 
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
 import net.ccbluex.liquidbounce.utils.getMP3S
 import net.ccbluex.liquidbounce.utils.getWAVS
 import net.ccbluex.liquidbounce.utils.playMP3
@@ -18,13 +19,20 @@ object Sounds : Module("Sounds", Category.SETTINGS) {
     val killSounds = ListValue("KillSounds", getWAVS("/assets/minecraft/liquidbounce/sounds/Kill").toTypedArray(), "CS2")
     fun playKillSound(){
         if (enableKillSounds.get()){
-            playWavSound("/assets/minecraft/liquidbounce/sounds/Kill/${killSounds.get()}.wav")
-        }
+            val path = "/assets/minecraft/liquidbounce/sounds/Kill/${killSounds.get()}.wav"
+            println("Attempting to load: $path") // 添加路径日志
+            playWavSound(path)        }
     }
     fun playEnableSound(){
+        if (AuraZoom.state){
+            return
+        }
         playMP3("/assets/minecraft/liquidbounce/sounds/Enable/${enableSounds.get()}.mp3")
     }
     fun playDisableSound(){
+        if (AuraZoom.state){
+            return
+        }
         playMP3("/assets/minecraft/liquidbounce/sounds/Disable/${disableSounds.get()}.mp3")
     }
     fun playInfoSound(){
