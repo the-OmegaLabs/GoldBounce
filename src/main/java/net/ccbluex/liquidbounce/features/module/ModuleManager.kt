@@ -16,8 +16,7 @@ import net.ccbluex.liquidbounce.features.module.modules.exploit.*
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.Derp
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.SkinDerp
-import net.ccbluex.liquidbounce.features.module.modules.hud.ModuleInfo
-import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
+import net.ccbluex.liquidbounce.features.module.modules.hud.*
 import net.ccbluex.liquidbounce.features.module.modules.misc.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.*
 import net.ccbluex.liquidbounce.features.module.modules.other.AntiStaff
@@ -271,7 +270,8 @@ object ModuleManager : Listenable {
             Sounds,
             HalfLifeWarn,
             AuraZoom,
-            ModuleInfo
+            ModuleInfo,
+            MoveFix
         )
 
         InventoryManager.startCoroutine()

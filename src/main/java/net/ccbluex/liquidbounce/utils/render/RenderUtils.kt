@@ -14,6 +14,7 @@ import net.ccbluex.liquidbounce.utils.ImageUtils
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.*
+import net.ccbluex.liquidbounce.utils.render.ColorUtils.setColour
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
@@ -123,6 +124,165 @@ object RenderUtils : MinecraftInstance() {
             val cap = localIterator.next() as Int
             revertGLCap(cap)
         }
+    }
+    fun drawRoundedGradientOutlineCorner(
+        x: Float,
+        y: Float,
+        x1: Float,
+        y1: Float,
+        width: Float,
+        radius: Float,
+        color: Int,
+        color2: Int
+    ) {
+        var x = x
+        var y = y
+        var x1 = x1
+        var y1 = y1
+        ColorUtils.setColour(-1)
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+        glShadeModel(GL_SMOOTH)
+
+        glPushAttrib(0)
+        glScaled(0.5, 0.5, 0.5)
+        x *= 2.0f
+        y *= 2.0f
+        x1 *= 2.0f
+        y1 *= 2.0f
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        ColorUtils.setColour(color)
+        glEnable(GL_LINE_SMOOTH)
+        glShadeModel(GL_SMOOTH)
+        glLineWidth(width)
+        glBegin(GL_LINE_LOOP)
+        var i: Int
+        i = 0
+        while (i <= 90) {
+            glVertex2d(
+                x + radius + sin(i * Math.PI / 180.0) * radius * -1.0,
+                y + radius + cos(i * Math.PI / 180.0) * radius * -1.0
+            )
+            i += 3
+        }
+        ColorUtils.setColour(color)
+        i = 90
+        while (i <= 180) {
+            glVertex2d(
+                x + radius + sin(i * Math.PI / 180.0) * radius * -1.0,
+                y1 - radius + cos(i * Math.PI / 180.0) * radius * -1.0
+            )
+            i += 3
+        }
+        ColorUtils.setColour(color2)
+        i = 0
+        while (i <= 90) {
+            glVertex2d(x1 - radius + sin(i * Math.PI / 180.0) * radius, y1 - radius + cos(i * Math.PI / 180.0) * radius)
+            i += 3
+        }
+        ColorUtils.setColour(color2)
+        i = 90
+        while (i <= 180) {
+            glVertex2d(x1 - radius + sin(i * Math.PI / 180.0) * radius, y + radius + cos(i * Math.PI / 180.0) * radius)
+            i += 3
+        }
+        glEnd()
+        glLineWidth(1f)
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glDisable(GL_BLEND)
+        glEnable(GL_TEXTURE_2D)
+        glScaled(2.0, 2.0, 2.0)
+        glPopAttrib()
+
+
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glShadeModel(GL_FLAT)
+        ColorUtils.setColour(-1)
+    }
+    fun drawRoundedGradientRectCorner(
+        x: Float,
+        y: Float,
+        x1: Float,
+        y1: Float,
+        radius: Float,
+        color: Int,
+        color2: Int
+    ) {
+        var x = x
+        var y = y
+        var x1 = x1
+        var y1 = y1
+        setColour(-1)
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+        glShadeModel(GL_SMOOTH)
+
+        glPushAttrib(0)
+        glScaled(0.5, 0.5, 0.5)
+        x *= 2.0.toFloat()
+        y *= 2.0.toFloat()
+        x1 *= 2.0.toFloat()
+        y1 *= 2.0.toFloat()
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        setColour(color)
+        glEnable(GL_LINE_SMOOTH)
+        glShadeModel(GL_SMOOTH)
+        glBegin(6)
+        var i: Int
+        i = 0
+        while (i <= 90) {
+            glVertex2d(
+                x + radius + sin(i * Math.PI / 180.0) * radius * -1.0,
+                y + radius + cos(i * Math.PI / 180.0) * radius * -1.0
+            )
+            i += 3
+        }
+        setColour(color)
+        i = 90
+        while (i <= 180) {
+            glVertex2d(
+                x + radius + sin(i * Math.PI / 180.0) * radius * -1.0,
+                y1 - radius + cos(i * Math.PI / 180.0) * radius * -1.0
+            )
+            i += 3
+        }
+        setColour(color2)
+        i = 0
+        while (i <= 90) {
+            glVertex2d(x1 - radius + sin(i * Math.PI / 180.0) * radius, y1 - radius + cos(i * Math.PI / 180.0) * radius)
+            i += 3
+        }
+        setColour(color2)
+        i = 90
+        while (i <= 180) {
+            glVertex2d(x1 - radius + sin(i * Math.PI / 180.0) * radius, y + radius + cos(i * Math.PI / 180.0) * radius)
+            i += 3
+        }
+        glEnd()
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glDisable(GL_BLEND)
+        glEnable(GL_TEXTURE_2D)
+        glScaled(2.0, 2.0, 2.0)
+        glPopAttrib()
+
+
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glShadeModel(GL_FLAT)
+        setColour(-1)
     }
     fun drawBlockBox(blockPos: BlockPos, color: Color, outline: Boolean) {
         val renderManager = mc.renderManager

@@ -12,6 +12,7 @@ import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
 import net.ccbluex.liquidbounce.utils.extensions.isMob
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
+import net.ccbluex.liquidbounce.utils.render.BlendUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
 import net.ccbluex.liquidbounce.value.ListValue
@@ -22,8 +23,12 @@ import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.Resource
+import kotlin.math.pow
 
 object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
@@ -37,10 +42,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "Moon",
             "户籍",
             "Chill",
-            "Myau"
+            "Myau",
+            "RavenB4"
         ),
         "Novoline"
     )
+    var easingHealth = 0F
     private val posX by int("PosX", 0, -400..400)
     private val posY by int("PosY", 0, -400..400)
     private val textColor = Color.WHITE
@@ -51,6 +58,10 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private val borderBlue by int("Border Blue", 255, 0..255){hudStyle  == "Myau"}
     private val showAvatar by boolean("Show Avatar", true){hudStyle  == "Myau"}
     // 状态跟踪
+    val barColorR by int("BarColorR", 255, 0..255){hudStyle == "RavenB4"}
+    private val barColorG by int("BarColorG", 255, 0..255){hudStyle == "RavenB4"}
+    private val barColorB by int("BarColorB", 255, 0..255){hudStyle == "RavenB4"}
+    private val animSpeedRB4 by int("AnimSpeed", 3, 1..10){hudStyle == "RavenB4"}
     private var target: EntityPlayer? = null
     private var currentHealthBarFillWidth = 1.0f
     override var hue = 0.0f
@@ -76,6 +87,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "户籍" -> render0x01a4HUD(sr)
             "chill" -> renderChillHUD(sr)
             "myau" -> renderMyauHUD(sr)
+            "ravenb4" -> renderRavenB4HUD(sr)
         }
     }
 
@@ -103,12 +115,71 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         currentHealthBarFillWidth = 1.0f
         hue = 0.0f
     }
+    val decimalFormat = DecimalFormat("##0.00", DecimalFormatSymbols(Locale.ENGLISH))
+    val decimalFormat2 = DecimalFormat("##0.0", DecimalFormatSymbols(Locale.ENGLISH))
+    val decimalFormat3 = DecimalFormat("0.#", DecimalFormatSymbols(Locale.ENGLISH))
+    fun updateAnim(targetHealth: Float) {
+        easingHealth += ((targetHealth - easingHealth) / 2.0F.pow(10.0F - animSpeedRB4)) * RenderUtils.deltaTime
+    }
+    private fun renderRavenB4HUD(sr: ScaledResolution){
+        val entity = target!!
+        val font = Fonts.minecraftFont
+        val hp = decimalFormat2.format(entity.health)
+        val hplength = font.getStringWidth(decimalFormat2.format(entity.health))
+        val length = font.getStringWidth(entity.displayName.formattedText)
+        val barColor = Color(barColorR, barColorG, barColorB)
+        GlStateManager.pushMatrix()
+        updateAnim(entity.health)
+        RenderUtils.drawRoundedGradientOutlineCorner(
+            0F,
+            0F,
+            length + hplength + 23F,
+            35F,
+            2F, 8F,
+            barColor.rgb,
+            barColor.rgb
+        )
+        RenderUtils.drawRoundedRect(0F, 0F, length + hplength + 23F, 35F, Color(0, 0, 0, 100).rgb, 4F)
+        GlStateManager.enableBlend()
+        font.drawStringWithShadow(
+            entity.displayName.formattedText,
+            6F,
+            8F,
+            Color(255, 255, 255, 255).rgb
+        )
+        val winorlose = if(entity.health < mc.thePlayer.health) "W" else "L"
+        font.drawStringWithShadow(
+            winorlose,
+            length + hplength + 11.6F,
+            8F,  (if (winorlose == "W")  Color(0, 255, 0).rgb else Color(139, 0, 0).rgb))
+        font.drawStringWithShadow(
+            hp,
+            length + 8F,
+            8F,
+            ColorUtils.reAlpha(BlendUtils.getHealthColor(entity.health, entity.maxHealth), 255).rgb
+        )
+        GlStateManager.disableAlpha()
+        GlStateManager.disableBlend()
+        RenderUtils.drawRoundedRect(
+            5.0F,
+            29.55F,
+            length + hplength + 18F,
+            25F,
+            Color(0, 0, 0, 110).rgb,
+            2F
+            )
+        RenderUtils.drawRoundedGradientRectCorner(
+            5F,
+            25F,
+            8F + (entity.health / 20) * (length + hplength + 10F),
+            29.5F,
+            4F,
+            barColor.rgb,
+            barColor.rgb
+        )
+        GlStateManager.popMatrix()
 
-    private var lastHealth = 0f
-    private var healthAnimationProgress = 0f
-    private var critAnimationProgress = 0f
-    private var nameColor = Color.WHITE
-
+    }
     private fun renderNovolineHUD(sr: ScaledResolution) {
         val entity = target ?: return
         val posX = sr.scaledWidth / 2 + this.posX

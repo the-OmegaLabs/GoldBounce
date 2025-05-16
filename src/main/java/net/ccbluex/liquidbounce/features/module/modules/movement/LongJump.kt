@@ -6,7 +6,9 @@
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
 import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.GameTickEvent
 import net.ccbluex.liquidbounce.event.JumpEvent
+import net.ccbluex.liquidbounce.event.MotionEvent
 import net.ccbluex.liquidbounce.event.MoveEvent
 import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
@@ -16,6 +18,7 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.a
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.aac.AACv3
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.ncp.NCP
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Buzz
+import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Fireball
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Hycraft
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.Redesky
 import net.ccbluex.liquidbounce.features.module.modules.movement.longjumpmodes.other.VerusDamage
@@ -37,7 +40,7 @@ object LongJump : Module("LongJump", Category.MOVEMENT) {
         AACv1, AACv2, AACv3,
 
         // Other
-        Redesky, Hycraft, Buzz, VerusDamage
+        Redesky, Hycraft, Buzz, VerusDamage, Fireball
     )
 
     private val modes = longJumpModes.map { it.modeName }.toTypedArray()
@@ -48,13 +51,14 @@ object LongJump : Module("LongJump", Category.MOVEMENT) {
     private val autoJump by boolean("AutoJump", true)
 
     val autoDisable by boolean("AutoDisable", true) { mode == "VerusDamage" }
-
+    var offGroundTicks = 0
     var jumped = false
     var canBoost = false
     var teleported = false
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
+
         if (LadderJump.jumped) speed *= 1.08f
 
         if (jumped) {
@@ -96,7 +100,11 @@ object LongJump : Module("LongJump", Category.MOVEMENT) {
     override fun onDisable() {
         modeModule.onDisable()
     }
-
+    @EventTarget
+    fun onPreMotion(event: MotionEvent){
+        if (event.eventState.stateName != "PRE") return
+        modeModule.onPreMotion(event)
+    }
     @EventTarget(ignoreCondition = true)
     fun onJump(event: JumpEvent) {
         jumped = true
@@ -107,7 +115,14 @@ object LongJump : Module("LongJump", Category.MOVEMENT) {
             modeModule.onJump(event)
         }
     }
-
+    @EventTarget
+    fun onGameTick(event: GameTickEvent){
+        if (mc.thePlayer.onGround){
+            offGroundTicks = 0
+        } else {
+            offGroundTicks++
+        }
+    }
     override val tag
         get() = mode
 

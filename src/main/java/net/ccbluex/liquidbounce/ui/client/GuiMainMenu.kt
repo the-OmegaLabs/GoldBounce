@@ -8,10 +8,13 @@ package net.ccbluex.liquidbounce.ui.client
 import net.ccbluex.liquidbounce.lang.translationMenu
 import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawImage
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
 import net.minecraft.client.gui.*
 import net.minecraft.util.ResourceLocation
+import java.awt.Color
 
 class GuiMainMenu : GuiScreen() {
     override fun initGui() {
@@ -26,8 +29,8 @@ class GuiMainMenu : GuiScreen() {
             add(GuiButton(100, width / 2 - 100, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "AltManager"))
             add(GuiButton(103, width / 2 + 2, defaultHeight + buttonSpacing, buttonWidth, buttonHeight, "Mods Settings"))
 
-            add(GuiButton(101, width / 2 - 100, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "Server Status"))
-            add(GuiButton(102, width / 2 + 2, defaultHeight + buttonSpacing * 2, buttonWidth, buttonHeight, "Hack Settings"))
+            add(GuiButton(101, width / 2 - 100, defaultHeight + buttonSpacing * 2, buttonWidth*2+4, buttonHeight, "Server Status"))
+            add(GuiButton(102, width / 2 - 100, defaultHeight + buttonSpacing * 3, buttonWidth*2+4, buttonHeight, "Hack Settings"))
 
             add(GuiButton(0, width / 2 - 100, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "Settings"))
             add(GuiButton(4, width / 2 + 2, defaultHeight + buttonSpacing * 4, buttonWidth, buttonHeight, "Exit"))
@@ -48,8 +51,11 @@ class GuiMainMenu : GuiScreen() {
             Integer.MIN_VALUE,
             3F
         )
-
-        Fonts.fontBold180.drawCenteredString("GoldBounce", width / 2F, height / 8F, 16433213, true)
+        GlowUtils.drawGlow(width / 2f - 115, height / 4f + 35, (width / 2f + 115)-(width / 2f - 115), (height / 4f + 175)-(height / 4f + 35), 20,
+            Color.BLACK
+        )
+        drawImage(ResourceLocation("liquidbounce/logo_large.png"), width / 2 - 100, height / 8, 199, 58)
+//        Fonts.fontBold180.drawCenteredString("GoldBounce", width / 2F, height / 8F, 16433213, true)
         Fonts.fontNoto35.drawCenteredString("b10", width / 2F + 148, height / 8F + Fonts.font35.fontHeight, 0xffffff, true)
 
         super.drawScreen(mouseX, mouseY, partialTicks)

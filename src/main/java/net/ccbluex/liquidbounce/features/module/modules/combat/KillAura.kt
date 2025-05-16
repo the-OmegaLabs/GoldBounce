@@ -1350,7 +1350,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
             return false
         }
-
+    init {
+        CombatListener.handleEvents()
+        println("CombatListener registered.")
+        CombatListener.killCounts = 0
+    }
     /**
      * Range
      */

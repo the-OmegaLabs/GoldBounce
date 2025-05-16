@@ -120,7 +120,6 @@ object LiquidBounce {
     fun cpFiles(){
         SysUtils().copyToFontDir("Product Sans Regular.ttf")
         SysUtils().copyToFontDir("Product Sans Bold.ttf")
-        SysUtils().copyToFontDir("HONORSansCN-Regular.ttf")
         SysUtils().copyToFontDir("iconnovo.ttf")
         SysUtils().copyToFontDir("NotoSansSC-Regular.ttf")
         SysUtils().copyToFontDir("NotoSansSC-Bold.ttf")

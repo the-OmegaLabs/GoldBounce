@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.utils.render
 import net.ccbluex.liquidbounce.utils.EntityUtils.getHealth
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.minecraft.entity.EntityLivingBase
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.util.regex.Pattern
 import kotlin.math.abs
@@ -34,7 +35,14 @@ object ColorUtils {
             hexColors[i] = red and 255 shl 16 or (green and 255 shl 8) or (blue and 255)
         }
     }
-
+    @JvmStatic
+    fun setColour(colour: Int) {
+        val a = (colour shr 24 and 0xFF) / 255.0f
+        val r = (colour shr 16 and 0xFF) / 255.0f
+        val g = (colour shr 8 and 0xFF) / 255.0f
+        val b = (colour and 0xFF) / 255.0f
+        GL11.glColor4f(r, g, b, a)
+    }
     fun stripColor(input: String): String = COLOR_PATTERN.matcher(input).replaceAll("")
     fun Color.withAlpha(a: Int) = Color(red, green, blue, a)
     fun translateAlternateColorCodes(textToTranslate: String): String {
