@@ -44,7 +44,7 @@ object BlocksMCHop : SpeedMode("BlocksMCHop") {
                     player.motionZ *= 1.12
                 }
 
-                if (bmcLowHop && airTicks == 4) {
+                if (bmcLowHop.get() && airTicks == 4) {
                     if (safeY) {
                         if (player.posY % 1.0 == 0.16610926093821377) {
                             player.motionY = -0.09800000190734863
