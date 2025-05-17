@@ -122,6 +122,8 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         easingHealth += ((targetHealth - easingHealth) / 2.0F.pow(10.0F - animSpeedRB4)) * RenderUtils.deltaTime
     }
     private fun renderRavenB4HUD(sr: ScaledResolution){
+        val X = sr.scaledWidth / 2F + posX
+        val Y = sr.scaledHeight / 2F + posY
         val entity = target!!
         val font = Fonts.minecraftFont
         val hp = decimalFormat2.format(entity.health)
@@ -131,48 +133,48 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.pushMatrix()
         updateAnim(entity.health)
         RenderUtils.drawRoundedGradientOutlineCorner(
-            0F,
-            0F,
-            length + hplength + 23F,
-            35F,
+            X,
+            Y,
+            X+length + hplength + 23F,
+            Y+35F,
             2F, 8F,
             barColor.rgb,
             barColor.rgb
         )
-        RenderUtils.drawRoundedRect(0F, 0F, length + hplength + 23F, 35F, Color(0, 0, 0, 100).rgb, 4F)
+        RenderUtils.drawRoundedRect(X, Y, X+length + hplength + 23F,Y+ 35F, Color(0, 0, 0, 100).rgb, 4F)
         GlStateManager.enableBlend()
         font.drawStringWithShadow(
             entity.displayName.formattedText,
-            6F,
-            8F,
+            X+6F,
+            Y+8F,
             Color(255, 255, 255, 255).rgb
         )
         val winorlose = if(entity.health < mc.thePlayer.health) "W" else "L"
         font.drawStringWithShadow(
             winorlose,
-            length + hplength + 11.6F,
-            8F,  (if (winorlose == "W")  Color(0, 255, 0).rgb else Color(139, 0, 0).rgb))
+            X+length + hplength + 11.6F,
+            Y+8F,  (if (winorlose == "W")  Color(0, 255, 0).rgb else Color(139, 0, 0).rgb))
         font.drawStringWithShadow(
             hp,
-            length + 8F,
-            8F,
+            X+length + 8F,
+            Y+8F,
             ColorUtils.reAlpha(BlendUtils.getHealthColor(entity.health, entity.maxHealth), 255).rgb
         )
         GlStateManager.disableAlpha()
         GlStateManager.disableBlend()
         RenderUtils.drawRoundedRect(
-            5.0F,
-            29.55F,
-            length + hplength + 18F,
-            25F,
+            X+5.0F,
+            Y+29.55F,
+            X+length + hplength + 18F,
+            Y+25F,
             Color(0, 0, 0, 110).rgb,
             2F
             )
         RenderUtils.drawRoundedGradientRectCorner(
-            5F,
-            25F,
-            8F + (entity.health / 20) * (length + hplength + 10F),
-            29.5F,
+            X+5F,
+            Y+25F,
+            X+8F + (entity.health / 20) * (length + hplength + 10F),
+            Y+29.5F,
             4F,
             barColor.rgb,
             barColor.rgb

@@ -6,10 +6,12 @@
 package net.ccbluex.liquidbounce.injection.forge.mixins.render;
 
 import co.uk.hexeption.utils.OutlineUtils;
+import net.ccbluex.liquidbounce.LiquidBounce;
 import net.ccbluex.liquidbounce.features.module.modules.render.*;
 import net.ccbluex.liquidbounce.utils.ClientUtils;
 import net.ccbluex.liquidbounce.utils.EntityUtils;
 import net.ccbluex.liquidbounce.utils.render.RenderUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityLivingBase;
@@ -57,9 +59,8 @@ public abstract class MixinRendererLivingEntity extends MixinRender {
 
     @Inject(method = "canRenderName(Lnet/minecraft/entity/EntityLivingBase;)Z", at = @At("HEAD"), cancellable = true)
     private <T extends EntityLivingBase> void canRenderName(T entity, CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
-        if (NameTags.INSTANCE.shouldRenderNameTags(entity)) {
+        if ((NameTags.INSTANCE.getState() && ((NameTags.INSTANCE.getLocalValue().get() && entity == Minecraft.getMinecraft().thePlayer && (!NameTags.INSTANCE.getNfpValue().get() || Minecraft.getMinecraft().gameSettings.thirdPersonView != 0)))))
             callbackInfoReturnable.setReturnValue(false);
-        }
     }
 
     /**

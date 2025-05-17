@@ -1258,15 +1258,19 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         private fun onPacket(event: PacketEvent) {
             val packet = event.packet
             if (packet is S45PacketTitle) {
-                val title = packet.message.formattedText
-                if (title.contains("Winner")) {
-                    win++
-                }
-                if (title.contains("BedWar") || title.contains("SkyWar")) {
-                    totalPlayed++
+                if (packet.type == S45PacketTitle.Type.TITLE) {
+                    packet.message?.formattedText?.let { title ->
+                        if (title.contains("Winner")) {
+                            win++
+                        }
+                        if (title.contains("BedWar") || title.contains("SkyWar")) {
+                            totalPlayed++
+                        }
+                    }
                 }
             }
         }
+
 
         override fun handleEvents() = true
 

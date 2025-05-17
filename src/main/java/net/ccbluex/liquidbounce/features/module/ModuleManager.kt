@@ -271,7 +271,7 @@ object ModuleManager : Listenable {
             HalfLifeWarn,
             AuraZoom,
             ModuleInfo,
-            MoveFix
+            MoveFix,
         )
 
         InventoryManager.startCoroutine()
