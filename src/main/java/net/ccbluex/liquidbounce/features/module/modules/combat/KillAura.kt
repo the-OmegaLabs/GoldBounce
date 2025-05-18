@@ -20,7 +20,6 @@ import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClientUtils.runTimeTicks
 import net.ccbluex.liquidbounce.utils.CooldownHelper.getAttackCooldownProgress
 import net.ccbluex.liquidbounce.utils.CooldownHelper.resetLastAttackedTicks
-import net.ccbluex.liquidbounce.utils.EntityUtils.isLookingOnEntities
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
@@ -55,12 +54,12 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
 import net.minecraft.network.Packet
-import net.minecraft.network.handshake.client.C00Handshake
 import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
+import net.minecraft.network.play.client.C0APacketAnimation
 import net.minecraft.network.play.server.S45PacketTitle
 import net.minecraft.potion.Potion
 import net.minecraft.util.*
@@ -70,8 +69,6 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.text.compareTo
-import kotlin.text.toDouble
 
 object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
@@ -155,7 +152,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock
     val autoBlock by choices(
         "AutoBlock",
-        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "HypixelFull"),
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "BlocksMC_A", "BlocksMC_B", "HypixelFull", "NCP"),
         "Packet"
     )
 
@@ -348,7 +345,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
      * MODULE
      */
-
+    private var blockTick: Int = 0
+    var attack: Int = 0
+    var blinking: Boolean = false
+    private var b1 = false
+    private var b2 = false
+    val blinkedPackets: ArrayList<Packet<*>?> = ArrayList<Packet<*>?>()
+    private var lastAttackTime: Long = 0
     // Target
     var target: EntityLivingBase? = null
     private var hittable = false
@@ -645,7 +648,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (hittable && currentTarget.hurtTime > hurtTime) {
             return
         }
-
+        when (autoBlock.lowercase()) {
+            "blocksmc_a" -> handleBlocksMC_A(currentTarget)
+            "blocksmc_b" -> handleBlocksMC_B(currentTarget)
+            "ncp" -> handleNCP(currentTarget)
+        }
 
         if (manipulateInventory && isFirstClick) serverOpenInventory = false
 
@@ -1016,6 +1023,85 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         hittable =
             isVisible(intercept.hitVec) || mc.thePlayer.getDistanceToEntityBox(targetToCheck) <= throughWallsRange
     }
+    private fun handleBlocksMC_A(target: EntityLivingBase) {
+        if (blockStatus) {
+            blockTick++
+            blinking = true
+            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+            attack++
+            blockStatus = false
+        } else {
+            if (attack < 7) {
+                if (isTargetInRange(target)) {
+                    attackEntity(target, true)
+                } else {
+                    sendPacket(C0APacketAnimation())
+                }
+            }
+            sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+            blinking = false
+            release()
+            if (attack >= 7) attack = 0
+            blockStatus = true
+            lastAttackTime = System.currentTimeMillis()
+        }
+    }
+
+    private fun handleBlocksMC_B(target: EntityLivingBase) {
+        when (blockTick) {
+            0 -> {
+                blockTick++
+                blinking = true
+                sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                attack++
+                blockStatus = false
+                blockTick++
+            }
+            1 -> {
+                if (attack < 7) {
+                    if (isTargetInRange(target)) {
+                        attackEntity(target, true)
+                    } else {
+                        sendPacket(C0APacketAnimation())
+                    }
+                }
+                blockTick++
+            }
+            2 -> blockTick++
+            3 -> {
+                if (attack < 7) {
+                    if (isTargetInRange(target)) {
+                        attackEntity(target, true)
+                    } else {
+                        sendPacket(C0APacketAnimation())
+                    }
+                }
+                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                blinking = false
+                release()
+                if (attack >= 7) attack = 0
+                blockStatus = true
+                lastAttackTime = System.currentTimeMillis()
+                blockTick = 0
+            }
+        }
+    }
+
+    private fun handleNCP(target: EntityLivingBase) {
+        // Pre-motion逻辑
+        sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+        blockStatus = false
+
+        // Post-motion逻辑
+        if (isTargetInRange(target)) {
+            sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+            blockStatus = true
+        }
+    }
+
+    private fun isTargetInRange(target: EntityLivingBase): Boolean {
+        return mc.thePlayer.getDistanceToEntityBox(target) <= range
+    }
 
     /**
      * Start blocking
@@ -1108,14 +1194,30 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         renderBlocking = false
 
-        // BlocksMC模式专用停止逻辑
         if (autoBlock == "BlocksMC" && (forceStop || !blockStatus)) {
             sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
             blocksmcJohnState = false
             blocksmcClickCounter = 0
         }
+        if (autoBlock.equals("NCP", true)) {
+            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+            blockStatus = false
+        }
     }
-
+    private fun release() {
+        if (!blinkedPackets.isEmpty() && !b2) {
+            val copy: MutableList<Packet<*>?>?
+            synchronized(blinkedPackets) {
+                copy = ArrayList<Packet<*>?>(blinkedPackets)
+                blinkedPackets.clear()
+            }
+            for (packet in copy!!) {
+                packet?.let { sendPacket(it) }
+            }
+            blinkedPackets.clear()
+            b2 = true
+        }
+    }
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val player = mc.thePlayer ?: return
@@ -1157,6 +1259,26 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         BlinkUtils.blink(packet, event)
     }
 
+    override fun onDisable() {
+        blockTick = 0
+        attack = 0
+        if (blinking) {
+            release()
+            blinking = false
+        }
+        if (blockStatus || b1) {
+            sendPacket(
+                C07PacketPlayerDigging(
+                    C07PacketPlayerDigging.Action.RELEASE_USE_ITEM,
+                    BlockPos.ORIGIN,
+                    EnumFacing.DOWN
+                )
+            )
+            blockStatus = false
+            b1 = false
+        }
+        target = null
+    }
     /**
      * Checks if raycast landed on a different object
      *

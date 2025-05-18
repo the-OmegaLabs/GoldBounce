@@ -6,8 +6,8 @@
 package net.ccbluex.liquidbounce.utils
 
 import com.google.gson.JsonObject
-import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_NAME
 import net.minecraft.client.settings.GameSettings
+import net.minecraft.client.shader.Shader
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.login.client.C01PacketEncryptionResponse
 import net.minecraft.network.login.server.S01PacketEncryptionRequest
@@ -21,6 +21,7 @@ import java.lang.reflect.Field
 import java.security.PublicKey
 import javax.crypto.SecretKey
 
+
 @SideOnly(Side.CLIENT)
 object ClientUtils : MinecraftInstance() {
     private var fastRenderField: Field? = null
@@ -31,10 +32,11 @@ object ClientUtils : MinecraftInstance() {
             val declaredField = GameSettings::class.java.getDeclaredField("ofFastRender")
 
             fastRenderField = declaredField
-        } catch (ignored: NoSuchFieldException) { }
+        } catch (ignored: NoSuchFieldException) {
+        }
     }
 
-    val LOGGER: Logger = LogManager.getLogger("LiquidBounce")
+    val LOGGER: Logger = LogManager.getLogger("GoldBounce")
 
     fun disableFastRender() {
         try {
@@ -54,7 +56,8 @@ object ClientUtils : MinecraftInstance() {
         publicKey: PublicKey?,
         encryptionRequest: S01PacketEncryptionRequest
     ) {
-        networkManager.sendPacket(C01PacketEncryptionResponse(secretKey, publicKey, encryptionRequest.verifyToken),
+        networkManager.sendPacket(
+            C01PacketEncryptionResponse(secretKey, publicKey, encryptionRequest.verifyToken),
             { networkManager.enableEncryption(secretKey) }
         )
     }
@@ -65,11 +68,12 @@ object ClientUtils : MinecraftInstance() {
             return
         }
 
-        val prefixMessage = "${EnumChatFormatting.YELLOW}${EnumChatFormatting.BOLD}Gold${EnumChatFormatting.WHITE}${EnumChatFormatting.BOLD}Bounce${EnumChatFormatting.RESET} ${EnumChatFormatting.BOLD}$message"
+        val prefixMessage =
+            "${EnumChatFormatting.YELLOW}${EnumChatFormatting.BOLD}Gold${EnumChatFormatting.WHITE}${EnumChatFormatting.BOLD}Bounce${EnumChatFormatting.RESET} ${EnumChatFormatting.BOLD}$message"
         val jsonObject = JsonObject()
         jsonObject.addProperty("text", prefixMessage)
         mc.thePlayer.addChatMessage(IChatComponent.Serializer.jsonToComponent(jsonObject.toString()))
     }
-}
 
-fun chat(message: String) = ClientUtils.displayChatMessage(message)
+}
+    fun chat(message: String) = ClientUtils.displayChatMessage(message)

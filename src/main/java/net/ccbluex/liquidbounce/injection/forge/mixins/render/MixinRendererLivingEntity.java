@@ -62,6 +62,32 @@ public abstract class MixinRendererLivingEntity extends MixinRender {
         if ((NameTags.INSTANCE.getState() && ((NameTags.INSTANCE.getLocalValue().get() && entity == Minecraft.getMinecraft().thePlayer && (!NameTags.INSTANCE.getNfpValue().get() || Minecraft.getMinecraft().gameSettings.thirdPersonView != 0)))))
             callbackInfoReturnable.setReturnValue(false);
     }
+    @Inject(
+            method = "doRender(Lnet/minecraft/entity/EntityLivingBase;DDDFF)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/GlStateManager;pushMatrix()V",
+                    shift = At.Shift.BEFORE,
+                    ordinal = 0
+            ),
+            cancellable = true,
+            remap = true
+    )
+    private void injectMoBendsCheck(
+            EntityLivingBase entity,
+            double x,
+            double y,
+            double z,
+            float entityYaw,
+            float partialTicks,
+            CallbackInfo ci
+    ) {
+        if (MoreBends.INSTANCE.onRenderLivingEvent(
+                (RendererLivingEntity<?>) (Object) this,
+                entity, x, y, z, entityYaw, partialTicks)) {
+            ci.cancel();
+        }
+    }
 
     /**
      * @author CCBlueX

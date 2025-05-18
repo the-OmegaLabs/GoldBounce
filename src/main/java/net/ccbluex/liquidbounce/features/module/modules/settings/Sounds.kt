@@ -1,7 +1,10 @@
 package net.ccbluex.liquidbounce.features.module.modules.settings
 
+import net.ccbluex.liquidbounce.event.EventTarget
+import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
 import net.ccbluex.liquidbounce.utils.getMP3S
 import net.ccbluex.liquidbounce.utils.getWAVS
@@ -40,5 +43,9 @@ object Sounds : Module("Sounds", Category.SETTINGS) {
     }
     fun playStartupSound(){
         playMP3("/assets/minecraft/liquidbounce/sounds/Startup/${startupSounds.get()}.mp3")
+    }
+    @EventTarget
+    fun onRender2D(event: Render2DEvent){
+        val 迷你世界 = KillAura.CombatListener.killCounts
     }
 }

@@ -272,6 +272,8 @@ object ModuleManager : Listenable {
             AuraZoom,
             ModuleInfo,
             MoveFix,
+            MoreBends,
+            NoC03
         )
 
         InventoryManager.startCoroutine()
