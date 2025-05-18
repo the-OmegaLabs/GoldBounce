@@ -376,7 +376,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Blink AutoBlock
     private var blinked = false
-
+    private lateinit var combatPacket : PacketEvent
     // Swing fails
     private val swingFails = mutableListOf<SwingFailData>()
     var slotChangeAutoBlock = false
@@ -1026,6 +1026,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private fun handleBlocksMC_A(target: EntityLivingBase) {
         if (blockStatus) {
             blockTick++
+            BlinkUtils.blink(combatPacket.packet, combatPacket, sent = true, receive = false)
             blinking = true
             sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
             attack++
@@ -1040,6 +1041,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             }
             sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
             blinking = false
+            BlinkUtils.unblink()
             release()
             if (attack >= 7) attack = 0
             blockStatus = true
@@ -1052,6 +1054,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             0 -> {
                 blockTick++
                 blinking = true
+                BlinkUtils.blink(combatPacket.packet, combatPacket, sent = true, receive = false)
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
                 attack++
                 blockStatus = false
@@ -1077,6 +1080,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                     }
                 }
                 sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                BlinkUtils.unblink()
                 blinking = false
                 release()
                 if (attack >= 7) attack = 0
@@ -1222,6 +1226,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onPacket(event: PacketEvent) {
         val player = mc.thePlayer ?: return
         val packet = event.packet
+        combatPacket = event
         if (autoBlock == "HypixelFull" && !hypixelBlinking) {
             if (BlinkUtils.isProcessing) {
                 return
