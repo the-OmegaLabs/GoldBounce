@@ -380,7 +380,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Swing fails
     private val swingFails = mutableListOf<SwingFailData>()
     var slotChangeAutoBlock = false
-
+    private var asw = 0 // 用于BlocksMC A模式的状态控制
+    private var blockTickB = 0 // 用于BlocksMC B模式的状态控制
     /**
      * Disable kill aura module
      */
@@ -1024,43 +1025,58 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             isVisible(intercept.hitVec) || mc.thePlayer.getDistanceToEntityBox(targetToCheck) <= throughWallsRange
     }
     private fun handleBlocksMC_A(target: EntityLivingBase) {
-        if (blockStatus) {
-            blockTick++
-            BlinkUtils.blink(combatPacket.packet, combatPacket, sent = true, receive = false)
-            blinking = true
-            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-            attack++
-            blockStatus = false
-        } else {
-            if (attack < 7) {
-                if (isTargetInRange(target)) {
-                    attackEntity(target, true)
-                } else {
-                    sendPacket(C0APacketAnimation())
+        when (asw) {
+            0 -> {
+                // 阶段1：释放阻挡并开始blinking
+                if (blockStatus) {
+                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
                 }
+                blockStatus = true
+                blinking = true
+                if (attack < 4) attack = 4
+                attack++
+                blockTick++
+                asw = 1
             }
-            sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-            blinking = false
-            BlinkUtils.unblink()
-            release()
-            if (attack >= 7) attack = 0
-            blockStatus = true
-            lastAttackTime = System.currentTimeMillis()
+            1 -> {
+                // 阶段2：攻击并释放blinking
+                if (isTargetInRange(target, range + 2.0) && blockTick < 8) {
+                    attackEntity(target, true)
+                    lastAttackTime = System.currentTimeMillis()
+                }
+                blinking = false
+                release()
+                asw = 2
+            }
+            2 -> {
+                // 阶段3：再次攻击并重置状态
+                if (isTargetInRange(target, range.toDouble()) && attack < 16) {
+                    attackEntity(target, true)
+                    lastAttackTime = System.currentTimeMillis()
+                }
+                if (blockTick >= 8) blockTick = 0
+                if (attack >= 16) attack = 4
+                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                asw = 0
+            }
         }
     }
 
+
     private fun handleBlocksMC_B(target: EntityLivingBase) {
-        when (blockTick) {
+        when (blockTickB) {
             0 -> {
-                blockTick++
+                // 阶段1：初始化攻击
                 blinking = true
                 BlinkUtils.blink(combatPacket.packet, combatPacket, sent = true, receive = false)
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
                 attack++
                 blockStatus = false
-                blockTick++
+                blockTickB++
             }
             1 -> {
+                // 阶段2：第一次攻击
                 if (attack < 7) {
                     if (isTargetInRange(target)) {
                         attackEntity(target, true)
@@ -1068,10 +1084,14 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                         sendPacket(C0APacketAnimation())
                     }
                 }
-                blockTick++
+                blockTickB++
             }
-            2 -> blockTick++
+            2 -> {
+                // 阶段3：等待
+                blockTickB++
+            }
             3 -> {
+                // 阶段4：第二次攻击并重置
                 if (attack < 7) {
                     if (isTargetInRange(target)) {
                         attackEntity(target, true)
@@ -1086,10 +1106,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 if (attack >= 7) attack = 0
                 blockStatus = true
                 lastAttackTime = System.currentTimeMillis()
-                blockTick = 0
+                blockTickB = 0
             }
         }
     }
+
 
     private fun handleNCP(target: EntityLivingBase) {
         // Pre-motion逻辑
@@ -1103,8 +1124,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
     }
 
-    private fun isTargetInRange(target: EntityLivingBase): Boolean {
-        return mc.thePlayer.getDistanceToEntityBox(target) <= range
+    private fun isTargetInRange(target: EntityLivingBase, customRange: Double = range.toDouble()): Boolean {
+        return mc.thePlayer.getDistanceToEntityBox(target) <= customRange
     }
 
     /**
@@ -1265,22 +1286,17 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     override fun onDisable() {
+        asw = 0
+        blockTickB = 0
         blockTick = 0
         attack = 0
         if (blinking) {
             release()
             blinking = false
         }
-        if (blockStatus || b1) {
-            sendPacket(
-                C07PacketPlayerDigging(
-                    C07PacketPlayerDigging.Action.RELEASE_USE_ITEM,
-                    BlockPos.ORIGIN,
-                    EnumFacing.DOWN
-                )
-            )
+        if (blockStatus) {
+            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
             blockStatus = false
-            b1 = false
         }
         target = null
     }

@@ -71,6 +71,7 @@ object Fonts : MinecraftInstance() {
         fontNoto80 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 80))
         fontBold180 = GameFontRenderer(getFont("Product Sans Bold.ttf", 180))
         notification60 = GameFontRenderer(getFont("iconnovo.ttf", 30))
+
         try {
             CUSTOM_FONT_RENDERERS.clear()
             val fontsFile = File(fontsDir, "fonts.json")
