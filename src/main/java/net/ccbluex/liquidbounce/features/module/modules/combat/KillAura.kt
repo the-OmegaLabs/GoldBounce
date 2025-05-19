@@ -164,10 +164,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var hypixelBlinking = false
     private var hypixelBlockTicks = 0
     private val maxBlinkPackets by int("MaxBlinkPackets", 20, 5..100) { autoBlock == "HypixelFull" }
-    private var blocksmcAState = 0  // BlocksMC A模式状态机 (0-2)
-    private var blocksmcBState = 0  // BlocksMC B模式状态机 (0-3)
-    private var blocksmcAttackCounter = 0  // 通用攻击计数器
-    private var lastBlockTick = 0L  // 最后一次格挡时间戳
 
     private val blockMaxRange by float(
         "BlockMaxRange",
@@ -419,6 +415,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onRotationUpdate(event: RotationUpdateEvent) {
         update()
     }
+
     fun update() {
         if (cancelRun || (noInventoryAttack && (mc.currentScreen is GuiContainer || System.currentTimeMillis() - containerOpen < noInventoryDelay))) return
 
@@ -451,12 +448,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onTick(event: GameTickEvent) {
         val player = mc.thePlayer ?: return
         target?.let { if (it.isDead) EventManager.callEvent(EntityKilledEvent(target!!)) }
+
         if (shouldPrioritize()) {
             target = null
             renderBlocking = false
             return
         }
-        handleBlocksMCSystem()
+
         if (clickOnly && !mc.gameSettings.keyBindAttack.isKeyDown)
             return
 
@@ -551,17 +549,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private val hittableColor = Color(37, 126, 255, 70)
     private val notHittableColor = Color(255, 0, 0, 70)
-    private fun handleBlocksMCSystem() {
-        val target = this.target ?: run {
-            resetBlocksMCStates()
-            return
-        }
 
-        when (autoBlock.lowercase()) {
-            "blocksmc_a" -> handleBlocksMC_A(target)
-            "blocksmc_b" -> handleBlocksMC_B(target)
-        }
-    }
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         if (circle) {
@@ -1037,100 +1025,92 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             isVisible(intercept.hitVec) || mc.thePlayer.getDistanceToEntityBox(targetToCheck) <= throughWallsRange
     }
     private fun handleBlocksMC_A(target: EntityLivingBase) {
-        when (blocksmcAState) {
+        when (asw) {
             0 -> {
-                if (System.currentTimeMillis() - lastBlockTick < 50) return
-
-                sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                // 阶段1：释放阻挡并开始blinking
+                if (blockStatus) {
+                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+                }
                 blockStatus = true
                 blinking = true
-                blocksmcAttackCounter = maxOf(4, blocksmcAttackCounter)
-                blocksmcAttackCounter++
-                blockTick = 0
-                blocksmcAState = 1
+                if (attack < 4) attack = 4
+                attack++
+                blockTick++
+                asw = 1
             }
-            1 -> { // 阶段2：中距离攻击
+            1 -> {
+                // 阶段2：攻击并释放blinking
                 if (isTargetInRange(target, range + 2.0) && blockTick < 8) {
-                    performAttack(target)
+                    attackEntity(target, true)
+                    lastAttackTime = System.currentTimeMillis()
                 }
                 blinking = false
-                BlinkUtils.unblink()
-                blocksmcAState = 2
+                release()
+                asw = 2
             }
-            2 -> { // 阶段3：近战连击
-                if (isTargetInRange(target) && blocksmcAttackCounter < 16) {
-                    repeat(2) { performAttack(target) }
+            2 -> {
+                // 阶段3：再次攻击并重置状态
+                if (isTargetInRange(target, range.toDouble()) && attack < 16) {
+                    attackEntity(target, true)
+                    lastAttackTime = System.currentTimeMillis()
                 }
                 if (blockTick >= 8) blockTick = 0
-                if (blocksmcAttackCounter >= 16) blocksmcAttackCounter = 4
+                if (attack >= 16) attack = 4
                 sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                lastBlockTick = System.currentTimeMillis()
-                blocksmcAState = 0
+                asw = 0
             }
         }
-        blockTick++
     }
+
 
     private fun handleBlocksMC_B(target: EntityLivingBase) {
-        when (blocksmcBState) {
-            0 -> { // 初始化阶段
+        when (blockTickB) {
+            0 -> {
+                // 阶段1：初始化攻击
                 blinking = true
+                BlinkUtils.blink(combatPacket.packet, combatPacket, sent = true, receive = false)
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                blocksmcAttackCounter++
+                attack++
                 blockStatus = false
-                blocksmcBState = 1
+                blockTickB++
             }
-            1 -> { // 第一次攻击阶段
-                if (blocksmcAttackCounter < 7) {
-                    conditionalAttack(target)
+            1 -> {
+                // 阶段2：第一次攻击
+                if (attack < 7) {
+                    if (isTargetInRange(target)) {
+                        attackEntity(target, true)
+                    } else {
+                        sendPacket(C0APacketAnimation())
+                    }
                 }
-                blocksmcBState = 2
+                blockTickB++
             }
-            2 -> { // 等待阶段
-                blocksmcBState = 3
+            2 -> {
+                // 阶段3：等待
+                blockTickB++
             }
-            3 -> { // 最终攻击阶段
-                if (blocksmcAttackCounter < 7) {
-                    conditionalAttack(target)
+            3 -> {
+                // 阶段4：第二次攻击并重置
+                if (attack < 7) {
+                    if (isTargetInRange(target)) {
+                        attackEntity(target, true)
+                    } else {
+                        sendPacket(C0APacketAnimation())
+                    }
                 }
                 sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                blinking = false
                 BlinkUtils.unblink()
-                if (blocksmcAttackCounter >= 7) blocksmcAttackCounter = 0
+                blinking = false
+                release()
+                if (attack >= 7) attack = 0
                 blockStatus = true
                 lastAttackTime = System.currentTimeMillis()
-                blocksmcBState = 0
+                blockTickB = 0
             }
         }
     }
 
-    private fun conditionalAttack(target: EntityLivingBase) {
-        if (isTargetInRange(target)) {
-            performAttack(target)
-        } else {
-            sendPacket(C0APacketAnimation())
-        }
-    }
-
-    private fun performAttack(target: EntityLivingBase) {
-        if (attackTimer.hasTimePassed(attackDelay)) {
-            attackEntity(target, true)
-            attackTimer.reset()
-            attackDelay = randomClickDelay(minCPS, maxCPS)
-        }
-    }
-
-    private fun resetBlocksMCStates() {
-        blocksmcAState = 0
-        blocksmcBState = 0
-        blocksmcAttackCounter = 0
-        blockTick = 0
-        if (blockStatus) {
-            sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-            blockStatus = false
-        }
-    }
 
     private fun handleNCP(target: EntityLivingBase) {
         // Pre-motion逻辑
@@ -1268,15 +1248,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         val player = mc.thePlayer ?: return
         val packet = event.packet
         combatPacket = event
-        if (blinking){
-            if (!BlinkUtils.isBlinking){
-                BlinkUtils.blink(packet, event, true, false)
-            }
-        } else {
-            if (BlinkUtils.isBlinking){
-                BlinkUtils.unblink()
-            }
-        }
         if (autoBlock == "HypixelFull" && !hypixelBlinking) {
             if (BlinkUtils.isProcessing) {
                 return
@@ -1315,7 +1286,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     override fun onDisable() {
-        resetBlocksMCStates()
+        asw = 0
+        blockTickB = 0
+        blockTick = 0
+        attack = 0
         if (blinking) {
             release()
             blinking = false
