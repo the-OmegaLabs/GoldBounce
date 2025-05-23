@@ -26,40 +26,6 @@ class JumpUtils {
                 player.jump()
                 shouldJump = false
             }
-            if (Speed.mode.get() == "BlocksMCHop" && !player.onGround) {
-                if (fullStrafe) {
-                    strafe(speed - 0.004F)
-                } else {
-                    if (airTicks >= 6) {
-                        strafe()
-                    }
-                }
-
-                if ((player.getActivePotionEffect(Potion.moveSpeed)?.amplifier ?: 0) > 0 && airTicks == 3) {
-                    player.motionX *= 1.12
-                    player.motionZ *= 1.12
-                }
-
-                if (bmcLowHop.get() && airTicks == 4) {
-                    if (safeY) {
-                        if (player.posY % 1.0 == 0.16610926093821377) {
-                            player.motionY = -0.09800000190734863
-                        }
-                    } else {
-                        player.motionY = -0.09800000190734863
-                    }
-                }
-
-                if (player.hurtTime == 9 && bmcDamageBoost) {
-                    strafe(speed.coerceAtLeast(0.7F))
-                }
-
-                if (damageLowHop && player.hurtTime >= 1) {
-                    if (player.motionY > 0) {
-                        player.motionY -= 0.15
-                    }
-                }
-            }
         }
     }
 

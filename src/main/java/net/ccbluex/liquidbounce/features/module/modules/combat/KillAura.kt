@@ -56,6 +56,7 @@ import net.minecraft.item.ItemSword
 import net.minecraft.network.Packet
 import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
+import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
@@ -362,7 +363,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var attackDelay = 0
     private var clicks = 0
     private var attackTickTimes = mutableListOf<Pair<MovingObjectPosition, Int>>()
-
+    private var blinkTicks = 0
     // Container Delay
     private var containerOpen = -1L
 
@@ -440,7 +441,19 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             swingFails.clear()
         }
     }
+    private fun releaseBlinkPackets() {
+        synchronized(blinkedPackets) {
+            blinkedPackets.forEach { packet ->
+                packet?.let { sendPacket(it) }
+            }
+            blinkedPackets.clear()
+        }
 
+        // 补偿客户端状态
+        if (blockStatus) {
+            sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
+        }
+    }
     /**
      * Tick event
      */
@@ -448,7 +461,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onTick(event: GameTickEvent) {
         val player = mc.thePlayer ?: return
         target?.let { if (it.isDead) EventManager.callEvent(EntityKilledEvent(target!!)) }
-
+        if (blinking) {
+            if (++blinkTicks >= blinkBlockTicks) {
+                releaseBlinkPackets()
+                blinking = false
+                blinkTicks = 0
+            }
+        }
         if (shouldPrioritize()) {
             target = null
             renderBlocking = false
@@ -1034,6 +1053,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 }
                 blockStatus = true
                 blinking = true
+                blinkTicks = 0
                 if (attack < 4) attack = 4
                 attack++
                 blockTick++
@@ -1046,7 +1066,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                     lastAttackTime = System.currentTimeMillis()
                 }
                 blinking = false
-                release()
+                releaseBlinkPackets()
                 asw = 2
             }
             2 -> {
@@ -1069,7 +1089,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             0 -> {
                 // 阶段1：初始化攻击
                 blinking = true
-                BlinkUtils.blink(combatPacket.packet, combatPacket, sent = true, receive = false)
+                blinkTicks = 0
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
                 attack++
                 blockStatus = false
@@ -1102,7 +1122,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
                 BlinkUtils.unblink()
                 blinking = false
-                release()
+                releaseBlinkPackets()
                 if (attack >= 7) attack = 0
                 blockStatus = true
                 lastAttackTime = System.currentTimeMillis()
@@ -1247,6 +1267,22 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onPacket(event: PacketEvent) {
         val player = mc.thePlayer ?: return
         val packet = event.packet
+        if (blinking){
+            when (event.packet) {
+                is C02PacketUseEntity -> {
+                    blinkedPackets.add(event.packet)
+                    event.cancelEvent()
+                }
+                is C03PacketPlayer -> {
+                    blinkedPackets.add(event.packet)
+                    event.cancelEvent()
+                }
+                is C08PacketPlayerBlockPlacement -> {
+                    blinkedPackets.add(event.packet)
+                    event.cancelEvent()
+                }
+            }
+        }
         combatPacket = event
         if (autoBlock == "HypixelFull" && !hypixelBlinking) {
             if (BlinkUtils.isProcessing) {
@@ -1291,7 +1327,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         blockTick = 0
         attack = 0
         if (blinking) {
-            release()
+            releaseBlinkPackets()
             blinking = false
         }
         if (blockStatus) {
