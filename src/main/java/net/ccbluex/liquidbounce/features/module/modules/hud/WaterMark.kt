@@ -129,98 +129,98 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         )
 
         val scaffoldModule = ModuleManager.getModule(Scaffold::class.java)
-        if (scaffoldModule.state == true) {
-            val blocksCount = InventoryUtils.blocksAmount()
-            val stateText = "Blocks:$blocksCount"
-            val stateWidth = Fonts.fontHonor40.getStringWidth(stateText) + 30
-            val stateHeight = 30
+//        if (scaffoldModule.state == true) {
+//            val blocksCount = InventoryUtils.blocksAmount()
+//            val stateText = "Blocks:$blocksCount"
+//            val stateWidth = Fonts.fontHonor40.getStringWidth(stateText) + 30
+//            val stateHeight = 30
+//
+//            val slideOffset = if (isAnimating) 0f else easeOutBack((1f - animationProgress).toDouble()) * stateWidth
+//            val stateX = posX - animatedWidth / 2 - stateWidth - 10 + slideOffset.toInt()
+//            val stateY = posY
+//            if (shadowEnabled.get()) {
+//                GlowUtils.drawGlow(
+//                    stateX.toFloat(),
+//                    stateY.toFloat(),
+//                    stateWidth.toFloat(),
+//                    stateHeight.toFloat(),
+//                    shadowStrengh.get(),
+//                    Color(30, 144, 255, 255)
+//                )
+//            }
+//            RenderUtils.drawRoundedRect(
+//                stateX.toFloat(),
+//                stateY.toFloat(),
+//                (stateX + stateWidth).toFloat(),
+//                (stateY + stateHeight).toFloat(),
+//                Color(30, 144, 255, 255).rgb,
+//                15f
+//            )
+//
+//            Fonts.fontHonor40.drawString(
+//                stateText,
+//                (stateX + 10f).toFloat(),
+//                (stateY + (stateHeight - Fonts.fontHonor40.FONT_HEIGHT) / 2f).toFloat(),
+//                Color.WHITE.rgb
+//            )
+//        }
 
-            val slideOffset = if (isAnimating) 0f else easeOutBack((1f - animationProgress).toDouble()) * stateWidth
-            val stateX = posX - animatedWidth / 2 - stateWidth - 10 + slideOffset.toInt()
-            val stateY = posY
-            if (shadowEnabled.get()) {
-                GlowUtils.drawGlow(
-                    stateX.toFloat(),
-                    stateY.toFloat(),
-                    stateWidth.toFloat(),
-                    stateHeight.toFloat(),
-                    shadowStrengh.get(),
-                    Color(30, 144, 255, 255)
-                )
-            }
-            RenderUtils.drawRoundedRect(
-                stateX.toFloat(),
-                stateY.toFloat(),
-                (stateX + stateWidth).toFloat(),
-                (stateY + stateHeight).toFloat(),
-                Color(30, 144, 255, 255).rgb,
-                15f
-            )
-
-            Fonts.fontHonor40.drawString(
-                stateText,
-                (stateX + 10f).toFloat(),
-                (stateY + (stateHeight - Fonts.fontHonor40.FONT_HEIGHT) / 2f).toFloat(),
-                Color.WHITE.rgb
-            )
-        }
-
-        if (pillState.content.isNotEmpty() || pillState.active) {
-            val pillText = pillState.content
-            val textWidth = Fonts.fontHonor40.getStringWidth(pillText)
-            val targetWidth = if (pillState.content.isNotEmpty()) textWidth + 40 else 0
-            val maxWidth = max(targetWidth, 0)
-
-            pillState.progress =
-                (pillState.progress + pillAnimationSpeed * if (pillState.content.isNotEmpty()) 1f else -1f).coerceIn(
-                    0f,
-                    1f
-                )
-            pillState.active = pillState.progress > 0
-
-            if (pillState.active) {
-                val pillWidth = maxWidth * easeInOutQuad(pillState.progress)
-                val pillX = posX + animatedWidth / 2 + 10
-                val pillY = posY + height / 2 - 15
-
-                // 绘制药丸背景（添加进度条）
-                RenderUtils.drawRoundedRect(
-                    pillX.toFloat(),
-                    pillY.toFloat(),
-                    (pillX + pillWidth).toFloat(),
-                    (pillY + 30).toFloat(),
-                    pillColor.rgb,
-                    15f
-                )
-
-                // 绘制进度条
-                val progressWidth = pillWidth * pillState.progressBar
-                RenderUtils.drawRect(
-                    pillX.toFloat(),
-                    (pillY + 28).toFloat(),
-                    (pillX + progressWidth).toFloat(),
-                    (pillY + 30).toFloat(),
-                    Color(255, 255, 255, 150).rgb
-                )
-
-                // 绘制药丸文字
-                if (pillWidth > 40) {
-                    Fonts.fontHonor40.drawString(
-                        pillText,
-                        pillX + 20f,
-                        pillY + (30 - Fonts.fontHonor40.FONT_HEIGHT) / 2f,
-                        pillTextColor.rgb
-                    )
-                }
-            }
-        }
+//        if (pillState.content.isNotEmpty() || pillState.active) {
+//            val pillText = pillState.content
+//            val textWidth = Fonts.fontHonor40.getStringWidth(pillText)
+//            val targetWidth = if (pillState.content.isNotEmpty()) textWidth + 40 else 0
+//            val maxWidth = max(targetWidth, 0)
+//
+//            pillState.progress =
+//                (pillState.progress + pillAnimationSpeed * if (pillState.content.isNotEmpty()) 1f else -1f).coerceIn(
+//                    0f,
+//                    1f
+//                )
+//            pillState.active = pillState.progress > 0
+//
+//            if (pillState.active) {
+//                val pillWidth = maxWidth * easeInOutQuad(pillState.progress)
+//                val pillX = posX + animatedWidth / 2 + 10
+//                val pillY = posY + height / 2 - 15
+//
+//                // 绘制药丸背景（添加进度条）
+//                RenderUtils.drawRoundedRect(
+//                    pillX.toFloat(),
+//                    pillY.toFloat(),
+//                    (pillX + pillWidth).toFloat(),
+//                    (pillY + 30).toFloat(),
+//                    pillColor.rgb,
+//                    15f
+//                )
+//
+//                // 绘制进度条
+//                val progressWidth = pillWidth * pillState.progressBar
+//                RenderUtils.drawRect(
+//                    pillX.toFloat(),
+//                    (pillY + 28).toFloat(),
+//                    (pillX + progressWidth).toFloat(),
+//                    (pillY + 30).toFloat(),
+//                    Color(255, 255, 255, 150).rgb
+//                )
+//
+//                // 绘制药丸文字
+//                if (pillWidth > 40) {
+//                    Fonts.fontHonor40.drawString(
+//                        pillText,
+//                        pillX + 20f,
+//                        pillY + (30 - Fonts.fontHonor40.FONT_HEIGHT) / 2f,
+//                        pillTextColor.rgb
+//                    )
+//                }
+//            }
+//        }
 
         GL11.glDisable(GL11.GL_BLEND)
     }
 
-    fun setPillProgress(percentage: Float) {
-        pillState.progressBar = percentage.coerceIn(0f, 1f)
-    }
+//    fun setPillProgress(percentage: Float) {
+//        pillState.progressBar = percentage.coerceIn(0f, 1f)
+//    }
 
     fun setPillContent(text: String, autoCloseSeconds: Int = 3, resetProgress: Boolean = true) {
         pillState.timer?.cancel(true)
