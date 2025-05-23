@@ -71,20 +71,7 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
         val x = mc.thePlayer.posX + xOffset
         val y = mc.thePlayer.posY + yOffset
         val z = mc.thePlayer.posZ + zOffset
-        if (lookValue.get()) {
-            mc.netHandler.addToSendQueue(
-                C03PacketPlayer.C06PacketPlayerPosLook(
-                    x,
-                    y,
-                    z,
-                    mc.thePlayer.rotationYaw,
-                    mc.thePlayer.rotationPitch,
-                    ground
-                )
-            )
-        } else {
-            mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(x, y, z, ground))
-        }
+        mc.netHandler.addToSendQueue(C03PacketPlayer.C04PacketPlayerPosition(x, y, z, ground))
     }
 
     @EventTarget
