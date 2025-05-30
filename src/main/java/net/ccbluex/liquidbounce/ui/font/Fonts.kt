@@ -26,6 +26,15 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Minecraft Font")
     val minecraftFont: FontRenderer = mc.fontRendererObj
 
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 16)
+    lateinit var font16: GameFontRenderer
+
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 18)
+    lateinit var font18: GameFontRenderer
+
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 32)
+    lateinit var font32: GameFontRenderer
+
     @FontDetails(fontName = "Product Sans Medium", fontSize = 35)
     lateinit var font35: GameFontRenderer
 
@@ -34,8 +43,10 @@ object Fonts : MinecraftInstance() {
 
     @FontDetails(fontName = "Product Sans Medium", fontSize = 72)
     lateinit var font72: GameFontRenderer
-    @FontDetails("Honor Sans Regular", fontSize = 35)
+
+    @FontDetails(fontName = "Honor Sans Regular", fontSize = 35)
     lateinit var fontHonor35: GameFontRenderer
+
     @FontDetails(fontName = "Honor Sans Regular", fontSize = 40)
     lateinit var fontHonor40: GameFontRenderer
 
@@ -48,8 +59,38 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Noto Sans SC Regular", fontSize = 80)
     lateinit var fontNoto80: GameFontRenderer
 
+    @FontDetails(fontName = "Product Sans Bold", fontSize = 40)
+    lateinit var fontBold40: GameFontRenderer
+
+    @FontDetails(fontName = "Product Sans Bold", fontSize = 35)
+    lateinit var fontBold35: GameFontRenderer
+
     @FontDetails(fontName = "Product Sans Bold", fontSize = 180)
     lateinit var fontBold180: GameFontRenderer
+
+    @FontDetails(fontName = "Helvetica Display Medium", fontSize = 30)
+    lateinit var fontHD30: GameFontRenderer
+
+    @FontDetails(fontName = "Helvetica Display Medium", fontSize = 35)
+    lateinit var fontHD35: GameFontRenderer
+
+    @FontDetails(fontName = "Helvetica Display Medium", fontSize = 40)
+    lateinit var fontHD40: GameFontRenderer
+
+    @FontDetails(fontName = "Helvetica Display Medium", fontSize = 45)
+    lateinit var fontHD45: GameFontRenderer
+
+    @FontDetails(fontName = "Helvetica Display Medium", fontSize = 50)
+    lateinit var fontHD50: GameFontRenderer
+
+    @FontDetails(fontName = "SF UI Display Medium", fontSize = 35)
+    lateinit var fontSF35: GameFontRenderer
+
+    @FontDetails(fontName = "SF UI Display Medium", fontSize = 40)
+    lateinit var fontSF40: GameFontRenderer
+
+    @FontDetails(fontName = "SF UI Display Medium", fontSize = 45)
+    lateinit var fontSF45: GameFontRenderer
 
     @FontDetails(fontName = "notification60", fontSize = 30)
     lateinit var notification60: GameFontRenderer
@@ -61,9 +102,22 @@ object Fonts : MinecraftInstance() {
         LOGGER.info("Loading Fonts.")
 
         downloadFonts()
+        font16 = GameFontRenderer(getFont("Product Sans Regular.ttf", 16))
+        font18 = GameFontRenderer(getFont("Product Sans Regular.ttf", 18))
+        font32 = GameFontRenderer(getFont("Product Sans Regular.ttf", 32))
         font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 35))
         font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
         font72 = GameFontRenderer(getFont("Product Sans Regular.ttf", 72))
+        fontHD30 = GameFontRenderer(getFont("HelveticaMedium.ttf", 30))
+        fontHD35 = GameFontRenderer(getFont("HelveticaMedium.ttf", 35))
+        fontHD40 = GameFontRenderer(getFont("HelveticaMedium.ttf", 40))
+        fontHD45 = GameFontRenderer(getFont("HelveticaMedium.ttf", 45))
+        fontHD50 = GameFontRenderer(getFont("HelveticaMedium.ttf", 50))
+        fontSF35 = GameFontRenderer(getFont("SF-UI-Display-Medium.ttf", 35))
+        fontSF40 = GameFontRenderer(getFont("SF-UI-Display-Medium.ttf", 40))
+        fontSF45 = GameFontRenderer(getFont("SF-UI-Display-Medium.ttf", 45))
+        fontBold35 = GameFontRenderer(getFont("Product Sans Bold.ttf", 35))
+        fontBold40 = GameFontRenderer(getFont("Product Sans Bold.ttf", 40))
         fontHonor40 = GameFontRenderer(getFont("Product Sans Bold.ttf", 40))
         fontHonor35 = GameFontRenderer(getFont("Product Sans Bold.ttf", 35))
         fontNoto35 = GameFontRenderer(getFont("NotoSansSC-Regular.ttf", 35))
@@ -159,6 +213,7 @@ object Fonts : MinecraftInstance() {
             fonts += CUSTOM_FONT_RENDERERS.values
             return fonts
         }
+
     fun getFont(fontName: String, size: Int) =
         try {
             val inputStream = File(fontsDir, fontName).inputStream()

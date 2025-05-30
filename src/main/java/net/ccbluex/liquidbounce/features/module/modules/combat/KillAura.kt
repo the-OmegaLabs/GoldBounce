@@ -23,6 +23,7 @@ import net.ccbluex.liquidbounce.utils.CooldownHelper.resetLastAttackedTicks
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
+import net.ccbluex.liquidbounce.utils.PacketUtils.type
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.getVectorForRotation
@@ -36,12 +37,14 @@ import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
+import net.ccbluex.liquidbounce.utils.misc.RandomUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawEntityBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawPlatform
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawTargetCapsule
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomClickDelay
 import net.ccbluex.liquidbounce.value.*
@@ -54,22 +57,21 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
 import net.minecraft.network.Packet
-import net.minecraft.network.play.client.C02PacketUseEntity
+import net.minecraft.network.handshake.client.C00Handshake
+import net.minecraft.network.login.client.C00PacketLoginStart
+import net.minecraft.network.login.client.C01PacketEncryptionResponse
+import net.minecraft.network.play.client.*
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
-import net.minecraft.network.play.client.C03PacketPlayer
-import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
-import net.minecraft.network.play.client.C0APacketAnimation
 import net.minecraft.network.play.server.S45PacketTitle
+import net.minecraft.network.status.client.C00PacketServerQuery
 import net.minecraft.potion.Potion
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import java.awt.Color
-import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.roundToInt
-import kotlin.math.sin
+import java.nio.FloatBuffer
+import javax.vecmath.Vector2f
+import kotlin.math.*
 
 object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     /**
@@ -105,7 +107,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val hurtTime by int("HurtTime", 10, 0..10) { !simulateCooldown }
 
     private val clickOnly by boolean("ClickOnly", false)
-
     // Range
     // TODO: Make block range independent from attack range
     val range: Float by object : FloatValue("Range", 3.7f, 1f..8f) {
@@ -153,15 +154,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock
     val autoBlock by choices(
         "AutoBlock",
-        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "BlocksMC_A", "BlocksMC_B", "HypixelFull", "NCP"),
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC_A", "BlocksMC_B", "HypixelFull", "NCP"),
         "Packet"
     )
 
     // Block$MC
     private var blocksmcJohnState = false
     private var blocksmcClickCounter = 0
-    private val blocksmcAttackInterval by int("BlocksMCAttackInterval", 2, 1..5) { autoBlock == "BlocksMC" }
-    private val blocksmcBlockRate by int("BlocksMCBlockRate", 50, 1..100) { autoBlock == "BlocksMC" }
     private var hypixelBlinking = false
     private var hypixelBlockTicks = 0
     private val maxBlinkPackets by int("MaxBlinkPackets", 20, 5..100) { autoBlock == "HypixelFull" }
@@ -177,28 +176,28 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         "Stop"
     ) { (autoBlock == "Packet") || (autoBlock == "QuickMarco") }
     private val releaseAutoBlock by boolean("ReleaseAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") }
     val forceBlockRender by boolean("ForceBlockRender", true)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") && releaseAutoBlock }
     private val ignoreTickRule by boolean("IgnoreTickRule", false)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") && releaseAutoBlock }
     private val blockRate by int("BlockRate", 100, 1..100)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") && releaseAutoBlock }
 
     private val uncpAutoBlock by boolean("UpdatedNCPAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && !releaseAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") && !releaseAutoBlock }
 
     private val switchStartBlock by boolean("SwitchStartBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") }
 
     private val interactAutoBlock by boolean("InteractAutoBlock", true)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") }
 
     val blinkAutoBlock by boolean("BlinkAutoBlock", false)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") }
 
     private val blinkBlockTicks by int("BlinkBlockTicks", 3, 2..5)
-    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC", "HypixelFull") && blinkAutoBlock }
+    { autoBlock !in arrayOf("Off", "Fake", "BlocksMC_A", "BlocksMC_B", "HypixelFull") && blinkAutoBlock }
 
     // AutoBlock conditions
     private val smartAutoBlock by boolean("SmartAutoBlock", false) { autoBlock == "Packet" }
@@ -305,17 +304,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Extra swing
     private val failSwing by boolean("FailSwing", true) { swing && options.rotationsActive }
-    private val respectMissCooldown by boolean("RespectMissCooldown", false)
-    { swing && failSwing && options.rotationsActive }
-    private val swingOnlyInAir by boolean("SwingOnlyInAir", true) { swing && failSwing && options.rotationsActive }
     private val maxRotationDifferenceToSwing by float("MaxRotationDifferenceToSwing", 180f, 0f..180f)
     { swing && failSwing && options.rotationsActive }
     private val swingWhenTicksLate = object : BoolValue("SwingWhenTicksLate", false) {
         override fun isSupported() =
             swing && failSwing && maxRotationDifferenceToSwing != 180f && options.rotationsActive
     }
-    private val ticksLateToSwing by int("TicksLateToSwing", 4, 0..20)
-    { swing && failSwing && swingWhenTicksLate.isActive() && options.rotationsActive }
     private val renderBoxOnSwingFail by boolean("RenderBoxOnSwingFail", false) { failSwing }
     private val renderBoxColor = ColorSettingsInteger(this, "RenderBoxColor") { renderBoxOnSwingFail }.with(0, 255, 255)
     private val renderBoxFadeSeconds by float("RenderBoxFadeSeconds", 1f, 0f..5f) { renderBoxOnSwingFail }
@@ -335,6 +329,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val mark by choices("Mark", arrayOf("None", "Platform", "Box"), "Platform", subjective = true)
     private val boxOutline by boolean("Outline", true, subjective = true) { mark == "Box" }
     private val fakeSharp by boolean("FakeSharp", true, subjective = true)
+    private val renderMode by ListValue("RenderEffect", arrayOf("Capsule", "Nursultan"), "Capsule")
     private val circle by BoolValue("Circle", false)
     private val circleAccuracy by IntegerValue("Accuracy", 59, 0..59) { circle }
     private val circleThickness by FloatValue("Thickness", 2f, 0f..20f) { circle }
@@ -441,19 +436,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             swingFails.clear()
         }
     }
-    private fun releaseBlinkPackets() {
-        synchronized(blinkedPackets) {
-            blinkedPackets.forEach { packet ->
-                packet?.let { sendPacket(it) }
-            }
-            blinkedPackets.clear()
-        }
-
-        // 补偿客户端状态
-        if (blockStatus) {
-            sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-        }
-    }
     /**
      * Tick event
      */
@@ -461,19 +443,18 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onTick(event: GameTickEvent) {
         val player = mc.thePlayer ?: return
         target?.let { if (it.isDead) EventManager.callEvent(EntityKilledEvent(target!!)) }
-        if (blinking) {
-            if (++blinkTicks >= blinkBlockTicks) {
-                releaseBlinkPackets()
-                blinking = false
-                blinkTicks = 0
-            }
-        }
         if (shouldPrioritize()) {
             target = null
             renderBlocking = false
             return
         }
-
+        if (target != null) {
+            when (autoBlock) {
+                "BlocksMC_A" -> handleBlocksMCA()
+                "BlocksMC_B" -> handleBlocksMCB()
+                else -> {}
+            }
+        }
         if (clickOnly && !mc.gameSettings.keyBindAttack.isKeyDown)
             return
 
@@ -568,9 +549,161 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private val hittableColor = Color(37, 126, 255, 70)
     private val notHittableColor = Color(255, 0, 0, 70)
+    private fun handleBlocksMCA() {
+        val player = mc.thePlayer ?: return
+        val currentTime = System.currentTimeMillis()
+        val cps = minCPS + RandomUtils.nextInt(maxCPS - minCPS + 8)
+        val delay = 1000 / cps
 
+        when (asw) {
+            0 -> {
+                asw = 1
+                if (blockStatus) {
+                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                    sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
+                }
+                blockStatus = true
+                blinking = true
+                if (attack < 4) attack = 4
+                attack++
+                blockTick++
+            }
+
+            1 -> {
+                if (isTargetInRange(target!!, range + 2.0) && blockTick < 8) {
+                    attackEntityDirectly(target!!, true)
+                    lastAttackTime = currentTime
+                }
+                blinking = false
+                release()
+                asw = 2
+            }
+
+            2 -> {
+                if (isTargetInRange(target!!, range.toDouble()) && attack < 16) {
+                    attackEntityDirectly(target!!, true)
+                    lastAttackTime = currentTime
+                }
+                if (blockTick >= 8) blockTick = 0
+                if (attack >= 16) attack = 4
+                sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
+                asw = 0
+            }
+        }
+    }
+
+    private fun handleBlocksMCB() {
+        val player = mc.thePlayer ?: return
+
+        when (blockTickB) {
+            0 -> {
+                blockTickB = 1
+                blinking = true
+                sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                attack++
+                blockStatus = false
+                blockTickB = 2 // 直接跳到状态2
+            }
+
+            1 -> { /* 不会执行，因为状态0直接跳到了2 */
+            }
+
+            2 -> {
+                if (attack < 7) {
+                    if (isTargetInRange(target!!, range.toDouble())) {
+                        attackEntityDirectly(target!!, true)
+                    } else {
+                        sendPacket(C0APacketAnimation())
+                    }
+                }
+                blockTickB = 3
+            }
+
+            3 -> {
+                if (attack < 7) {
+                    if (isTargetInRange(target!!, range.toDouble())) {
+                        attackEntityDirectly(target!!, true)
+                    } else {
+                        sendPacket(C0APacketAnimation())
+                    }
+                }
+                sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
+                blinking = false
+                release()
+                if (attack >= 7) attack = 0
+                blockStatus = true
+                lastAttackTime = System.currentTimeMillis()
+                blockTickB = 0
+            }
+        }
+    }
+
+    private fun attackEntityDirectly(entity: EntityLivingBase, interact: Boolean) {
+        mc.thePlayer.swingItem()
+        mc.playerController.attackEntity(mc.thePlayer, entity)
+        if (interact) {
+            sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.INTERACT))
+        }
+        resetLastAttackedTicks()
+    }
+
+    private fun release() {
+        if (blinkedPackets.isNotEmpty() && !b2) {
+            val copy = ArrayList<Packet<*>?>(blinkedPackets)
+            blinkedPackets.clear()
+            for (packet in copy) {
+                packet?.let { sendPacket(it) }
+            }
+            b2 = true
+        }
+    }
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
+        if (renderMode == "Capsule") {
+            target?.let { drawTargetCapsule(it, 0.5, true, Color(255, 255, 255, 255)) }
+        }
+        if (renderMode == "Nursultan") {
+            target?.let { entity ->
+                // 获取正确的摄像机位置
+                val isThirdPerson = mc.gameSettings.thirdPersonView != 0
+                val cameraPos = if (isThirdPerson) {
+                    mc.renderViewEntity.getPositionEyes(1f)
+                } else {
+                    mc.thePlayer.getPositionEyes(1f)
+                }
+
+                // 添加矩阵校验
+                val projectMatrix = FloatBuffer.allocate(16)
+                val modelMatrix = FloatBuffer.allocate(16)
+                GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectMatrix)
+                GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix)
+
+                // 修正距离计算
+                val dst = mc.thePlayer.getDistanceToEntity(entity)
+                val alphaFactor = 1.0f - MathHelper.clamp_float(dst / 60.0f, 0.0f, 0.75f)
+
+                // 添加渲染状态设置
+                GL11.glEnable(GL11.GL_BLEND)
+                GL11.glDisable(GL11.GL_TEXTURE_2D)
+
+                RenderUtils.targetESPSPos(entity)?.let { pos ->
+                    RenderUtils.drawTargetESP2D(
+                        pos.x,
+                        pos.y,
+                        Color.RED,
+                        Color.BLUE,
+                        Color.GREEN,
+                        Color(255, 192, 203), // 使用明确颜色值代替PINK
+                        alphaFactor,
+                        2  // 增加边框厚度
+                    )
+                }
+
+                GL11.glEnable(GL11.GL_TEXTURE_2D)
+                GL11.glDisable(GL11.GL_BLEND)
+            }
+        }
+
         if (circle) {
             GL11.glPushMatrix()
             GL11.glTranslated(
@@ -650,7 +783,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     private fun runAttack(isFirstClick: Boolean, isLastClick: Boolean) {
         var currentTarget = this.target ?: return
-
         val player = mc.thePlayer ?: return
         val world = mc.theWorld ?: return
 
@@ -668,12 +800,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (hittable && currentTarget.hurtTime > hurtTime) {
             return
         }
-        when (autoBlock.lowercase()) {
-            "blocksmc_a" -> handleBlocksMC_A(currentTarget)
-            "blocksmc_b" -> handleBlocksMC_B(currentTarget)
-            "ncp" -> handleNCP(currentTarget)
-        }
-
         if (manipulateInventory && isFirstClick) serverOpenInventory = false
 
         if (!multi) {
@@ -835,22 +961,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             }
         }
 
-        if (autoBlock == "BlocksMC" && (!blinked || !BlinkUtils.isBlinking)) {
-            if (blocksmcJohnState) {
-                // 发送攻击包
-                sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
-
-                blocksmcClickCounter++
-                if (blocksmcClickCounter > blocksmcAttackInterval && Math.random() > 0.5) {
-                    blocksmcClickCounter = 0
-                }
-            } else {
-                if (blocksmcBlockRate > 0 && nextInt(100) <= blocksmcBlockRate) {
-                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                }
-            }
-            blocksmcJohnState = !blocksmcJohnState
-        }
         // Start blocking after attack
         if (autoBlock != "Off" && (thePlayer.isBlocking || canBlock) && (!blinkAutoBlock && isLastClick || blinkAutoBlock && (!blinked || !BlinkUtils.isBlinking))) {
             startBlocking(entity, interactAutoBlock, autoBlock == "Fake")
@@ -926,7 +1036,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             attackRange = range,
             throughWallsRange = throughWallsRange,
             bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
-            horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get()
+            horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(),
+            options
         )
 
         if (rotation == null) {
@@ -1043,106 +1154,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         hittable =
             isVisible(intercept.hitVec) || mc.thePlayer.getDistanceToEntityBox(targetToCheck) <= throughWallsRange
     }
-    private fun handleBlocksMC_A(target: EntityLivingBase) {
-        when (asw) {
-            0 -> {
-                // 阶段1：释放阻挡并开始blinking
-                if (blockStatus) {
-                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                }
-                blockStatus = true
-                blinking = true
-                blinkTicks = 0
-                if (attack < 4) attack = 4
-                attack++
-                blockTick++
-                asw = 1
-            }
-            1 -> {
-                // 阶段2：攻击并释放blinking
-                if (isTargetInRange(target, range + 2.0) && blockTick < 8) {
-                    attackEntity(target, true)
-                    lastAttackTime = System.currentTimeMillis()
-                }
-                blinking = false
-                releaseBlinkPackets()
-                asw = 2
-            }
-            2 -> {
-                // 阶段3：再次攻击并重置状态
-                if (isTargetInRange(target, range.toDouble()) && attack < 16) {
-                    attackEntity(target, true)
-                    lastAttackTime = System.currentTimeMillis()
-                }
-                if (blockTick >= 8) blockTick = 0
-                if (attack >= 16) attack = 4
-                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                asw = 0
-            }
-        }
-    }
-
-
-    private fun handleBlocksMC_B(target: EntityLivingBase) {
-        when (blockTickB) {
-            0 -> {
-                // 阶段1：初始化攻击
-                blinking = true
-                blinkTicks = 0
-                sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                attack++
-                blockStatus = false
-                blockTickB++
-            }
-            1 -> {
-                // 阶段2：第一次攻击
-                if (attack < 7) {
-                    if (isTargetInRange(target)) {
-                        attackEntity(target, true)
-                    } else {
-                        sendPacket(C0APacketAnimation())
-                    }
-                }
-                blockTickB++
-            }
-            2 -> {
-                // 阶段3：等待
-                blockTickB++
-            }
-            3 -> {
-                // 阶段4：第二次攻击并重置
-                if (attack < 7) {
-                    if (isTargetInRange(target)) {
-                        attackEntity(target, true)
-                    } else {
-                        sendPacket(C0APacketAnimation())
-                    }
-                }
-                sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                BlinkUtils.unblink()
-                blinking = false
-                releaseBlinkPackets()
-                if (attack >= 7) attack = 0
-                blockStatus = true
-                lastAttackTime = System.currentTimeMillis()
-                blockTickB = 0
-            }
-        }
-    }
-
-
-    private fun handleNCP(target: EntityLivingBase) {
-        // Pre-motion逻辑
-        sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-        blockStatus = false
-
-        // Post-motion逻辑
-        if (isTargetInRange(target)) {
-            sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-            blockStatus = true
-        }
-    }
 
     private fun isTargetInRange(target: EntityLivingBase, customRange: Double = range.toDouble()): Boolean {
         return mc.thePlayer.getDistanceToEntityBox(target) <= customRange
@@ -1249,38 +1260,15 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             blockStatus = false
         }
     }
-    private fun release() {
-        if (!blinkedPackets.isEmpty() && !b2) {
-            val copy: MutableList<Packet<*>?>?
-            synchronized(blinkedPackets) {
-                copy = ArrayList<Packet<*>?>(blinkedPackets)
-                blinkedPackets.clear()
-            }
-            for (packet in copy!!) {
-                packet?.let { sendPacket(it) }
-            }
-            blinkedPackets.clear()
-            b2 = true
-        }
-    }
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val player = mc.thePlayer ?: return
         val packet = event.packet
-        if (blinking){
-            when (event.packet) {
-                is C02PacketUseEntity -> {
-                    blinkedPackets.add(event.packet)
-                    event.cancelEvent()
-                }
-                is C03PacketPlayer -> {
-                    blinkedPackets.add(event.packet)
-                    event.cancelEvent()
-                }
-                is C08PacketPlayerBlockPlacement -> {
-                    blinkedPackets.add(event.packet)
-                    event.cancelEvent()
-                }
+        if (!(packet.type == PacketUtils.PacketType.SERVER || packet is C00Handshake || packet is C00PacketLoginStart || packet is C00PacketServerQuery || packet is C01PacketEncryptionResponse || packet is C01PacketChatMessage)
+        ) {
+            if (blinking && target != null) {
+                blinkedPackets.add(packet)
+                event.cancelEvent()
             }
         }
         combatPacket = event
@@ -1326,10 +1314,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         blockTickB = 0
         blockTick = 0
         attack = 0
-        if (blinking) {
-            releaseBlinkPackets()
-            blinking = false
-        }
         if (blockStatus) {
             sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
             blockStatus = false

@@ -12,6 +12,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Reach
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
+import net.ccbluex.liquidbounce.utils.RotationSettings
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.coerceBodyPoint
 import net.ccbluex.liquidbounce.utils.RotationUtils.isFaced
@@ -51,6 +52,7 @@ object Aimbot : Module("Aimbot", Category.COMBAT, hideModule = false) {
             return coercedPoint.name
         }
     }
+    private val settings = RotationSettings(Aimbot)
     private val highestBodyPointToTarget by highestBodyPointToTargetValue
 
     private val lowestBodyPointToTargetValue: ListValue = object : ListValue(
@@ -192,6 +194,7 @@ object Aimbot : Module("Aimbot", Category.COMBAT, hideModule = false) {
                 attackRange = if (handleEvents()) Reach.combatReach else 3f,
                 bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
                 horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(),
+                settings = settings
             )
         }
 

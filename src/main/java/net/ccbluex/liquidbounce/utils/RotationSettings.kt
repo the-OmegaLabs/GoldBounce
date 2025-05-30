@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.utils
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.extensions.withGCD
 import net.ccbluex.liquidbounce.value.*
+import net.minecraft.client.model.ModelVillager
 import kotlin.math.abs
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -15,6 +16,14 @@ open class RotationSettings(owner: Module, generalApply: () -> Boolean = { true 
 
     open val rotationsValue = boolean("Rotations", true) { generalApply() }
     open val applyServerSideValue = boolean("ApplyServerSide", true) { rotationsActive && generalApply() }
+    open val algorithmSearchSteps = int("AlgorithmSteps", 10, 5..20) { rotateMode.get() == "Algorithm" }
+    open val algorithmPrecision = float("AlgorithmPrecision", 0.5f, 0.1f..2f) { rotateMode.get() == "Algorithm" }
+    open val noiseScale = float("NoiseScale", 2.0f, 0.5f..5f) { rotateMode.get() == "Noise" }
+    open val noiseSpeed = float("NoiseSpeed", 0.5f, 0.1f..2f) { rotateMode.get() == "Noise" }
+    open val noiseAdditionYaw = float("NoiseAdditionYawMS", 0.0f, 0f..1000f) { rotateMode.get() == "Noise" }
+    open val noiseAdditionPitch = float("NoiseAdditionPitchMS", 0.0f, 0f..1000f) { rotateMode.get() == "Noise" }
+    open val maxTurnSpeed = float("MaxTurnSpeed", 180f, 10f..360f) { rotateMode.get() == "Noise" }
+    open val improve = ListValue("NoiseImprovement",arrayOf("XY","XZ","Fallback"),"XY") { rotateMode.get() == "Noise" }
     open val simulateShortStopValue = boolean("SimulateShortStop", false) { rotationsActive && generalApply() }
     open val rotationDiffBuildUpToStopValue = float("RotationDiffBuildUpToStop", 180f, 50f..720f) { simulateShortStop }
     open val maxThresholdAttemptsToStopValue = int("MaxThresholdAttemptsToStop", 1, 0..5) { simulateShortStop }
@@ -33,10 +42,14 @@ open class RotationSettings(owner: Module, generalApply: () -> Boolean = { true 
     open val rotateMode = ListValue(
         "RotationMode",
         arrayOf(
-            "Default"
+            "Default",
+            "Algorithm",
+            "Noise",
+            "Algorithm+Noise"
         ),
         "Default"
-    ) { rotationsActive && generalApply() }
+    )
+    open val rotationMode = rotateMode.get()
     fun getMode(): ListValue {
         return rotateMode
     }
@@ -148,7 +161,7 @@ class RotationSettingsWithRotationModes(
 
     val rotationModeValue = listValue.apply { isSupported = generalApply }
 
-    val rotationMode by rotationModeValue
+    override val rotationMode by rotationModeValue
 
     override val rotationsActive: Boolean
         get() = rotationMode != "Off"

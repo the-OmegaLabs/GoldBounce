@@ -43,7 +43,7 @@ class GuiMainMenu : GuiScreen() {
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-        drawBackground(0)
+        drawImage(ResourceLocation("liquidbounce/background.png"),-mouseX,-mouseY,width*2,height*2)
 
         drawRoundedBorderRect(width / 2f - 115, height / 4f + 35, width / 2f + 115, height / 4f + 175,
             2f,

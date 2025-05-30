@@ -70,7 +70,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
     private var currentState = State.NONE
     private val ANIM_DURATION = int("AnimationDuration", 300, 0..1000)
-    val normalMode = ListValue("RenderMode", arrayOf("Opai", "Opal"), "Opal")
+    val normalMode = ListValue("RenderMode", arrayOf("Opai"), "Opal")
     private val OPAL_PADDING = 2f
     private val OPAL_ELEMENT_SPACING = 4f
     private val OPAL_CONTAINER_HEIGHT = 27f
@@ -122,9 +122,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
         when (currentState) {
             State.Scaffolding -> drawScaffoldUI(sr, currentWidth, currentHeight)
-            else -> if (normalMode.get() == "Opal") drawOpalNormalUI(sr, currentWidth, currentHeight) else {
-                drawNormalUI(sr, currentWidth, currentHeight)
-            }
+            else -> drawNormalUI(sr, currentWidth, currentHeight)
         }
     }
 
@@ -139,112 +137,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     }
 
     private fun calculateNormalSize(sr: ScaledResolution): Pair<Float, Float> {
-        return if (normalMode.get() == "Opal") {
-            calculateOpalSize()
-        } else {
-            calculateBasicNormalSize()
-        }
-    }
-
-    private fun drawVerticalLine(x: Float, y: Float, height: Float) {
-        RenderUtils.drawRect(
-            x, y,
-            x + 1f, y + height,
-            Color(120, 120, 120, 250).rgb
-        )
-    }
-
-    private fun drawOpalNormalUI(sr: ScaledResolution, animWidth: Float, animHeight: Float) {
-        val serverip = ServerUtils.remoteIp
-        val playerPing = "${mc.thePlayer.getPing()}ms"
-
-        val startX = (sr.scaledWidth - animWidth) / 2
-        val startY = sr.scaledHeight / 9f
-
-        val textWidth = Fonts.font40.getStringWidth(clientName.get())
-        val versionNameUp = LiquidBounce.clientBigVersionText
-        val versionNameDown = LiquidBounce.clientVersionText
-        val textBar2 = max(Fonts.font40.getStringWidth(versionNameUp), Fonts.font35.getStringWidth(versionNameDown))
-        val textBar3 = max(Fonts.font40.getStringWidth(serverip), Fonts.font35.getStringWidth(playerPing))
-
-        val availableWidth = animWidth - OPAL_PADDING * 2 - 23f - OPAL_ELEMENT_SPACING * 4
-        val sectionWidth = availableWidth / 3f
-
-        var currentX = startX + OPAL_PADDING
-
-        RenderUtils.drawImage(
-            ResourceLocation("liquidbounce/obai.png"),
-            currentX.toInt(),
-            (startY + 1).toInt(),
-            OPAL_ICON_SIZE,
-            OPAL_ICON_SIZE
-        )
-        currentX += 23f + OPAL_ELEMENT_SPACING
-
-        Fonts.font40.drawString(
-            clientName.get(),
-            currentX,
-            startY + 9f,
-            textColor.rgb,
-            false
-        )
-        currentX += textWidth + OPAL_ELEMENT_SPACING
-
-        val versionX = startX + animWidth * 0.4f
-        drawTextColumn(
-            versionX,
-            startY,
-            versionNameUp,
-            versionNameDown,
-            textBar2
-        )
-
-        val serverX = startX + animWidth - OPAL_PADDING - textBar3
-        drawTextColumn(
-            serverX,
-            startY,
-            serverip,
-            playerPing,
-            textBar3
-        )
-
-        drawVerticalLine(startX + animWidth * 0.33f, startY + 5f, OPAL_CONTAINER_HEIGHT - 10f)
-        drawVerticalLine(startX + animWidth * 0.66f, startY + 5f, OPAL_CONTAINER_HEIGHT - 10f)
-    }
-
-    private fun drawTextColumn(x: Float, startY: Float, topText: String, bottomText: String, maxWidth: Int) {
-        Fonts.font40.drawString(
-            topText,
-            x + (maxWidth - Fonts.font40.getStringWidth(topText)) / 2f,
-            startY + 4.5f,
-            Color.WHITE.rgb,
-            false
-        )
-        Fonts.font35.drawString(
-            bottomText,
-            x + (maxWidth - Fonts.font35.getStringWidth(bottomText)) / 2f,
-            startY + 14f,
-            Color(170, 170, 170, 170).rgb,
-            false
-        )
-    }
-
-    private fun calculateOpalSize(): Pair<Float, Float> {
-        val serverip = ServerUtils.remoteIp
-        val playerPing = "${mc.thePlayer.getPing()}ms"
-
-        // 计算各个元素尺寸
-        val textWidth = Fonts.font40.getStringWidth(clientName.get())
-        val versionNameUp = LiquidBounce.clientBigVersionText
-        val versionNameDown = LiquidBounce.clientVersionText
-        val textBar2 = max(Fonts.font40.getStringWidth(versionNameUp), Fonts.font35.getStringWidth(versionNameDown))
-        val textBar3 = max(Fonts.font40.getStringWidth(serverip), Fonts.font35.getStringWidth(playerPing))
-
-        // 总宽度计算
-        val allLen = OPAL_PADDING * 2 + 23f + OPAL_ELEMENT_SPACING * 4 +
-                textWidth + textBar2 + textBar3 + 6f
-
-        return Pair(allLen, OPAL_CONTAINER_HEIGHT + 3f)
+        return calculateBasicNormalSize()
     }
 
     private fun calculateBasicNormalSize(): Pair<Float, Float> {

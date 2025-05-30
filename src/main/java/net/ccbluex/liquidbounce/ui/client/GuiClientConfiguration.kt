@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.ui.client
 import net.ccbluex.liquidbounce.LiquidBounce.background
 import net.ccbluex.liquidbounce.LiquidBounce.clientVersionText
 import net.ccbluex.liquidbounce.LiquidBounce.isInDev
+import net.ccbluex.liquidbounce.bzym.global
 import net.ccbluex.liquidbounce.file.FileManager.backgroundImageFile
 import net.ccbluex.liquidbounce.file.FileManager.backgroundShaderFile
 import net.ccbluex.liquidbounce.file.FileManager.saveConfig
@@ -39,7 +40,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle("GoldBounce ${clientVersionText} ${isInDev()} 免费获取上bzym.fun")
+                Display.setTitle("欢迎您。${global().getIpLocation()}")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }

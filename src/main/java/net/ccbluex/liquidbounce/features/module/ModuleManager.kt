@@ -273,7 +273,8 @@ object ModuleManager : Listenable {
             ModuleInfo,
             MoveFix,
             MoreBends,
-            NoC03
+            NoC03,
+            Arraylist
         )
 
         InventoryManager.startCoroutine()

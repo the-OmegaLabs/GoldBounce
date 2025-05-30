@@ -14,6 +14,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.client.hud.element.Side
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRectInt
@@ -45,7 +46,6 @@ class ScoreboardElement(
     private val backgroundColorAlpha by int("Background-Alpha", 95, 0..255)
 
     private val roundedRectRadius by float("Rounded-Radius", 3F, 0F..5F)
-
     private val rect by boolean("Rect", false)
     private val rectColorMode by choices("Rect-Color", arrayOf("Custom", "Rainbow"), "Custom") { rect }
     private val rectColorRed by int("Rect-R", 0, 0..255) { rect && rectColorMode == "Custom" }
@@ -55,6 +55,7 @@ class ScoreboardElement(
 
     private val serverIp by choices("ServerIP", arrayOf("Normal", "None", "Client", "Website"), "Normal")
     private val shadow by boolean("Shadow", false)
+    private val bgShadow by boolean("Background-Shadow", false)
     private val font by font("Font", Fonts.minecraftFont)
 
     /**
@@ -110,7 +111,9 @@ class ScoreboardElement(
         val l1 = -maxWidth - 3 - if (rect) 3 else 0
 
         drawRoundedRectInt(l1 - 4, -4, 7, (2 + maxHeight + fontRenderer.FONT_HEIGHT), backColor, roundedRectRadius)
-
+        if (bgShadow){
+            GlowUtils.drawGlow(-maxWidth - 5f - if (rect) 3 else 0, -2F, 5F, maxHeight + fontRenderer.FONT_HEIGHT.toFloat(), 5, Color(0, 0, 0, 255))
+        }
         scoreCollection.forEachIndexed { index, score ->
             val team = scoreboard.getPlayersTeam(score.playerName)
 

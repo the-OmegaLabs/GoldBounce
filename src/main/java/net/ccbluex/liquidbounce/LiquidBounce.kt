@@ -125,6 +125,8 @@ object LiquidBounce {
         SysUtils().copyToFontDir("iconnovo.ttf")
         SysUtils().copyToFontDir("NotoSansSC-Regular.ttf")
         SysUtils().copyToFontDir("NotoSansSC-Bold.ttf")
+        SysUtils().copyToFontDir("HelveticaMedium.ttf")
+        SysUtils().copyToFontDir("SF-UI-Display-Medium.ttf")
         SysUtils().copyToGameDir("background.png","background.png")
         SysUtils().copyToGameDir("logo_large.png", "logo_large.png")
 

@@ -12,6 +12,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Reach
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
+import net.ccbluex.liquidbounce.utils.RotationSettings
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.coerceBodyPoint
 import net.ccbluex.liquidbounce.utils.RotationUtils.isFaced
@@ -103,7 +104,7 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
     private val headLockBlockHeight by float("HeadBlockHeight", -1f, -2f..0f) { headLock && center && lock }
     private val breakBlocks by boolean("BreakBlocks", true)
     private val silent by boolean("Silent", false) { horizontalAim || verticalAim }
-
+    private val settings = RotationSettings(this)
     private val clickTimer = MSTimer()
     private val clickCount = AtomicInteger(0)
     private val lastClick = AtomicLong(0L)
@@ -205,6 +206,7 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
                 attackRange = if (handleEvents()) Reach.combatReach else 3f,
                 bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
                 horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(),
+                settings = settings
             )
         }
 

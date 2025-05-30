@@ -6,28 +6,36 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
-import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
+import net.ccbluex.liquidbounce.ui.font.Fonts.font16
+import net.ccbluex.liquidbounce.ui.font.Fonts.font18
+import net.ccbluex.liquidbounce.ui.font.Fonts.font32
+import net.ccbluex.liquidbounce.ui.font.Fonts.font35
 import net.ccbluex.liquidbounce.utils.extensions.isMob
-import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.render.BlendUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
+import net.ccbluex.liquidbounce.utils.render.animation.AnimationUtil
+import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtil
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
+import net.ccbluex.liquidbounce.utils.skid.slack.RenderUtil
 import net.ccbluex.liquidbounce.value.ListValue
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.int
+import net.minecraft.client.Minecraft
+import net.minecraft.client.entity.AbstractClientPlayer
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.util.ResourceLocation
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import javax.annotation.Resource
+import kotlin.math.max
 import kotlin.math.pow
 
 object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
@@ -43,7 +51,8 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "户籍",
             "Chill",
             "Myau",
-            "RavenB4"
+            "RavenB4",
+            "Naven",
         ),
         "Novoline"
     )
@@ -88,9 +97,14 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "chill" -> renderChillHUD(sr)
             "myau" -> renderMyauHUD(sr)
             "ravenb4" -> renderRavenB4HUD(sr)
+            "naven" -> renderNavenHUD(sr)
         }
     }
+    private fun renderAfucizusHUD(sr: ScaledResolution){
+        val X = sr.scaledWidth / 2F + posX
+        val Y = sr.scaledHeight / 2F + posY
 
+    }
     private fun renderHealthHUD(sr: ScaledResolution) {
         val centerX = sr.scaledWidth / 2 + posX
         val centerY = sr.scaledHeight / 2 + posY
@@ -182,6 +196,48 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.popMatrix()
 
     }
+    private fun renderNavenHUD(sr: ScaledResolution) {
+        // 把坐标都转成 Float
+        val x2 = sr.scaledWidth / 2f + posX
+        val y2 = sr.scaledHeight / 2f + posY
+        val width = 130f
+        val height = 50f
+
+        // 背景
+        RenderUtils.drawRoundedRect(
+            x2, y2,
+            x2 + width, y2 + height,
+            Color(10, 10, 30, 120).rgb, 5f
+        )
+
+        // 头像
+        mc.netHandler.getPlayerInfo(target!!.uniqueID)?.locationSkin?.let {
+            Target().drawHead(
+                it, x2.toInt() + 7, y2.toInt() + 7,
+                30, 30,
+                Color.WHITE
+            )
+        }
+
+        // 血条背景
+        val barX1 = x2 + 5f
+        val barY1 = y2 + height - 10f
+        val barX2 = x2 + width - 5f
+        val barY2 = barY1 + 3f
+        RenderUtils.drawRoundedRect(barX1, barY1, barX2, barY2, Color(0, 0, 0, 200).rgb, 2f)
+
+        // 血条填充
+        val healthPercent = target!!.health / target!!.maxHealth
+        val fillX2 = barX1 + (barX2 - barX1) * healthPercent
+        RenderUtils.drawRoundedRect(barX1, barY1, fillX2, barY2, Color(160, 42, 42).rgb, 2f)
+
+        // 名称 & 生命 & 距离
+        font35.drawString(target!!.name, x2 + 40f, y2 + 10f, Color.WHITE.rgb)
+        font32.drawString("Health: ${"%.2f".format(target!!.health)}", x2 + 40f, y2 + 22f, Color.WHITE.rgb)
+        font32.drawString("Distance: ${"%.2f".format(target!!.getDistanceToEntity(mc.thePlayer))}", x2 + 40f, y2 + 30f, Color.WHITE.rgb)
+    }
+
+
     private fun renderNovolineHUD(sr: ScaledResolution) {
         val entity = target ?: return
         val posX = sr.scaledWidth / 2 + this.posX

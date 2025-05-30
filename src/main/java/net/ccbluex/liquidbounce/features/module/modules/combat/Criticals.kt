@@ -9,6 +9,7 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.ModuleManager.getModule
+import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.extensions.component1
 import net.ccbluex.liquidbounce.utils.extensions.component2
@@ -43,7 +44,8 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
             "Visual",
             "AutoFreeze",
             "HuaYuTing",
-            "BMCSmart"
+            "BMCSmart",
+            "BMCBlatant"
         ),
         "Packet"
     )
@@ -56,6 +58,8 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     var stuckEnabled = false
     val msTimer = MSTimer()
     var offGroundTicks = 0
+    var tick = 0
+    var onGroundTicks = 0
     override fun onEnable() {
         attacks = 0
         if (mode == "NoGround")
@@ -76,6 +80,12 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
 
     @EventTarget
     fun onMotion(event: MotionEvent) {
+        if (event.eventState.stateName == "PRE"){
+            if (mc.thePlayer.hurtTime > 0) {
+                this.tick = 10;
+            }
+            --this.tick;
+        }
         if (mode == "HuaYuTing") {
             if (event.eventState.stateName == "PRE") {
                 if (mode == "HuaYuTing") {
@@ -94,9 +104,11 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         if (mc.thePlayer.onGround) {
+            onGroundTicks++
             offGroundTicks = 0
         } else {
             offGroundTicks++
+            onGroundTicks = 0;
         }
         if (mode == "AutoFreeze") {
             if (KillAura.target != null && mc.thePlayer.onGround) {
@@ -210,6 +222,14 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
 
                 if (wrapped.getAction() == C02PacketUseEntity.Action.ATTACK) {
                     attacking = true
+                }
+            }
+        }
+        if (mode == "BMCBlatant") {
+            if (packet is C02PacketUseEntity && (packet as C02PacketUseEntity).getAction() == C02PacketUseEntity.Action.ATTACK) {
+                if (mc.thePlayer.onGround && onGroundTicks % 2 == 0 && this.tick > 0) {
+                    mc.thePlayer.setPosition(mc.thePlayer.posX, mc.thePlayer.posY + 0.0522, mc.thePlayer.posZ);
+                    MovementUtils.strafe(0.2F);
                 }
             }
         }

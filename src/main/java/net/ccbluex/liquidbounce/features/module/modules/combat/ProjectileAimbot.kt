@@ -52,8 +52,6 @@ object ProjectileAimbot : Module("ProjectileAimbot", Category.COMBAT, hideModule
     private val predictSize by float("PredictSize", 2F, 0.1F..5F)
     { predict && gravityType == "Projectile" }
 
-    private val options = RotationSettings(this).withoutKeepRotation()
-
     private val randomization = RandomizationSettings(this) { options.rotationsActive }
 
     private val highestBodyPointToTargetValue: ListValue = object : ListValue(
@@ -88,7 +86,7 @@ object ProjectileAimbot : Module("ProjectileAimbot", Category.COMBAT, hideModule
     }
 
     private val lowestBodyPointToTarget by lowestBodyPointToTargetValue
-
+    private val options = RotationSettings(this)
     private val maxHorizontalBodySearch: FloatValue = object : FloatValue("MaxHorizontalBodySearch", 1f, 0f..1f) {
         override fun isSupported() = options.rotationsActive
 
@@ -149,7 +147,8 @@ object ProjectileAimbot : Module("ProjectileAimbot", Category.COMBAT, hideModule
                 attackRange = range,
                 throughWallsRange = throughWallsRange,
                 bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
-                horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get()
+                horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(),
+                settings = options
             )
         } ?: return
 

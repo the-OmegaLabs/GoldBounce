@@ -15,7 +15,11 @@ import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.setColour
+import net.ccbluex.liquidbounce.utils.skid.moonlight.math.MathUtils.interpolate
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.client.renderer.EntityRenderer
+import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.Tessellator
@@ -23,12 +27,17 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.util.*
+import org.lwjgl.opengl.Display
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL14
+import org.lwjgl.util.glu.GLU
 import java.awt.Color
 import java.awt.image.BufferedImage
+import javax.vecmath.Vector2f
+import javax.vecmath.Vector3d
+import javax.vecmath.Vector4d
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -70,6 +79,225 @@ object RenderUtils : MinecraftInstance() {
         quickDrawRect(4f, -20.3f, 7.3f, -20f)
         quickDrawRect(-7.3f, -20.3f, -4f, -20f)
         glEndList()
+    }
+
+    fun customRotatedObject2D(oXpos: Float, oYpos: Float, oWidth: Float, oHeight: Float, rotate: Float) {
+        glTranslated((oXpos + oWidth / 2.0f).toDouble(), (oYpos + oHeight / 2.0f).toDouble(), 0.0)
+        glRotated(rotate.toDouble(), 0.0, 0.0, 1.0)
+        glTranslated((-oXpos - oWidth / 2.0f).toDouble(), (-oYpos - oHeight / 2.0f).toDouble(), 0.0)
+    }
+    fun drawTargetESP2D(
+        x: Float,
+        y: Float,
+        color: Color,
+        color2: Color,
+        color3: Color,
+        color4: Color,
+        scale: Float,
+        index: Int
+    ) {
+        var x = x
+        var y = y
+        val millis = System.currentTimeMillis() + index.toLong() * 400L
+        val angle = MathHelper.clamp_double((sin(millis.toDouble() / 150.0) + 1.0) / 2.0 * 30.0, 0.0, 30.0)
+        val scaled = MathHelper.clamp_double((sin(millis.toDouble() / 500.0) + 1.0) / 2.0, 0.8, 1.0)
+        var rotate = MathHelper.clamp_double((sin(millis.toDouble() / 1000.0) + 1.0) / 2.0 * 360.0, 0.0, 360.0)
+        val size = 128.0f * scale * scaled.toFloat()
+        val x2 = (size / 2.0f.let { x -= it; x }) + size
+        val y2 = (size / 2.0f.let { y -= it; y }) + size
+        pushMatrix()
+        customRotatedObject2D(
+            x,
+            y,
+            size,
+            size,
+            (45.0 - (angle - 15.0).let { rotate += it; rotate }).toFloat()
+        )
+        glDisable(3008)
+        depthMask(false)
+        enableBlend()
+        shadeModel(7425)
+        tryBlendFuncSeparate(770, 1, 1, 0)
+        drawESPImage(
+            ResourceLocation("liquidbounce/rectangle.png"),
+            x.toDouble(),
+            y.toDouble(),
+            x2.toDouble(),
+            y2.toDouble(),
+            color,
+            color2,
+            color3,
+            color4
+        )
+        tryBlendFuncSeparate(770, 771, 1, 0)
+        resetColor()
+        shadeModel(7424)
+        depthMask(true)
+        glEnable(3008)
+        popMatrix()
+    }
+    fun targetESPSPos(entity: EntityLivingBase): Vector2f? {
+        val entityRenderer: EntityRenderer = mc.entityRenderer
+        val partialTicks: Float = mc.timer.renderPartialTicks
+        val scaleFactor = ScaledResolution(mc).getScaleFactor()
+        val x: Double = interpolate(entity.prevPosX, entity.posX, partialTicks)
+        val y: Double = interpolate(entity.prevPosY, entity.posY, partialTicks)
+        val z: Double = interpolate(entity.prevPosZ, entity.posZ, partialTicks)
+        val height = (entity.height / (if (entity.isChild()) 1.75f else 1.0f) / 2.0f).toDouble()
+        val width = 0.0
+        val aabb = AxisAlignedBB(x - 0.0, y, z - 0.0, x + 0.0, y + height, z + 0.0)
+        val vectors: Array<Vector3d?> = arrayOf<Vector3d?>(
+            Vector3d(aabb.minX, aabb.minY, aabb.minZ),
+            Vector3d(aabb.minX, aabb.maxY, aabb.minZ),
+            Vector3d(aabb.maxX, aabb.minY, aabb.minZ),
+            Vector3d(aabb.maxX, aabb.maxY, aabb.minZ),
+            Vector3d(aabb.minX, aabb.minY, aabb.maxZ),
+            Vector3d(aabb.minX, aabb.maxY, aabb.maxZ),
+            Vector3d(aabb.maxX, aabb.minY, aabb.maxZ),
+            Vector3d(aabb.maxX, aabb.maxY, aabb.maxZ)
+        )
+        entityRenderer.setupCameraTransform(partialTicks, 0)
+        var position: Vector4d? = null
+        val vecs3 = vectors
+        val vecLength = vectors.size
+        for (vecI in 0 until vecLength) {
+            var vector = vecs3[vecI]
+            vector = project2D(
+                scaleFactor,
+                vector!!.x - mc.getRenderManager().viewerPosX,
+                vector.y - mc.getRenderManager().viewerPosY,
+                vector.z - mc.getRenderManager().viewerPosZ
+            )
+            if (vector == null || !(vector.z >= 0.0) || !(vector.z < 1.0)) continue
+            if (position == null) {
+                position = Vector4d(vector.x, vector.y, vector.z, 0.0)
+            }
+            position.x = min(vector.x, position.x)
+            position.y = min(vector.y, position.y)
+            position.z = max(vector.x, position.z)
+            position.w = max(vector.y, position.w)
+        }
+        entityRenderer.setupOverlayRendering()
+        if (position != null) {
+            return Vector2f(position.x.toFloat(), position.y.toFloat())
+        }
+        return null
+    }
+    fun project2D(scaleFactor: Int, x: Double, y: Double, z: Double): Vector3d? {
+        val viewport = GLAllocation.createDirectIntBuffer(16)
+        val modelView = GLAllocation.createDirectFloatBuffer(16)
+        val projection = GLAllocation.createDirectFloatBuffer(16)
+        val vector = GLAllocation.createDirectFloatBuffer(4)
+        glGetFloat(2982, modelView)
+        glGetFloat(2983, projection)
+        glGetInteger(2978, viewport)
+        return if (GLU.gluProject(
+                x.toFloat(),
+                y.toFloat(),
+                z.toFloat(),
+                modelView,
+                projection,
+                viewport,
+                vector
+            )
+        ) Vector3d(
+            (vector.get(0) / scaleFactor.toFloat()).toDouble(),
+            ((Display.getHeight().toFloat() - vector.get(1)) / scaleFactor.toFloat()).toDouble(),
+            vector.get(2).toDouble()
+        ) else null
+    }
+    private fun drawESPImage(
+        resource: ResourceLocation?,
+        x: Double,
+        y: Double,
+        x2: Double,
+        y2: Double,
+        c: Color,
+        c2: Color,
+        c3: Color,
+        c4: Color
+    ) {
+        mc.getTextureManager().bindTexture(resource)
+        val tessellator = Tessellator.getInstance()
+        val bufferbuilder = tessellator.getWorldRenderer()
+        bufferbuilder.begin(9, DefaultVertexFormats.POSITION_TEX_COLOR)
+        bufferbuilder.pos(x, y2, 0.0).tex(0.0, 1.0).color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha())
+            .endVertex()
+        bufferbuilder.pos(x2, y2, 0.0).tex(1.0, 1.0).color(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha())
+            .endVertex()
+        bufferbuilder.pos(x2, y, 0.0).tex(1.0, 0.0).color(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha())
+            .endVertex()
+        bufferbuilder.pos(x, y, 0.0).tex(0.0, 0.0).color(c4.getRed(), c4.getGreen(), c4.getBlue(), c4.getAlpha())
+            .endVertex()
+        shadeModel(7425)
+        depthMask(false)
+        tessellator.draw()
+        depthMask(true)
+        shadeModel(7424)
+    }
+    fun drawTargetCapsule(entity: Entity, rad: Double, shade: Boolean, color: Color) {
+        glPushMatrix()
+        glDisable(3553)
+        glEnable(2848)
+        glEnable(2832)
+        glEnable(3042)
+        glBlendFunc(770, 771)
+        glHint(3154, 4354)
+        glHint(3155, 4354)
+        glHint(3153, 4354)
+        glDepthMask(false)
+        alphaFunc(516, 0.0f)
+        if (shade) {
+            glShadeModel(7425)
+        }
+        disableCull()
+        glBegin(5)
+        val mc = Minecraft.getMinecraft()
+        val x: Double =
+            entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * mc.timer.renderPartialTicks.toDouble() - mc.renderManager.renderPosX
+        val y: Double =
+            entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * mc.timer.renderPartialTicks.toDouble() - mc.renderManager.renderPosY + sin(
+                System.currentTimeMillis().toDouble() / 200.0
+            ) + 1.0
+        val z: Double =
+            entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * mc.timer.renderPartialTicks.toDouble() - mc.renderManager.renderPosZ
+        var i = 0.0f
+        while (i.toDouble() < Math.PI * 2) {
+            val vecX = x + rad * cos(i.toDouble())
+            val vecZ = z + rad * sin(i.toDouble())
+            val c = color
+            if (shade) {
+                glColor4f(
+                    c.getRed().toFloat() / 255.0f,
+                    c.getGreen().toFloat() / 255.0f,
+                    c.getBlue().toFloat() / 255.0f,
+                    0.0f
+                )
+                glVertex3d(vecX, y - cos(System.currentTimeMillis().toDouble() / 200.0) / 2.0, vecZ)
+                glColor4f(
+                    c.getRed().toFloat() / 255.0f,
+                    c.getGreen().toFloat() / 255.0f,
+                    c.getBlue().toFloat() / 255.0f,
+                    c.getAlpha().toFloat() / 255.0f
+                )
+            }
+            glVertex3d(vecX, y, vecZ)
+            i += 0.09817477f
+        }
+        glEnd()
+        if (shade) {
+            glShadeModel(7424)
+        }
+        glDepthMask(true)
+        glEnable(2929)
+        alphaFunc(516, 0.1f)
+        enableCull()
+        glDisable(2848)
+        glDisable(2848)
+        glEnable(2832)
+        glEnable(3553)
+        glPopMatrix()
+        glColor3f(255.0f, 255.0f, 255.0f)
     }
 
     fun drawGradientSideways(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
