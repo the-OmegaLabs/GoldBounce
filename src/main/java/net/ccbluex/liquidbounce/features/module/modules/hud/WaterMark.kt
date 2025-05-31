@@ -13,15 +13,18 @@ import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.ServerUtils
 import net.ccbluex.liquidbounce.utils.SilentHotbar
+import net.ccbluex.liquidbounce.utils.attack.CPSCounter
 import net.ccbluex.liquidbounce.utils.extensions.getPing
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.render.EaseUtils.easeOutBack
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawImage
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
+import net.ccbluex.liquidbounce.utils.render.animation.AnimationUtil
 import net.ccbluex.liquidbounce.value.ListValue
 import net.ccbluex.liquidbounce.value.TextValue
 import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
@@ -70,20 +73,29 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
     private var currentState = State.NONE
     private val ANIM_DURATION = int("AnimationDuration", 300, 0..1000)
-    val normalMode = ListValue("RenderMode", arrayOf("Opai"), "Opal")
-    private val OPAL_PADDING = 2f
-    private val OPAL_ELEMENT_SPACING = 4f
-    private val OPAL_CONTAINER_HEIGHT = 27f
-    private val OPAL_ICON_SIZE = 25
+    val normalMode = ListValue("RenderMode", arrayOf("Opai", "Opal"), "Opai")
     val textColorR = int("TextColorR", 255, 0..255)
     private val textColorG = int("TextColorG", 255, 0..255)
     private val textColorB = int("TextColorB", 255, 0..255)
-    private val textColor = Color(textColorR.get(), textColorG.get(), textColorB.get())
     val showMemory = boolean("ShowMemory", false) { normalMode.get() == "Opai" }
     val showLatency = boolean("ShowLatency", true) { normalMode.get() == "Opai" }
-    private val shadowEnabled = boolean("Shadow", false)
-    val shadowStrengh = int("ShadowStrength", 20, 1..20)
+    private val shadowEnabled = boolean("Shadow", false) { normalMode.get() == "Opai"}
+    val shadowStrengh = int("ShadowStrength", 20, 1..20) { normalMode.get() == "Opai"}
     private val clientName = TextValue("ClientName", "Obai")
+
+    // Opai模式专用值
+    private val opaiColorR = int("Opal-R", 255, 0..255) { normalMode.get() == "Opal" }
+    private val opaiColorG = int("Opal-G", 255, 0..255) { normalMode.get() == "Opal" }
+    private val opaiColorB = int("Opal-B", 255, 0..255) { normalMode.get() == "Opal" }
+    private val opaiShadow = boolean("Opal-Shadow", false) { normalMode.get() == "Opal" }
+    private val opaiShadowStrength = int("Opal-ShadowStrength", 1, 1..2) { normalMode.get() == "Opal" }
+    private val opaiAnimationSpeed = float("Opal-AnimSpeed", 0.2f, 0.05f..1f) { normalMode.get() == "Opal" }
+
+    // Opai模式常量
+    private val versionNameUp = LiquidBounce.clientVersionText
+    private val versionNameDown = LiquidBounce.clientBigVersionText
+    private var progressBarAnimationWidth = 120f
+
     private fun easeOutElastic(x: Float): Float {
         val c4 = (2 * Math.PI) / 3
         return when (x) {
@@ -137,7 +149,29 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     }
 
     private fun calculateNormalSize(sr: ScaledResolution): Pair<Float, Float> {
-        return calculateBasicNormalSize()
+        return if (normalMode.get() == "Opal") {
+            calculateOpaiNormalSize()
+        } else {
+            calculateBasicNormalSize()
+        }
+    }
+
+    private fun calculateOpaiNormalSize(): Pair<Float, Float> {
+        val serverip = ServerUtils.remoteIp
+        val playerPing = "${mc.thePlayer.getPing()}ms"
+        val textWidth = Fonts.fontHonor40.getStringWidth(clientName.get())
+
+        val imageLen = 21F
+        val containerToUiDistance = 2F
+        val uiToUIDistance = 4F
+        val textBar2 = max(Fonts.fontHonor40.getStringWidth(versionNameUp), Fonts.fontHonor35.getStringWidth(versionNameDown))
+        val textBar3 = max(Fonts.fontHonor40.getStringWidth(serverip), Fonts.fontHonor35.getStringWidth(playerPing))
+
+        val LineWidth = 2F
+
+        val fastLen1 = containerToUiDistance + imageLen + uiToUIDistance
+        val allLen = fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance + textBar2 + uiToUIDistance + LineWidth + uiToUIDistance + textBar3 + containerToUiDistance
+        return Pair(allLen, 27f)
     }
 
     private fun calculateBasicNormalSize(): Pair<Float, Float> {
@@ -151,9 +185,110 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     }
 
     private fun drawNormalUI(sr: ScaledResolution, width: Float, height: Float) {
+        if (normalMode.get() == "Opal") {
+            drawOpaiNormalUI(sr, width, height)
+        } else {
+            drawBasicNormalUI(sr, width, height)
+        }
+    }
+
+    private fun drawOpaiNormalUI(sr: ScaledResolution, width: Float, height: Float) {
+        val startX = (sr.scaledWidth - width) / 2
+        val startY = sr.scaledHeight / 9f
+
+        val serverip = ServerUtils.remoteIp
+        val playerPing = "${mc.thePlayer.getPing()}ms"
+        val textWidth = Fonts.fontHonor40.getStringWidth(clientName.get())
+
+        val colorAL = Color(opaiColorR.get(), opaiColorG.get(), opaiColorB.get(), 255)
+        val imageLen = 21F
+        val containerToUiDistance = 2F
+        val uiToUIDistance = 4F
+        val textBar2 = max(Fonts.fontHonor40.getStringWidth(versionNameUp), Fonts.fontHonor35.getStringWidth(versionNameDown))
+        val textBar3 = max(Fonts.fontHonor40.getStringWidth(serverip), Fonts.fontHonor35.getStringWidth(playerPing))
+
+        val LineWidth = 2F
+
+        val fastLen1 = containerToUiDistance + imageLen + uiToUIDistance
+        val allLen = fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance + textBar2 + uiToUIDistance + LineWidth + uiToUIDistance + textBar3 + containerToUiDistance
+
+        // 绘制背景
+        drawRoundedRect(startX, startY, startX + width, startY + height, Color(0, 0, 0, (120 * uiAnimProgress).toInt()).rgb, 13F)
+        if (opaiShadow.get()) {
+            drawOpaiShadow(startX, startY, width, height)
+        }
+
+        // 绘制内容
+        drawImage(
+            ResourceLocation("liquidbounce/obai.png"),
+            (startX + containerToUiDistance + 2).toInt(),
+            (startY + 4).toInt(),
+            19,
+            19,
+            colorAL
+        )
+
+        Fonts.fontHonor40.drawString(
+            clientName.get(),
+            startX + fastLen1,
+            startY + 9F,
+            colorAL.rgb,
+            false
+        )
+
+        Fonts.fontHonor40.drawString(
+            "|",
+            startX + fastLen1 + textWidth + uiToUIDistance - 1F,
+            startY + 9F,
+            Color(120, 120, 120, 250).rgb,
+            false
+        )
+
+        Fonts.fontHonor40.drawString(
+            versionNameUp,
+            startX + fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance,
+            startY + 4.5F,
+            Color(255, 255, 255, 255).rgb,
+            false
+        )
+
+        Fonts.fontHonor35.drawString(
+            versionNameDown,
+            startX + fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance,
+            startY + 14F,
+            Color(170, 170, 170, 170).rgb,
+            false
+        )
+
+        Fonts.fontHonor40.drawString(
+            "|",
+            startX + fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance + textBar2 + uiToUIDistance - 1F,
+            startY + 9F,
+            Color(120, 120, 120, 250).rgb,
+            false
+        )
+
+        Fonts.fontHonor40.drawString(
+            serverip,
+            startX + fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance + textBar2 + uiToUIDistance + LineWidth + uiToUIDistance,
+            startY + 4.5F,
+            Color(255, 255, 255, 255).rgb,
+            false
+        )
+
+        Fonts.fontHonor35.drawString(
+            playerPing,
+            startX + fastLen1 + textWidth + uiToUIDistance + LineWidth + uiToUIDistance + textBar2 + uiToUIDistance + LineWidth + uiToUIDistance,
+            startY + 14F,
+            Color(170, 170, 170, 170).rgb,
+            false
+        )
+    }
+
+    private fun drawBasicNormalUI(sr: ScaledResolution, width: Float, height: Float) {
         val centerX = sr.scaledWidth / 2f
         val posY = sr.scaledHeight / 9f
-
+        val textColor = Color(textColorR.get(), textColorG.get(), textColorB.get())
         // 基于当前宽度重新计算位置
         val logoWidth = 20
         val watermarkText = buildString {
@@ -163,28 +298,38 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         }
         val textWidth = Fonts.fontHonor40.getStringWidth(watermarkText)
 
-        // 修复偏移：使用当前宽度计算位置
         val contentWidth = logoWidth + 10 + textWidth
         val offsetX = (width - contentWidth) / 2
-
+        var currentX = centerX - width / 2 + offsetX + logoWidth + 5
         // 图标绘制
         RenderUtils.drawImage(
             ResourceLocation("liquidbounce/obai.png"),
             (centerX - width / 2 + offsetX).toInt(),
             (posY + height / 2 - 9).toInt(),
-            18, 18
+            18, 18, textColor
         )
-
-        // 文本绘制
         Fonts.fontHonor40.drawString(
-            watermarkText,
-            centerX - width / 2 + offsetX + logoWidth + 5,
-            posY + height / 2 - Fonts.fontHonor40.FONT_HEIGHT / 2,
+            clientName.get(),
+            currentX,
+            posY + height/2 - Fonts.fontHonor40.FONT_HEIGHT/2,
             textColor.rgb
+        )
+        currentX += Fonts.fontHonor40.getStringWidth(clientName.get() + " | ")
+        Fonts.fontHonor40.drawString(
+            "| ${mc.session.username} | ${Minecraft.getDebugFPS()}fps" +
+                    (if (showLatency.get()) " | ${mc.thePlayer.getPing()}ms" else "") +
+                    (if (showMemory.get()) " | RAM: ${getUsedMemory()}/${getMaxMemory()}MB" else ""),
+            currentX - 3,
+            posY + height/2 - Fonts.fontHonor40.FONT_HEIGHT/2,
+            Color.WHITE.rgb
         )
     }
 
     private fun drawScaffoldUI(sr: ScaledResolution, width: Float, height: Float) {
+        drawBasicScaffoldUI(sr, width, height)
+    }
+
+    private fun drawBasicScaffoldUI(sr: ScaledResolution, width: Float, height: Float) {
         val startX = (sr.scaledWidth - width) / 2
         val startY = sr.scaledHeight / 9f
 
@@ -243,36 +388,76 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             countText,
             startX + width - rightPadding - textWidth,
             startY + height / 2 - Fonts.font40.FONT_HEIGHT / 2,
-            textColor.rgb
+            Color.WHITE.rgb
         )
     }
 
     private fun calculateScaffoldSize(sr: ScaledResolution): Pair<Float, Float> {
-        val stack = mc.thePlayer?.inventory?.getStackInSlot(SilentHotbar.currentSlot)
-        val textWidth = Fonts.font40.getStringWidth("${stack?.stackSize ?: 0} blocks").toFloat()
-        return Pair(200f + textWidth, 36f)
+        return if (normalMode.get() == "Opal") {
+            val stack = mc.thePlayer?.inventory?.getStackInSlot(SilentHotbar.currentSlot)
+            val countWidth = Fonts.fontHonor40.getStringWidth("${stack?.stackSize ?: 0} blocks").toFloat()
+            Pair(200f + countWidth, 27f)
+        } else {
+            val stack = mc.thePlayer?.inventory?.getStackInSlot(SilentHotbar.currentSlot)
+            val textWidth = Fonts.font40.getStringWidth("${stack?.stackSize ?: 0} blocks").toFloat()
+            Pair(200f + textWidth, 36f)
+        }
     }
 
     private fun drawBackground(sr: ScaledResolution, width: Float, height: Float) {
         val startX = (sr.scaledWidth - width) / 2
         val startY = sr.scaledHeight / 9f
 
-        RenderUtils.drawRoundedRect(
-            startX, startY,
-            startX + width, startY + height,
-            Color(bgColor.red, bgColor.green, bgColor.blue, (bgColor.alpha * uiAnimProgress).toInt()).rgb,
-            15f
-        )
-
-        if (shadowEnabled.get()) {
-            if (width <= 0 || height <= 0) return
-            GlowUtils.drawGlow(
+        if (currentState == State.Scaffolding) {
+            RenderUtils.drawRoundedRect(
                 startX, startY,
-                width, height,
-                (shadowStrengh.get() * uiAnimProgress).toInt(),
-                bgColor
+                startX + width, startY + height,
+                Color(bgColor.red, bgColor.green, bgColor.blue, (bgColor.alpha * uiAnimProgress).toInt()).rgb,
+                15f
             )
+
+            if (normalMode.get() == "Opai" && shadowEnabled.get()) {
+                GlowUtils.drawGlow(
+                    startX, startY,
+                    width, height,
+                    (shadowStrengh.get() * uiAnimProgress).toInt(),
+                    bgColor
+                )
+            } else if (normalMode.get() == "Opal" && opaiShadow.get()) {
+                GlowUtils.drawGlow(
+                    startX, startY,
+                    width, height,
+                    (opaiShadowStrength.get() * 13F * uiAnimProgress).toInt(),
+                    bgColor
+                )
+            }
         }
+
+        else if (normalMode.get() == "Opai") {
+            RenderUtils.drawRoundedRect(
+                startX, startY,
+                startX + width, startY + height,
+                Color(bgColor.red, bgColor.green, bgColor.blue, (bgColor.alpha * uiAnimProgress).toInt()).rgb,
+                15f
+            )
+
+            if (shadowEnabled.get()) {
+                GlowUtils.drawGlow(
+                    startX, startY,
+                    width, height,
+                    (shadowStrengh.get() * uiAnimProgress).toInt(),
+                    bgColor
+                )
+            }
+        }
+    }
+
+    private fun drawOpaiShadow(startX: Float, startY: Float, width: Float, height: Float) {
+        GlowUtils.drawGlow(
+            startX, startY,
+            width, height,
+            (opaiShadowStrength.get() * 13F).toInt(),
+            Color(0, 0, 0, (120 * uiAnimProgress).toInt()))
     }
 
     private fun getUsedMemory() =
@@ -283,5 +468,4 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         animationProgress = 0f
         isAnimating = true
     }
-
 }

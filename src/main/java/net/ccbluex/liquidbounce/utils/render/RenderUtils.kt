@@ -1219,7 +1219,45 @@ object RenderUtils : MinecraftInstance() {
         glPopAttrib()
         glPopMatrix()
     }
+    fun drawImage(
+        image: ResourceLocation?,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        color: Color = Color.WHITE
+    ) {
+        glPushMatrix()
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+        glDisable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        glDepthMask(false)
+        GL14.glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+        glColor4f(
+            color.red / 255f,
+            color.green / 255f,
+            color.blue / 255f,
+            color.alpha / 255f
+        )
 
+        mc.textureManager.bindTexture(image)
+        drawModalRectWithCustomSizedTexture(
+            x.toFloat(),
+            y.toFloat(),
+            0f,
+            0f,
+            width.toFloat(),
+            height.toFloat(),
+            width.toFloat(),
+            height.toFloat()
+        )
+
+        glDepthMask(true)
+        glDisable(GL_BLEND)
+        glEnable(GL_DEPTH_TEST)
+        glPopAttrib()
+        glPopMatrix()
+    }
     /**
      * Draws a textured rectangle at z = 0. Args: x, y, u, v, width, height, textureWidth, textureHeight
      */
