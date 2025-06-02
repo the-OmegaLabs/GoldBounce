@@ -258,7 +258,6 @@ object ModuleManager : Listenable {
             LegitScaffold,
             BetterRotation,
             ACDetect,
-            VelocityLite,
             TargetHUD,
             RotationPathESP,
             TargetStrafe,

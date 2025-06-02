@@ -9,6 +9,7 @@ import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Arraylist.Companion.inactiveStyle
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.GlowUtils
+import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.gui.ScaledResolution
@@ -50,6 +51,28 @@ object Arraylist : Module("Arraylist", Category.HUD) {
     private val font by FontValue("Font", Fonts.fontBold40)
     private val spacing by IntegerValue("Line-Spacing", 2, 0..10)
 
+    // 新增渐变相关配置
+    private val textColorMode by ListValue("TextColorMode", arrayOf("Custom", "Gradient"), "Custom")
+    private val maxGradientColors by IntegerValue("GradientColors", 2, 2..4) { textColorMode == "Gradient" }
+    private val gradientSpeed by FloatValue("GradientSpeed", 1f, 0.1f..5f) { textColorMode == "Gradient" }
+    
+    // 渐变颜色配置
+    private val gradientColor1R by FloatValue("Gradient-R1", 1f, 0f..1f) { textColorMode == "Gradient" }
+    private val gradientColor1G by FloatValue("Gradient-G1", 0f, 0f..1f) { textColorMode == "Gradient" }
+    private val gradientColor1B by FloatValue("Gradient-B1", 0f, 0f..1f) { textColorMode == "Gradient" }
+    
+    private val gradientColor2R by FloatValue("Gradient-R2", 0f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 2 }
+    private val gradientColor2G by FloatValue("Gradient-G2", 1f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 2 }
+    private val gradientColor2B by FloatValue("Gradient-B2", 0f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 2 }
+    
+    private val gradientColor3R by FloatValue("Gradient-R3", 0f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 3 }
+    private val gradientColor3G by FloatValue("Gradient-G3", 0f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 3 }
+    private val gradientColor3B by FloatValue("Gradient-B3", 1f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 3 }
+    
+    private val gradientColor4R by FloatValue("Gradient-R4", 1f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 4 }
+    private val gradientColor4G by FloatValue("Gradient-G4", 0f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 4 }
+    private val gradientColor4B by FloatValue("Gradient-B4", 1f, 0f..1f) { textColorMode == "Gradient" && maxGradientColors >= 4 }
+
     private fun getDisplayString(module: Module): String {
         var displayName = if (module.name == "CustomTag") CustomTag.custom.get() else module.name
         if (nameSpaced) {
@@ -70,12 +93,42 @@ object Arraylist : Module("Arraylist", Category.HUD) {
         val sr = ScaledResolution(mc)
         val screenW = sr.scaledWidth
         val initialY = y.toFloat()
+        
+        // 计算渐变颜色数组
+        val gradientColors = when(maxGradientColors) {
+            2 -> arrayOf(
+                Color(gradientColor1R, gradientColor1G, gradientColor1B),
+                Color(gradientColor2R, gradientColor2G, gradientColor2B)
+            )
+            3 -> arrayOf(
+                Color(gradientColor1R, gradientColor1G, gradientColor1B),
+                Color(gradientColor2R, gradientColor2G, gradientColor2B),
+                Color(gradientColor3R, gradientColor3G, gradientColor3B)
+            )
+            else -> arrayOf(
+                Color(gradientColor1R, gradientColor1G, gradientColor1B),
+                Color(gradientColor2R, gradientColor2G, gradientColor2B),
+                Color(gradientColor3R, gradientColor3G, gradientColor3B),
+                Color(gradientColor4R, gradientColor4G, gradientColor4B)
+            )
+        }
+
+        // 计算渐变偏移
+        val totalHeight = modules.sumOf { font.FONT_HEIGHT + spacing } - spacing
+        val gradientOffset = (System.currentTimeMillis() % (10000 / gradientSpeed)) / (10000 / gradientSpeed)
 
         var yPos = initialY
-        for (module in modules) {
+        for ((index, module) in modules.withIndex()) {
             val text = getDisplayString(module)
             val textWidth = font.getStringWidth(text).toFloat()
             val textHeight = font.FONT_HEIGHT.toFloat()
+
+            // 计算当前颜色
+            val progress = (yPos - initialY + gradientOffset * totalHeight) % totalHeight / totalHeight
+            val color = when {
+                textColorMode == "Gradient" -> ColorUtils.interpolateColorsBackwards(gradientColors, progress)
+                else -> textColor
+            }
 
             // 矩形宽度根据文本宽度
             val rectWidth = textWidth + 4f
@@ -103,7 +156,7 @@ object Arraylist : Module("Arraylist", Category.HUD) {
             // 绘制文本，带内边距2px及1px垂直偏移
             val textX = if (side == "Right") screenW - textWidth - x + 2f else x.toFloat() + 2f
             val textY = yPos + 1f
-            font.drawString(text, textX, textY, textColor.rgb, false)
+            font.drawString(text, textX, textY, color.rgb, false)
 
             yPos += textHeight + spacing
         }
