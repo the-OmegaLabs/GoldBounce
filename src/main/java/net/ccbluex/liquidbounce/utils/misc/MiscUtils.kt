@@ -19,7 +19,10 @@ object MiscUtils : MinecraftInstance() {
     fun showErrorPopup(title: String, message: String) =
         JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE)
 
-    fun showURL(url: String) =
+    fun showURL(url: String) {
+        if (System.getProperty("os.name").lowercase().contains("linux")) {
+            return
+        }
         try {
             Desktop.getDesktop().browse(URI(url))
         } catch (e: IOException) {
@@ -27,6 +30,7 @@ object MiscUtils : MinecraftInstance() {
         } catch (e: URISyntaxException) {
             e.printStackTrace()
         }
+    }
 
     fun openFileChooser(): File? {
         if (mc.isFullScreen) mc.toggleFullscreen()
