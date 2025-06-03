@@ -43,6 +43,20 @@ object ColorUtils {
         val b = (colour and 0xFF) / 255.0f
         GL11.glColor4f(r, g, b, a)
     }
+    fun interpolateColors(colors: Array<Color>, progress: Float): Color {
+        if (colors.isEmpty()) return Color.WHITE
+        val scaledProgress = (progress * (colors.size - 1)).coerceIn(0f, colors.size - 1 - 1e-6f)
+        val index = scaledProgress.toInt()
+        val localProgress = scaledProgress - index
+
+        val start = colors[index]
+        val end = colors[(index + 1) % colors.size]
+
+        val r = start.red + (end.red - start.red) * localProgress
+        val g = start.green + (end.green - start.green) * localProgress
+        val b = start.blue + (end.blue - start.blue) * localProgress
+        return Color(r/255f, g/255f, b/255f)
+    }
     fun stripColor(input: String): String = COLOR_PATTERN.matcher(input).replaceAll("")
     fun Color.withAlpha(a: Int) = Color(red, green, blue, a)
     fun translateAlternateColorCodes(textToTranslate: String): String {

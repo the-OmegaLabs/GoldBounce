@@ -126,7 +126,7 @@ object Arraylist : Module("Arraylist", Category.HUD) {
             // 计算当前颜色
             val progress = (yPos - initialY + gradientOffset * totalHeight) % totalHeight / totalHeight
             val color = when {
-                textColorMode == "Gradient" -> ColorUtils.interpolateColorsBackwards(gradientColors, progress)
+                textColorMode == "Gradient" -> ColorUtils.interpolateColors(gradientColors, progress)
                 else -> textColor
             }
 
