@@ -6,35 +6,49 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
+import net.ccbluex.liquidbounce.ui.client.hud.element.Border
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.ui.font.Fonts.font16
 import net.ccbluex.liquidbounce.ui.font.Fonts.font18
 import net.ccbluex.liquidbounce.ui.font.Fonts.font32
 import net.ccbluex.liquidbounce.ui.font.Fonts.font35
+import net.ccbluex.liquidbounce.utils.EntityUtils.getHealth
 import net.ccbluex.liquidbounce.utils.extensions.isMob
+import net.ccbluex.liquidbounce.utils.extensions.lerpWith
+import net.ccbluex.liquidbounce.utils.extensions.safeDiv
+import net.ccbluex.liquidbounce.utils.extensions.withAlpha
 import net.ccbluex.liquidbounce.utils.render.BlendUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawGradientRect
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawHead
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.withClipping
 import net.ccbluex.liquidbounce.utils.render.animation.AnimationUtil
+import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowShader
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtil
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.skid.slack.RenderUtil
-import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.Minecraft
+import net.minecraft.entity.Entity
 import net.minecraft.client.entity.AbstractClientPlayer
+import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.network.NetworkPlayerInfo
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -53,6 +67,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "Myau",
             "RavenB4",
             "Naven",
+            "LiquidNew"
         ),
         "Novoline"
     )
@@ -61,16 +76,127 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private val posY by int("PosY", 0, -400..400)
     private val textColor = Color.WHITE
     private val bgColor = Color(0, 0, 0, 120)
-    val rainbow by boolean("Rainbow",true){hudStyle  == "Myau"}
-    private val borderRed by int("Border Red", 255, 0..255){hudStyle  == "Myau"}
-    private val borderGreen by int("Border Green", 255, 0..255){hudStyle  == "Myau"}
-    private val borderBlue by int("Border Blue", 255, 0..255){hudStyle  == "Myau"}
-    private val showAvatar by boolean("Show Avatar", true){hudStyle  == "Myau"}
+    val rainbow by boolean("Rainbow", true) { hudStyle == "Myau" }
+    private val borderRed by int("Border Red", 255, 0..255) { hudStyle == "Myau" }
+    private val borderGreen by int("Border Green", 255, 0..255) { hudStyle == "Myau" }
+    private val borderBlue by int("Border Blue", 255, 0..255) { hudStyle == "Myau" }
+    private val showAvatar by boolean("Show Avatar", true) { hudStyle == "Myau" }
+
     // 状态跟踪
-    val barColorR by int("BarColorR", 255, 0..255){hudStyle == "RavenB4"}
-    private val barColorG by int("BarColorG", 255, 0..255){hudStyle == "RavenB4"}
-    private val barColorB by int("BarColorB", 255, 0..255){hudStyle == "RavenB4"}
-    private val animSpeedRB4 by int("AnimSpeed", 3, 1..10){hudStyle == "RavenB4"}
+    val barColorR by int("BarColorR", 255, 0..255) { hudStyle == "RavenB4" }
+    private val barColorG by int("BarColorG", 255, 0..255) { hudStyle == "RavenB4" }
+    private val barColorB by int("BarColorB", 255, 0..255) { hudStyle == "RavenB4" }
+    private val roundedRectRadius by float("Rounded-Radius", 3F, 0F..5F)
+
+    private val borderStrength by float("Border-Strength", 3F, 1F..5F)
+
+    private val backgroundMode by choices("Background-ColorMode", arrayOf("Custom", "Rainbow"), "Custom")
+
+    // 修改后的颜色配置部分
+    private val backgroundColorR by int(
+        "Background-Color-R",
+        0,
+        0..255
+    ) { hudStyle == "LiquidNew" && backgroundMode == "Custom" }
+    private val backgroundColorG by int(
+        "Background-Color-G",
+        0,
+        0..255
+    ) { hudStyle == "LiquidNew" && backgroundMode == "Custom" }
+    private val backgroundColorB by int(
+        "Background-Color-B",
+        0,
+        0..255
+    ) { hudStyle == "LiquidNew" && backgroundMode == "Custom" }
+    private val backgroundColorA by int(
+        "Background-Color-A",
+        150,
+        0..255
+    ) { hudStyle == "LiquidNew" && backgroundMode == "Custom" }
+
+    private val healthBarColor1R by int("HealthBar-Gradient1-R", 3, 0..255) { hudStyle == "LiquidNew" }
+    private val healthBarColor1G by int("HealthBar-Gradient1-G", 65, 0..255) { hudStyle == "LiquidNew" }
+    private val healthBarColor1B by int("HealthBar-Gradient1-B", 252, 0..255) { hudStyle == "LiquidNew" }
+    private val healthBarColor1A by int("HealthBar-Gradient1-A", 255, 0..255) { hudStyle == "LiquidNew" }
+
+    private val healthBarColor2R by int("HealthBar-Gradient2-R", 3, 0..255) { hudStyle == "LiquidNew" }
+    private val healthBarColor2G by int("HealthBar-Gradient2-G", 252, 0..255) { hudStyle == "LiquidNew" }
+    private val healthBarColor2B by int("HealthBar-Gradient2-B", 236, 0..255) { hudStyle == "LiquidNew" }
+    private val healthBarColor2A by int("HealthBar-Gradient2-A", 255, 0..255) { hudStyle == "LiquidNew" }
+
+    private val borderColorR by int("Border-Color-R", 0, 0..255) { hudStyle == "LiquidNew" }
+    private val borderColorG by int("Border-Color-G", 0, 0..255) { hudStyle == "LiquidNew" }
+    private val borderColorB by int("Border-Color-B", 0, 0..255) { hudStyle == "LiquidNew" }
+    private val borderColorA by int("Border-Color-A", 255, 0..255) { hudStyle == "LiquidNew" }
+
+    private val textColorLR by int("TextColor-R", 255, 0..255) { hudStyle == "LiquidNew" }
+    private val textColorLG by int("TextColor-G", 255, 0..255) { hudStyle == "LiquidNew" }
+    private val textColorLB by int("TextColor-B", 255, 0..255) { hudStyle == "LiquidNew" }
+    private val textColorLA by int("TextColor-A", 255, 0..255) { hudStyle == "LiquidNew" }
+
+    // 封装为Color对象
+    private val backgroundColor = Color(
+        backgroundColorR,
+        backgroundColorG,
+        backgroundColorB,
+        backgroundColorA
+    )
+
+    private val healthBarColor1 = Color(
+        healthBarColor1R,
+        healthBarColor1G,
+        healthBarColor1B,
+        healthBarColor1A
+    )
+
+    private val healthBarColor2 = Color(
+        healthBarColor2R,
+        healthBarColor2G,
+        healthBarColor2B,
+        healthBarColor2A
+    )
+
+    private val borderColor = Color(
+        borderColorR,
+        borderColorG,
+        borderColorB,
+        borderColorA
+    )
+
+    private val textColorL = Color(
+        textColorLR,
+        textColorLG,
+        textColorLB,
+        textColorLA
+    )
+
+    private val roundHealthBarShape by boolean("RoundHealthBarShape", true)
+
+
+    private val rainbowX by float(
+        "Rainbow-X",
+        -1000F,
+        -2000F..2000F
+    ) { backgroundMode == "Rainbow" && hudStyle == "LiquidNew" }
+    private val rainbowY by float(
+        "Rainbow-Y",
+        -1000F,
+        -2000F..2000F
+    ) { backgroundMode == "Rainbow" && hudStyle == "LiquidNew" }
+
+    private val titleFont by font("TitleFont", Fonts.font40) { hudStyle == "LiquidNew" }
+    private val healthFont by font("HealthFont", Fonts.font32) { hudStyle == "LiquidNew" }
+    private val textShadow by boolean("TextShadow", false) { hudStyle == "LiquidNew" }
+
+    private val fadeSpeed by float("FadeSpeed", 2F, 1F..9F) { hudStyle == "LiquidNew" }
+    private val absorption by boolean("Absorption", true) { hudStyle == "LiquidNew" }
+    private val healthFromScoreboard by boolean("HealthFromScoreboard", true) { hudStyle == "LiquidNew" }
+
+    private val animation by choices("Animation", arrayOf("Smooth", "Fade"), "Fade") { hudStyle == "LiquidNew" }
+    private val animationSpeed by float("AnimationSpeed", 0.2F, 0.05F..1F) { hudStyle == "LiquidNew" }
+    private val vanishDelay by int("VanishDelay", 300, 0..500) { hudStyle == "LiquidNew" }
+
+    private val animSpeedRB4 by int("AnimSpeed", 3, 1..10) { hudStyle == "RavenB4" }
     private var target: EntityPlayer? = null
     private var currentHealthBarFillWidth = 1.0f
     override var hue = 0.0f
@@ -98,13 +224,16 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "myau" -> renderMyauHUD(sr)
             "ravenb4" -> renderRavenB4HUD(sr)
             "naven" -> renderNavenHUD(sr)
+            "liquidnew" -> renderNewLiquidHUD(sr)
         }
     }
-    private fun renderAfucizusHUD(sr: ScaledResolution){
+
+    private fun renderAfucizusHUD(sr: ScaledResolution) {
         val X = sr.scaledWidth / 2F + posX
         val Y = sr.scaledHeight / 2F + posY
 
     }
+
     private fun renderHealthHUD(sr: ScaledResolution) {
         val centerX = sr.scaledWidth / 2 + posX
         val centerY = sr.scaledHeight / 2 + posY
@@ -129,13 +258,15 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         currentHealthBarFillWidth = 1.0f
         hue = 0.0f
     }
+
     val decimalFormat = DecimalFormat("##0.00", DecimalFormatSymbols(Locale.ENGLISH))
     val decimalFormat2 = DecimalFormat("##0.0", DecimalFormatSymbols(Locale.ENGLISH))
     val decimalFormat3 = DecimalFormat("0.#", DecimalFormatSymbols(Locale.ENGLISH))
     fun updateAnim(targetHealth: Float) {
         easingHealth += ((targetHealth - easingHealth) / 2.0F.pow(10.0F - animSpeedRB4)) * RenderUtils.deltaTime
     }
-    private fun renderRavenB4HUD(sr: ScaledResolution){
+
+    private fun renderRavenB4HUD(sr: ScaledResolution) {
         val X = sr.scaledWidth / 2F + posX
         val Y = sr.scaledHeight / 2F + posY
         val entity = target!!
@@ -149,46 +280,47 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         RenderUtils.drawRoundedGradientOutlineCorner(
             X,
             Y,
-            X+length + hplength + 23F,
-            Y+35F,
+            X + length + hplength + 23F,
+            Y + 35F,
             2F, 8F,
             barColor.rgb,
             barColor.rgb
         )
-        RenderUtils.drawRoundedRect(X, Y, X+length + hplength + 23F,Y+ 35F, Color(0, 0, 0, 100).rgb, 4F)
+        RenderUtils.drawRoundedRect(X, Y, X + length + hplength + 23F, Y + 35F, Color(0, 0, 0, 100).rgb, 4F)
         GlStateManager.enableBlend()
         font.drawStringWithShadow(
             entity.displayName.formattedText,
-            X+6F,
-            Y+8F,
+            X + 6F,
+            Y + 8F,
             Color(255, 255, 255, 255).rgb
         )
-        val winorlose = if(entity.health < mc.thePlayer.health) "W" else "L"
+        val winorlose = if (entity.health < mc.thePlayer.health) "W" else "L"
         font.drawStringWithShadow(
             winorlose,
-            X+length + hplength + 11.6F,
-            Y+8F,  (if (winorlose == "W")  Color(0, 255, 0).rgb else Color(139, 0, 0).rgb))
+            X + length + hplength + 11.6F,
+            Y + 8F, (if (winorlose == "W") Color(0, 255, 0).rgb else Color(139, 0, 0).rgb)
+        )
         font.drawStringWithShadow(
             hp,
-            X+length + 8F,
-            Y+8F,
+            X + length + 8F,
+            Y + 8F,
             ColorUtils.reAlpha(BlendUtils.getHealthColor(entity.health, entity.maxHealth), 255).rgb
         )
         GlStateManager.disableAlpha()
         GlStateManager.disableBlend()
         RenderUtils.drawRoundedRect(
-            X+5.0F,
-            Y+29.55F,
-            X+length + hplength + 18F,
-            Y+25F,
+            X + 5.0F,
+            Y + 29.55F,
+            X + length + hplength + 18F,
+            Y + 25F,
             Color(0, 0, 0, 110).rgb,
             2F
-            )
+        )
         RenderUtils.drawRoundedGradientRectCorner(
-            X+5F,
-            Y+25F,
-            X+8F + (entity.health / 20) * (length + hplength + 10F),
-            Y+29.5F,
+            X + 5F,
+            Y + 25F,
+            X + 8F + (entity.health / 20) * (length + hplength + 10F),
+            Y + 29.5F,
             4F,
             barColor.rgb,
             barColor.rgb
@@ -196,6 +328,241 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.popMatrix()
 
     }
+
+    private var width = 0f
+    private var height = 0f
+
+    private var lastTarget: EntityLivingBase? = null
+    private val isRendered
+        get() = width > 0f || height > 0f
+
+    private var alphaText = 0
+    private var alphaBackground = 0
+    private var alphaBorder = 0
+
+    private val isAlpha
+        get() = alphaBorder > 0 || alphaBackground > 0 || alphaText > 0
+
+    private var delayCounter = 0
+    private var easingHurtTime = 0F
+    private fun renderNewLiquidHUD(sr: ScaledResolution) {
+        val baseX = sr.scaledWidth / 2F + posX // 基准X坐标
+        val baseY = sr.scaledHeight / 2F + posY // 基准Y坐标
+
+        val smoothMode = animation == "Smooth"
+        val fadeMode = animation == "Fade"
+
+        val killAuraTarget = KillAura.target.takeIf { it is EntityPlayer }
+
+        val shouldRender = handleEvents() && killAuraTarget != null || mc.currentScreen is GuiChat
+        val target = killAuraTarget ?: if (delayCounter >= vanishDelay && !isRendered) {
+            mc.thePlayer
+        } else {
+            lastTarget ?: mc.thePlayer
+        }
+
+        val stringWidth = (40f + (target.name?.let(titleFont::getStringWidth) ?: 0)).coerceAtLeast(118F)
+
+        if (shouldRender) {
+            delayCounter = 0
+        } else if (isRendered || isAlpha) {
+            delayCounter++
+        }
+
+        if (shouldRender || isRendered || isAlpha) {
+            val targetHealth = getHealth(target!!, healthFromScoreboard, absorption)
+            val maxHealth = target.maxHealth + if (absorption) target.absorptionAmount else 0F
+
+            easingHealth += (targetHealth - easingHealth) / 2f.pow(10f - fadeSpeed) * deltaTime
+            easingHealth = easingHealth.coerceIn(0f, maxHealth)
+            val targetHurtTime = if (target.isEntityAlive()) target.hurtTime.toFloat() else 0F
+            easingHurtTime = (easingHurtTime..targetHurtTime).lerpWith(RenderUtils.deltaTimeNormalized().toFloat())
+
+            if (target != lastTarget || abs(easingHealth - targetHealth) < 0.01) {
+                easingHealth = targetHealth
+            }
+
+            if (smoothMode) {
+                val targetWidth = if (shouldRender) stringWidth else if (delayCounter >= vanishDelay) 0f else width
+                width = AnimationUtil.base(width.toDouble(), targetWidth.toDouble(), animationSpeed.toDouble())
+                    .toFloat().coerceAtLeast(0f)
+
+                val targetHeight = if (shouldRender) 36f else if (delayCounter >= vanishDelay) 0f else height
+                height = AnimationUtil.base(height.toDouble(), targetHeight.toDouble(), animationSpeed.toDouble())
+                    .toFloat().coerceAtLeast(0f)
+            } else {
+                width = stringWidth
+                height = 36f
+
+                val targetText =
+                    if (shouldRender) textColor.alpha else if (delayCounter >= vanishDelay) 0f else alphaText
+                alphaText =
+                    AnimationUtil.base(alphaText.toDouble(), targetText.toDouble(), animationSpeed.toDouble())
+                        .toInt()
+
+                val targetBackground = if (shouldRender) {
+                    backgroundColor.alpha
+                } else if (delayCounter >= vanishDelay) {
+                    0f
+                } else alphaBackground
+
+                alphaBackground = AnimationUtil.base(
+                    alphaBackground.toDouble(), targetBackground.toDouble(), animationSpeed.toDouble()
+                ).toInt()
+
+                val targetBorder = if (shouldRender) {
+                    borderColor.alpha
+                } else if (delayCounter >= vanishDelay) {
+                    0f
+                } else alphaBorder
+
+                alphaBorder =
+                    AnimationUtil.base(alphaBorder.toDouble(), targetBorder.toDouble(), animationSpeed.toDouble())
+                        .toInt()
+            }
+
+            val backgroundCustomColor = backgroundColor.withAlpha(
+                if (fadeMode) alphaBackground else backgroundColor.alpha
+            ).rgb
+            val borderCustomColor = borderColor.withAlpha(
+                if (fadeMode) alphaBorder else borderColor.alpha
+            ).rgb
+            val textCustomColor = textColor.withAlpha(
+                if (fadeMode) alphaText else textColor.alpha
+            ).rgb
+
+            val rainbowOffset = System.currentTimeMillis() % 10000 / 10000F
+            val rainbowX = 1f safeDiv rainbowX
+            val rainbowY = 1f safeDiv rainbowY
+
+            glPushMatrix()
+            glTranslatef(baseX, baseY, 0f) // 应用基准坐标偏移
+
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+            if (fadeMode && isAlpha || smoothMode && isRendered || delayCounter < vanishDelay) {
+                val width = width.coerceAtLeast(0F)
+                val height = height.coerceAtLeast(0F)
+
+                RainbowShader.begin(backgroundMode == "Rainbow", rainbowX, rainbowY, rainbowOffset).use {
+                    drawRoundedBorderRect(
+                        0F,
+                        0F,
+                        width,
+                        height,
+                        borderStrength,
+                        if (backgroundMode == "Rainbow") 0 else backgroundCustomColor,
+                        borderCustomColor,
+                        roundedRectRadius
+                    )
+                }
+
+                val healthBarTop = 24F
+                val healthBarHeight = 8F
+                val healthBarStart = 36F
+                val healthBarTotal = (width - 39F).coerceAtLeast(0F)
+                val currentWidth = (easingHealth / maxHealth).coerceIn(0F, 1F) * healthBarTotal
+
+                // 背景条
+                val backgroundBar = {
+                    drawRoundedRect(
+                        healthBarStart,
+                        healthBarTop,
+                        healthBarStart + healthBarTotal,
+                        healthBarTop + healthBarHeight,
+                        Color.BLACK.rgb,
+                        6F,
+                    )
+                }
+
+                if (roundHealthBarShape) {
+                    backgroundBar()
+                }
+
+                // 主血条
+                withClipping(main = {
+                    if (roundHealthBarShape) {
+                        drawRoundedRect(
+                            healthBarStart,
+                            healthBarTop,
+                            healthBarStart + currentWidth,
+                            healthBarTop + healthBarHeight,
+                            0,
+                            6F
+                        )
+                    } else {
+                        backgroundBar()
+                    }
+                }, toClip = {
+                    drawGradientRect(
+                        healthBarStart.toInt(),
+                        healthBarTop.toInt(),
+                        healthBarStart.toInt() + currentWidth.toInt(),
+                        healthBarTop.toInt() + healthBarHeight.toInt(),
+                        healthBarColor1.rgb,
+                        healthBarColor2.rgb,
+                        0f
+                    )
+                })
+
+                // 血量百分比
+                val healthPercentage = (easingHealth / maxHealth * 100).toInt()
+                val percentageText = "$healthPercentage%"
+                val textWidth = healthFont.getStringWidth(percentageText)
+                val calcX = healthBarStart + currentWidth - textWidth
+                val textX = max(healthBarStart, calcX)
+                val textY = healthBarTop - Fonts.font32.fontHeight / 2 - 2F
+                healthFont.drawString(percentageText, textX, textY, textCustomColor, textShadow)
+
+                val shouldRenderBody =
+                    (fadeMode && alphaText + alphaBackground + alphaBorder > 100) || (smoothMode && width + height > 100)
+
+                if (shouldRenderBody) {
+                    // 玩家头像
+                    val renderer = mc.renderManager.getEntityRenderObject<Entity>(target)
+                    if (renderer != null) {
+                        val entityTexture = (target as? EntityPlayer)?.let {
+                            mc.netHandler.getPlayerInfo(it.uniqueID)?.locationSkin
+                        }
+
+                        glPushMatrix()
+                        val scale = 1 - easingHurtTime / 10f
+                        val f1 = (0.7F..1F).lerpWith(scale) * scale
+                        val color = ColorUtils.interpolateColor(Color.RED.rgb, Color.WHITE.rgb, scale)
+                        val centerX1 = (4f..32f).lerpWith(0.5F)
+                        val midY = (4f..28f).lerpWith(0.5F)
+
+                        glTranslatef(centerX1, midY, 0f)
+                        glScalef(f1, f1, f1)
+                        glTranslatef(-centerX1, -midY, 0f)
+
+                        if (entityTexture != null) {
+                            withClipping(main = {
+                                drawRoundedRect(4f, 4f, 32f, 32f, 0, roundedRectRadius)
+                            }, toClip = {
+                                drawHead(
+                                    entityTexture, 4, 4, 8f, 8f, 8, 8, 28, 28, 64F, 64F, Color(color)
+                                )
+                            })
+                        }
+                        glPopMatrix()
+                    }
+
+                    // 玩家名称
+                    target.name?.let {
+                        titleFont.drawString(it, healthBarStart, 6F, textCustomColor, textShadow)
+                    }
+                }
+            }
+
+            glPopMatrix()
+        }
+
+        lastTarget = target
+    }
+
+
     private fun renderNavenHUD(sr: ScaledResolution) {
         // 把坐标都转成 Float
         val x2 = sr.scaledWidth / 2f + posX
@@ -234,7 +601,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         // 名称 & 生命 & 距离
         font35.drawString(target!!.name, x2 + 40f, y2 + 10f, Color.WHITE.rgb)
         font32.drawString("Health: ${"%.2f".format(target!!.health)}", x2 + 40f, y2 + 22f, Color.WHITE.rgb)
-        font32.drawString("Distance: ${"%.2f".format(target!!.getDistanceToEntity(mc.thePlayer))}", x2 + 40f, y2 + 30f, Color.WHITE.rgb)
+        font32.drawString(
+            "Distance: ${"%.2f".format(target!!.getDistanceToEntity(mc.thePlayer))}",
+            x2 + 40f,
+            y2 + 30f,
+            Color.WHITE.rgb
+        )
     }
 
 
@@ -242,36 +614,43 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         val entity = target ?: return
         val posX = sr.scaledWidth / 2 + this.posX
         val posY = sr.scaledHeight / 2 + this.posY
-        
+
         // 新增Novoline样式实现
         val width = (38 + Fonts.font35.getStringWidth(entity.name)).coerceAtLeast(118).toFloat()
-        
+
         // 绘制背景
         RenderUtils.drawRect(posX.toFloat(), posY.toFloat(), posX + width + 14f, posY + 44f, bgColor.rgb)
-        
+
         // 绘制玩家头部
-        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let { 
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
             Target().drawHead(it.locationSkin, posX + 3, posY + 3, 30, 30, Color.WHITE)
         }
-        
+
         // 绘制文本信息
         Fonts.font35.drawString(entity.name, posX + 34.5f, posY + 4f, textColor.rgb)
         Fonts.font35.drawString("Health: ${"%.1f".format(entity.health)}", posX + 34.5f, posY + 14f, textColor.rgb)
-        Fonts.font35.drawString("Distance: ${"%.1f".format(mc.thePlayer.getDistanceToEntity(entity))}m", 
-            posX + 34.5f, posY + 24f, textColor.rgb)
-        
+        Fonts.font35.drawString(
+            "Distance: ${"%.1f".format(mc.thePlayer.getDistanceToEntity(entity))}m",
+            posX + 34.5f, posY + 24f, textColor.rgb
+        )
+
         // 绘制生命条
         RenderUtils.drawRect(posX + 2.5f, posY + 35.5f, posX + width + 11.5f, posY + 37.5f, Color(0, 0, 0, 200).rgb)
-        RenderUtils.drawRect(posX + 3f, posY + 36f, 
-            posX + 3f + (entity.health / entity.maxHealth) * (width + 8f), 
-            posY + 37f, ColorUtils.healthColor(entity.health, entity.maxHealth))
-        
+        RenderUtils.drawRect(
+            posX + 3f, posY + 36f,
+            posX + 3f + (entity.health / entity.maxHealth) * (width + 8f),
+            posY + 37f, ColorUtils.healthColor(entity.health, entity.maxHealth)
+        )
+
         // 绘制护甲条
         RenderUtils.drawRect(posX + 2.5f, posY + 39.5f, posX + width + 11.5f, posY + 41.5f, Color(0, 0, 0, 200).rgb)
-        RenderUtils.drawRect(posX + 3f, posY + 40f, 
-            posX + 3f + (entity.totalArmorValue / 20f) * (width + 8f), 
-            posY + 41f, Color(77, 128, 255).rgb)
+        RenderUtils.drawRect(
+            posX + 3f, posY + 40f,
+            posX + 3f + (entity.totalArmorValue / 20f) * (width + 8f),
+            posY + 41f, Color(77, 128, 255).rgb
+        )
     }
+
     private fun renderMyauHUD(sr: ScaledResolution) {
         val entity = target ?: return
         // 位置
@@ -368,7 +747,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         )
         Fonts.font35.drawString("PLC 全国人口档案查询系统", posX + 15, posY - 5, Color.WHITE.rgb)
         Fonts.font35.drawString("姓名:${target!!.gameProfile.name}", posX + 15, posY + 5, Color.WHITE.rgb)
-        Fonts.font35.drawString("健康:${target!!.health.toInt()}/${target!!.maxHealth.toInt()}", posX + 15, posY + 25, Color.WHITE.rgb)
+        Fonts.font35.drawString(
+            "健康:${target!!.health.toInt()}/${target!!.maxHealth.toInt()}",
+            posX + 15,
+            posY + 25,
+            Color.WHITE.rgb
+        )
         Fonts.font35.drawString("资产:${target!!.totalArmorValue}", posX + 15, posY + 45, Color.WHITE.rgb)
         Fonts.font35.drawString("身份证:${target!!.gameProfile.id}", posX + 15, posY + 65, Color.WHITE.rgb)
 
@@ -424,26 +808,29 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         val entity = target ?: return
         val posX = sr.scaledWidth / 2 + this.posX
         val posY = sr.scaledHeight / 2 + this.posY
-        
-        val tWidth = (45F + Fonts.font40.getStringWidth(entity.name).coerceAtLeast(Fonts.font72.getStringWidth("%.1f".format(entity.health)))).coerceAtLeast(120F)
-        
+
+        val tWidth = (45F + Fonts.font40.getStringWidth(entity.name)
+            .coerceAtLeast(Fonts.font72.getStringWidth("%.1f".format(entity.health)))).coerceAtLeast(120F)
+
         // 绘制背景
-        RenderUtils.drawRoundedRect(posX.toFloat(), posY.toFloat(), posX + tWidth, posY + 48F,bgColor.rgb, 7F)
-        
+        RenderUtils.drawRoundedRect(posX.toFloat(), posY.toFloat(), posX + tWidth, posY + 48F, bgColor.rgb, 7F)
+
         // 绘制玩家头部
-        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let { 
-            Target().drawHead(it.locationSkin, posX.toInt() + 4, posY.toInt() + 4, 30, 30, Color.WHITE) 
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, posX.toInt() + 4, posY.toInt() + 4, 30, 30, Color.WHITE)
         }
-        
+
         // 绘制名称和生命值
         Fonts.font40.drawString(entity.name, posX + 38F, posY + 6F, textColor.rgb)
         Fonts.font72.drawString("%.1f".format(entity.health), posX + 38F, posY + 17F, textColor.rgb)
-        
+
         // 绘制生命条
         val healthPercent = entity.health / entity.maxHealth
         RenderUtils.drawRect(posX + 4F, posY + 38F, posX + tWidth - 4F, posY + 44F, Color.DARK_GRAY.rgb)
-        RenderUtils.drawRect(posX + 4F, posY + 38F, posX + 4F + (tWidth - 8F) * healthPercent, posY + 44F, 
-            ColorUtils.healthColor(entity.health, entity.maxHealth))
+        RenderUtils.drawRect(
+            posX + 4F, posY + 38F, posX + 4F + (tWidth - 8F) * healthPercent, posY + 44F,
+            ColorUtils.healthColor(entity.health, entity.maxHealth)
+        )
     }
 
     override fun onDisable() {
@@ -451,6 +838,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.color(1f, 1f, 1f, 1f)
         GlStateManager.disableBlend()
     }
+
     override val tag
         get() = hudStyle
 }

@@ -5,10 +5,12 @@
  */
 package net.ccbluex.liquidbounce.utils.render
 
+import co.uk.hexeption.utils.OutlineUtils
 import net.ccbluex.liquidbounce.features.module.modules.settings.Interface.overrideGlow
 import net.ccbluex.liquidbounce.features.module.modules.settings.Interface.overrideRoundedRectShadow
 import net.ccbluex.liquidbounce.features.module.modules.settings.Interface.overrideStrength
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.ClientUtils.disableFastRender
 import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.ImageUtils
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
@@ -47,9 +49,105 @@ object RenderUtils : MinecraftInstance() {
     val glCapMap = mutableMapOf<Int, Boolean>()
     val DISPLAY_LISTS_2D = IntArray(4)
     var deltaTime = 0
+    fun drawHead(
+        skin: ResourceLocation?,
+        x: Int,
+        y: Int,
+        u: Float,
+        v: Float,
+        uWidth: Int,
+        vHeight: Int,
+        width: Int,
+        height: Int,
+        tileWidth: Float,
+        tileHeight: Float,
+        color: Color
+    ) {
+        glPushMatrix()
+        val texture: ResourceLocation = skin ?: mc.thePlayer.locationSkin
 
+        glColor(color)
+        mc.textureManager.bindTexture(texture)
+        drawScaledCustomSizeModalRect(x, y, u, v, uWidth, vHeight, width, height, tileWidth, tileHeight)
+        glColor(Color.WHITE)
+        glPopMatrix()
+    }
+
+
+    /**
+     * Draw gradient rect.
+     *
+     * @param left       the left
+     * @param top        the top
+     * @param right      the right
+     * @param bottom     the bottom
+     * @param startColor the start color
+     * @param endColor   the end color
+     */
+    fun drawGradientRect(
+        left: Number, top: Number, right: Number, bottom: Number, startColor: Int, endColor: Int, zLevel: Float
+    ) {
+        val a1 = (startColor shr 24 and 255) / 255f
+        val r1 = (startColor shr 16 and 255) / 255f
+        val g1 = (startColor shr 8 and 255) / 255f
+        val b1 = (startColor and 255) / 255f
+        val a2 = (endColor shr 24 and 255) / 255f
+        val r2 = (endColor shr 16 and 255) / 255f
+        val g2 = (endColor shr 8 and 255) / 255f
+        val b2 = (endColor and 255) / 255f
+
+        pushMatrix()
+        disableTexture2D()
+        enableBlend()
+        disableAlpha()
+        tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, 1, 0)
+        shadeModel(GL_SMOOTH)
+
+        val tessellator = Tessellator.getInstance()
+        val buffer = tessellator.worldRenderer
+
+        buffer.begin(GL_QUADS, DefaultVertexFormats.POSITION_COLOR)
+        buffer.pos(right.toDouble(), top.toDouble(), zLevel.toDouble()).color(r2, g2, b2, a2).endVertex()
+        buffer.pos(left.toDouble(), top.toDouble(), zLevel.toDouble()).color(r1, g1, b1, a1).endVertex()
+        buffer.pos(left.toDouble(), bottom.toDouble(), zLevel.toDouble()).color(r1, g1, b1, a1).endVertex()
+        buffer.pos(right.toDouble(), bottom.toDouble(), zLevel.toDouble()).color(r2, g2, b2, a2).endVertex()
+        tessellator.draw()
+
+        shadeModel(GL_FLAT)
+        disableBlend()
+        enableAlpha()
+        enableTexture2D()
+        popMatrix()
+    }
     fun deltaTimeNormalized(ticks: Int = 50) = (deltaTime / ticks.toDouble()).coerceAtMost(1.0)
+    inline fun withClipping(main: () -> Unit, toClip: () -> Unit) {
+        disableFastRender()
+        OutlineUtils.checkSetupFBO()
+        glPushMatrix()
 
+        disableAlpha()
+
+        glEnable(GL_STENCIL_TEST)
+        glStencilFunc(GL_ALWAYS, 1, 1)
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
+        glStencilMask(1)
+        glClear(GL_STENCIL_BUFFER_BIT)
+
+        main()
+
+        glStencilFunc(GL_EQUAL, 1, 1)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        glStencilMask(0)
+
+        toClip()
+
+        glStencilMask(0xFF)
+        glDisable(GL_STENCIL_TEST)
+
+        enableAlpha()
+
+        glPopMatrix()
+    }
     init {
         for (i in DISPLAY_LISTS_2D.indices) {
             DISPLAY_LISTS_2D[i] = glGenLists(1)

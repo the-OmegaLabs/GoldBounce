@@ -141,7 +141,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Delay
     private val switchDelay by int("SwitchDelay", 15, 1..1000) { targetMode == "Switch" }
-
+    private val viewingCheck by boolean("ViewingCheck", true)
     // Bypass
     private val swing by boolean("Swing", true)
     private val keepSprint by boolean("KeepSprint", true)
@@ -785,7 +785,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         var currentTarget = this.target ?: return
         val player = mc.thePlayer ?: return
         val world = mc.theWorld ?: return
-
+        if (viewingCheck) {
+            if(net.ccbluex.liquidbounce.utils.EntityUtils.isLookingAtEntity(mc.thePlayer,
+                target!!,RotationUtils.serverRotation.yaw,RotationUtils.serverRotation.pitch, range.toDouble())){}else{return}
+        }
         if (noConsumeAttack == "NoHits" && isConsumingItem()) {
             return
         }
