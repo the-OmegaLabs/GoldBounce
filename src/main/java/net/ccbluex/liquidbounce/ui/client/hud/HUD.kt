@@ -47,7 +47,6 @@ object HUD : MinecraftInstance() {
     /** Create default HUD */
     fun setDefault() {
         elements.clear()
-        addElement(Arraylist())
         addElement(Notifications())
     }
 
