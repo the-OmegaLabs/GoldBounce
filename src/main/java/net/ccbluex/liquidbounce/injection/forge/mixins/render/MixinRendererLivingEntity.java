@@ -59,7 +59,7 @@ public abstract class MixinRendererLivingEntity extends MixinRender {
 
     @Inject(method = "canRenderName(Lnet/minecraft/entity/EntityLivingBase;)Z", at = @At("HEAD"), cancellable = true)
     private <T extends EntityLivingBase> void canRenderName(T entity, CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
-        if ((NameTags.INSTANCE.getState() && ((NameTags.INSTANCE.getLocalValue().get() && entity == Minecraft.getMinecraft().thePlayer && (!NameTags.INSTANCE.getNfpValue().get() || Minecraft.getMinecraft().gameSettings.thirdPersonView != 0)))))
+        if ((NameTags.INSTANCE.getState()))
             callbackInfoReturnable.setReturnValue(false);
     }
     @Inject(

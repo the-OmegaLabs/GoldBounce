@@ -274,7 +274,6 @@ object ModuleManager : Listenable {
             MoreBends,
             NoC03,
             Arraylist,
-            HypixelDisabler,
             MotionBlur
         )
 
