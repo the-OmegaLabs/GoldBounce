@@ -13,9 +13,11 @@ import net.ccbluex.liquidbounce.features.module.modules.render.SilentHotbarModul
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer;
 import net.ccbluex.liquidbounce.utils.ClassUtils;
 import net.ccbluex.liquidbounce.utils.SilentHotbar;
+import net.ccbluex.liquidbounce.utils.skid.betterchat.GuiBetterChat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiIngame;
+import net.minecraft.client.gui.GuiNewChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -193,7 +195,16 @@ public abstract class MixinGuiInGame extends Gui {
             callbackInfo.cancel();
     }
 
-
+    @Redirect(
+            method = "<init>",
+            at = @At(
+                    value = "NEW",
+                    target = "net/minecraft/client/gui/GuiNewChat"
+            )
+    )
+    private GuiNewChat createBetterChat(Minecraft mc) {
+        return new GuiBetterChat(mc);
+    }
     @Unique
     private void liquidBounce$updateGarbageCollection(float delta) {
         if (!ClassUtils.INSTANCE.hasClass("net.labymod.api.LabyModAPI")) {

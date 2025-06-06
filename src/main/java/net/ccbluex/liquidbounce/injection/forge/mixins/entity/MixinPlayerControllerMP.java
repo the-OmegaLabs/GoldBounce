@@ -40,6 +40,10 @@ public class MixinPlayerControllerMP {
     @Inject(method = "getIsHittingBlock", at = @At("HEAD"), cancellable = true)
     private void getIsHittingBlock(CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
         if (AbortBreaking.INSTANCE.handleEvents()) callbackInfoReturnable.setReturnValue(false);
+//        else {
+//            callbackInfoReturnable.setReturnValue(true);
+//            callbackInfoReturnable.cancel();
+//        }
     }
 
     @Inject(method = "windowClick", at = @At("HEAD"), cancellable = true)

@@ -51,6 +51,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.nio.ByteBuffer;
 import java.util.Queue;
@@ -97,6 +98,18 @@ public abstract class MixinMinecraft {
     @Shadow
     public abstract void displayGuiScreen(GuiScreen guiScreenIn);
 
+    @Inject(
+            at = @At("RETURN"),
+            method = "getLimitFramerate",
+            cancellable = true
+    )
+    private void onGetFramerateLimit(CallbackInfoReturnable<Integer> cir) {
+        cir.setReturnValue(
+                this.theWorld == null && this.currentScreen != null
+                        ? 120
+                        : this.gameSettings.limitFramerate  // field_74350_i -> limitFramerate
+        );
+    }
     @Inject(method = "run", at = @At("HEAD"))
     private void init(CallbackInfo callbackInfo) {
         if (displayWidth < 1067) displayWidth = 1067;
