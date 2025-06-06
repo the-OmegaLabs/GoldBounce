@@ -269,7 +269,6 @@ object ModuleManager : Listenable {
             Sounds,
             HalfLifeWarn,
             AuraZoom,
-            ModuleInfo,
             MoveFix,
             MoreBends,
             NoC03,

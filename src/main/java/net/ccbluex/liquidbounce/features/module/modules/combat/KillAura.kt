@@ -107,7 +107,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val hurtTime by int("HurtTime", 10, 0..10) { !simulateCooldown }
 
     private val clickOnly by boolean("ClickOnly", false)
-
+    private var lastHealth = 0f
+    private var currentRed = 255
+    private var currentGreen = 255
+    private var currentBlue = 255
     // Range
     // TODO: Make block range independent from attack range
     val range: Float by object : FloatValue("Range", 3.7f, 1f..8f) {
@@ -332,6 +335,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val boxOutline by boolean("Outline", true, subjective = true) { mark == "Box" }
     private val fakeSharp by boolean("FakeSharp", true, subjective = true)
     private val renderMode by ListValue("RenderEffect", arrayOf("Capsule", "Nursultan"), "Capsule")
+    private val fadeSpeed = FloatValue("FadeSpeed", 0.1f, 0.01f..0.2f) { renderMode == "Capsule" }
     private val circle by BoolValue("Circle", false)
     private val circleAccuracy by IntegerValue("Accuracy", 59, 0..59) { circle }
     private val circleThickness by FloatValue("Thickness", 2f, 0f..20f) { circle }
@@ -668,48 +672,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         if (renderMode == "Capsule") {
-            target?.let { drawTargetCapsule(it, 0.5, true, Color(255, 255, 255, 255)) }
-        }
-        if (renderMode == "Nursultan") {
-            target?.let { entity ->
-                // 获取正确的摄像机位置
-                val isThirdPerson = mc.gameSettings.thirdPersonView != 0
-                val cameraPos = if (isThirdPerson) {
-                    mc.renderViewEntity.getPositionEyes(1f)
-                } else {
-                    mc.thePlayer.getPositionEyes(1f)
-                }
-
-                // 添加矩阵校验
-                val projectMatrix = FloatBuffer.allocate(16)
-                val modelMatrix = FloatBuffer.allocate(16)
-                GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectMatrix)
-                GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelMatrix)
-
-                // 修正距离计算
-                val dst = mc.thePlayer.getDistanceToEntity(entity)
-                val alphaFactor = 1.0f - MathHelper.clamp_float(dst / 60.0f, 0.0f, 0.75f)
-
-                // 添加渲染状态设置
-                GL11.glEnable(GL11.GL_BLEND)
-                GL11.glDisable(GL11.GL_TEXTURE_2D)
-
-                RenderUtils.targetESPSPos(entity)?.let { pos ->
-                    RenderUtils.drawTargetESP2D(
-                        pos.x,
-                        pos.y,
-                        Color.RED,
-                        Color.BLUE,
-                        Color.GREEN,
-                        Color(255, 192, 203), // 使用明确颜色值代替PINK
-                        alphaFactor,
-                        2  // 增加边框厚度
-                    )
-                }
-
-                GL11.glEnable(GL11.GL_TEXTURE_2D)
-                GL11.glDisable(GL11.GL_BLEND)
-            }
+            val color = Color(currentRed, currentGreen, currentBlue, 255)
+            target?.let { drawTargetCapsule(it, 0.5, true, color) }
         }
 
         if (circle) {
@@ -1414,7 +1378,24 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         @EventTarget
         private fun onUpdate(event: UpdateEvent) {
             val e = syncEntity ?: return
+            target?.let {
+                // 检测生命值变化
+                if (it.health < lastHealth) {
+                    // 受伤时立即设置颜色为红色
+                    currentRed = 255
+                    currentGreen = 0
+                    currentBlue = 0
+                }
+                lastHealth = it.health
 
+                // 逐渐恢复为白色
+                if (currentGreen < 255) {
+                    currentGreen = (currentGreen + fadeSpeed.get() * 255).toInt().coerceAtMost(255)
+                }
+                if (currentBlue < 255) {
+                    currentBlue = (currentBlue + fadeSpeed.get() * 255).toInt().coerceAtMost(255)
+                }
+            }
             if (e is EntityPlayer && e.health <= 0) {
                 println("Player ${e.name} killed.")
                 killCounts++

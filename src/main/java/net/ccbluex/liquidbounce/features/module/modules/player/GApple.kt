@@ -59,7 +59,6 @@ object Gapple : Module("Gapple",Category.PLAYER) {
             eating = -1
         }
     }
-
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         if (tryHeal) {
