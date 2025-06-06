@@ -9,10 +9,13 @@ import net.ccbluex.liquidbounce.features.module.modules.movement.LiquidWalk
 import net.ccbluex.liquidbounce.features.module.modules.movement.NoSlow
 import net.ccbluex.liquidbounce.features.module.modules.movement.Speed
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.extensions.isInLiquid
+import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.value.FloatValue
 import net.minecraft.client.gui.ScaledResolution
 import java.awt.Color
+import org.lwjgl.opengl.GL11.*
 
 /**
  * HUD 信息模块，渲染自定义文本元素，自下而上排列，支持优先级和动态补全
@@ -27,7 +30,10 @@ object ModuleInfo : Module("ModuleInfo", Category.HUD, hideModule = false) {
         val id: String,
         var content: String,
         var color: Color,
-        var priority: Int
+        var priority: Int,
+        // 新增动画属性
+        var animationProgress: Float = 0f, // 动画进度 0~1
+        var lastUpdateTime: Long = System.currentTimeMillis()
     )
 
     // 存储所有文本元素
@@ -60,26 +66,23 @@ object ModuleInfo : Module("ModuleInfo", Category.HUD, hideModule = false) {
     }
 
     @EventTarget
-    fun onRender2D(event: Render2DEvent) {
-        val resolution = ScaledResolution(mc)
-        val baseX = offsetX.toInt()
-        val baseY = resolution.scaledHeight - offsetY.toInt()
-
-        // 根据优先级排序，小的先渲染（更底部）
-        val sorted = elements.sortedBy { it.priority }
-
-        // 字体高度
-        val fr = Fonts.fontNoto35
-        val lineHeight = fr.FONT_HEIGHT + 2
-
-        // 从下向上渲染
-        sorted.forEachIndexed { index, elem ->
-            val y = baseY - index * lineHeight
-            fr.drawStringWithShadow(elem.content, baseX.toFloat(), y.toFloat(), elem.color.rgb)
+    fun onUpdate(event: UpdateEvent) {
+        val currentTime = System.currentTimeMillis()
+        
+        elements.forEach { element ->
+            val deltaTime = (currentTime - element.lastUpdateTime).coerceAtMost(50L)
+            val targetProgress = if (element.content.isNotEmpty()) 1f else 0f
+            val animationSpeed = 0.02f * deltaTime // 控制动画速度
+            
+            element.animationProgress = when {
+                element.animationProgress < targetProgress -> 
+                    (element.animationProgress + animationSpeed).coerceAtMost(1f)
+                else -> 
+                    (element.animationProgress - animationSpeed).coerceAtLeast(0f)
+            }
+            element.lastUpdateTime = currentTime
         }
-    }
-    @EventTarget
-    fun onUpdate(event: UpdateEvent){
+        
         if (Speed.state) {
             if (mc.thePlayer.onGround) {
                 removeTextElement("speed1")
@@ -112,6 +115,62 @@ object ModuleInfo : Module("ModuleInfo", Category.HUD, hideModule = false) {
             }
         } else {
             removeTextElement("nslow")
+        }
+    }
+
+    @EventTarget
+    fun onRender2D(event: Render2DEvent) {
+        val resolution = ScaledResolution(mc)
+        val baseX = offsetX.toInt()
+        val baseY = resolution.scaledHeight - offsetY.toInt()
+
+        // 根据优先级排序，小的先渲染（更底部）
+        val sorted = elements.sortedBy { it.priority }
+
+        // 字体高度
+        val fr = Fonts.fontNoto35
+        val lineHeight = fr.FONT_HEIGHT + 2
+
+        // 从下向上渲染
+        sorted.forEachIndexed { index, elem ->
+            val y = baseY - index * lineHeight
+            // 修改开始：添加与CPSHudCounter一致的背景样式
+            val textWidth = fr.getStringWidth(elem.content)
+            // 绘制圆角背景
+            RenderUtils.drawRoundedRect(
+                baseX.toFloat() - 5F, 
+                y.toFloat() - 6F, 
+                baseX.toFloat() + textWidth + 5F, 
+                y.toFloat() + fr.FONT_HEIGHT + 4F, 
+                Color(0, 0, 0, 120).rgb, 
+                5F
+            )
+            // 绘制发光效果
+            GlowUtils.drawGlow(
+                baseX.toFloat() - 5F,
+                y.toFloat() - 6F,
+                textWidth + 10F,
+                fr.FONT_HEIGHT + 10F,
+                8,
+                Color(0, 0, 0, 120)
+            )
+            // 调整文字位置（带内边距）
+            fr.drawStringWithShadow(elem.content, baseX.toFloat() + 5F, y.toFloat() + 6F, elem.color.rgb)
+            // 修改结束
+            
+            // 应用裁剪区域实现展开动画
+            glEnable(GL_SCISSOR_TEST)
+            val animatedWidth = (elem.animationProgress * textWidth).toInt()
+            val screenScale = resolution.scaleFactor
+            
+            glScissor(
+                (baseX * screenScale).toInt(),
+                ((resolution.scaledHeight - y) * screenScale).toInt() - (fr.FONT_HEIGHT * screenScale).toInt(),
+                (animatedWidth * screenScale).toInt(),
+                (fr.FONT_HEIGHT * screenScale).toInt()
+            )
+            
+            glDisable(GL_SCISSOR_TEST)
         }
     }
 }

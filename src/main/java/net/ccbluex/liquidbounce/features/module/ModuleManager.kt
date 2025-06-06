@@ -274,7 +274,8 @@ object ModuleManager : Listenable {
             MoreBends,
             NoC03,
             Arraylist,
-            HypixelDisabler
+            HypixelDisabler,
+            MotionBlur
         )
 
         InventoryManager.startCoroutine()

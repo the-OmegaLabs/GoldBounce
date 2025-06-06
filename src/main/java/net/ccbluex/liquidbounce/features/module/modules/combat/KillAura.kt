@@ -107,6 +107,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val hurtTime by int("HurtTime", 10, 0..10) { !simulateCooldown }
 
     private val clickOnly by boolean("ClickOnly", false)
+
     // Range
     // TODO: Make block range independent from attack range
     val range: Float by object : FloatValue("Range", 3.7f, 1f..8f) {
@@ -142,6 +143,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Delay
     private val switchDelay by int("SwitchDelay", 15, 1..1000) { targetMode == "Switch" }
     private val viewingCheck by boolean("ViewingCheck", true)
+
     // Bypass
     private val swing by boolean("Swing", true)
     private val keepSprint by boolean("KeepSprint", true)
@@ -348,6 +350,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var b2 = false
     val blinkedPackets: ArrayList<Packet<*>?> = ArrayList<Packet<*>?>()
     private var lastAttackTime: Long = 0
+
     // Target
     var target: EntityLivingBase? = null
     private var hittable = false
@@ -359,6 +362,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var clicks = 0
     private var attackTickTimes = mutableListOf<Pair<MovingObjectPosition, Int>>()
     private var blinkTicks = 0
+
     // Container Delay
     private var containerOpen = -1L
 
@@ -372,12 +376,14 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Blink AutoBlock
     private var blinked = false
-    private lateinit var combatPacket : PacketEvent
+    private lateinit var combatPacket: PacketEvent
+
     // Swing fails
     private val swingFails = mutableListOf<SwingFailData>()
     var slotChangeAutoBlock = false
     private var asw = 0 // 用于BlocksMC A模式的状态控制
     private var blockTickB = 0 // 用于BlocksMC B模式的状态控制
+
     /**
      * Disable kill aura module
      */
@@ -436,6 +442,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             swingFails.clear()
         }
     }
+
     /**
      * Tick event
      */
@@ -657,6 +664,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             b2 = true
         }
     }
+
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         if (renderMode == "Capsule") {
@@ -786,8 +794,14 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         val player = mc.thePlayer ?: return
         val world = mc.theWorld ?: return
         if (viewingCheck) {
-            if(net.ccbluex.liquidbounce.utils.EntityUtils.isLookingAtEntity(mc.thePlayer,
-                target!!,RotationUtils.serverRotation.yaw,RotationUtils.serverRotation.pitch, range.toDouble())){}else{return}
+            if (net.ccbluex.liquidbounce.utils.EntityUtils.isLookingAtEntity(
+                    mc.thePlayer,
+                    target!!, RotationUtils.serverRotation.yaw, RotationUtils.serverRotation.pitch, range.toDouble()
+                )
+            ) {
+            } else {
+                return
+            }
         }
         if (noConsumeAttack == "NoHits" && isConsumingItem()) {
             return
@@ -1263,6 +1277,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             blockStatus = false
         }
     }
+
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val player = mc.thePlayer ?: return
@@ -1323,6 +1338,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
         target = null
     }
+
     /**
      * Checks if raycast landed on a different object
      *
@@ -1380,6 +1396,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         !onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()) -> true
         else -> false
     }
+
     object CombatListener : Listenable {
         private var totalPlayed = 0
         var win = 0
@@ -1520,11 +1537,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
             return false
         }
+
     init {
         CombatListener.handleEvents()
         println("CombatListener registered.")
         CombatListener.killCounts = 0
     }
+
     /**
      * Range
      */
