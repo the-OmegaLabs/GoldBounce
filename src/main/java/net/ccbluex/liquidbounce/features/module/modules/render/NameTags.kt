@@ -43,7 +43,7 @@ object NameTags : Module("NameTags", Category.RENDER) {
     private val roundingValue = FloatValue("Rounding", 5f, 0f..10f)
     private val shadowRadius = FloatValue("ShadowRadius", 6f, 0f..20f)
     private val bgAlpha = FloatValue("BackgroundAlpha", 0.8f, 0f..1f)
-    private val scaleValue = FloatValue("Scale", 1f, 0.5f..3f)
+    private val scaleValue = FloatValue("Scale", 1f, 1f..5f)
     private val fontValue = FontValue("Font", Fonts.font40)
 
     @EventTarget
@@ -74,33 +74,29 @@ object NameTags : Module("NameTags", Category.RENDER) {
         rotate(-renderManager.playerViewY, 0f, 1f, 0f)
         rotate(renderManager.playerViewX, 1f, 0f, 0f)
         val distance = mc.thePlayer.getDistanceToEntity(entity)
-        val scale = (distance * 0.005f) * scaleValue.get()
+
+        // 修复缩放计算：使用反比例确保距离越远标签越小
+        val baseScale = 0.01f
+        val minDistance = 5f
+        val adjustedDistance = distance.coerceAtLeast(minDistance).coerceAtMost(6F)
+        val scale = (baseScale * scaleValue.get()) / (adjustedDistance * 0.3f)
+
         scale(-scale, -scale, scale)
 
         val font = fontValue.get()
-        // 计算距离文本（整数）
         val distanceText = "${distance.roundToInt()}m"
-
-        // 计算各部分文本宽度
         val healthText = "%.1f".format(health)
         val nameWidth = font.getStringWidth(name)
         val healthWidth = font.getStringWidth(healthText)
         val distanceWidth = font.getStringWidth(distanceText)
-
-        // 定义内边距
         val padding = 4f
         val elementSpacing = 2f
-
-        // 计算三个矩形的宽度
         val leftWidth = healthWidth + padding * 2
         val middleWidth = nameWidth + padding * 2
         val rightWidth = distanceWidth + padding * 2
-
-        // 计算总宽度和高度
         val totalWidth = leftWidth + middleWidth + rightWidth + elementSpacing * 2
         val height = font.FONT_HEIGHT + padding * 2
 
-        // 绘制阴影（如果启用）
         if (shadowValue.get()) {
             GlowUtils.drawGlow(
                 -totalWidth / 2 - 4f, -4f,
@@ -109,35 +105,25 @@ object NameTags : Module("NameTags", Category.RENDER) {
                 Color(0, 0, 0, 100))
         }
 
-        // 绘制背景矩形（分成三部分）
         val bgColor = Color(30, 30, 30, (200 * bgAlpha.get()).toInt())
-
-        // 左侧矩形（血量）
         RenderUtils.drawRoundedRect(
             -totalWidth / 2f, 0f,
             -totalWidth / 2f + leftWidth, height,
             bgColor.rgb, roundingValue.get()
         )
-
-        // 中间矩形（名称）
         RenderUtils.drawRoundedRect(
             -totalWidth / 2f + leftWidth + elementSpacing, 0f,
             -totalWidth / 2f + leftWidth + elementSpacing + middleWidth, height,
             bgColor.rgb, roundingValue.get()
         )
-
-        // 右侧矩形（距离）
         RenderUtils.drawRoundedRect(
             -totalWidth / 2f + leftWidth + elementSpacing * 2 + middleWidth, 0f,
             -totalWidth / 2f + leftWidth + elementSpacing * 2 + middleWidth + rightWidth, height,
             bgColor.rgb, roundingValue.get()
         )
 
-        // 绘制文本
-        val kiwiColor = Color(0x7F, 0xCF, 0x00) // 猕猴桃色
-        val grayColor = Color(0xAA, 0xAA, 0xAA) // 灰色
-
-        // 绘制血量（左侧矩形）
+        val kiwiColor = Color(0x7F, 0xCF, 0x00)
+        val grayColor = Color(0xAA, 0xAA, 0xAA)
         font.drawString(
             healthText,
             -totalWidth / 2f + padding,
@@ -145,8 +131,6 @@ object NameTags : Module("NameTags", Category.RENDER) {
             kiwiColor.rgb,
             false
         )
-
-        // 绘制名称（中间矩形）
         font.drawString(
             name,
             -totalWidth / 2f + leftWidth + elementSpacing + padding,
@@ -154,8 +138,6 @@ object NameTags : Module("NameTags", Category.RENDER) {
             Color.WHITE.rgb,
             false
         )
-
-        // 绘制距离（右侧矩形）
         font.drawString(
             distanceText,
             -totalWidth / 2f + leftWidth + elementSpacing * 2 + middleWidth + padding,

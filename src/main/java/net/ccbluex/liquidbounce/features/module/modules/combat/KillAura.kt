@@ -910,7 +910,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     private fun attackEntity(entity: EntityLivingBase, isLastClick: Boolean) {
         val thePlayer = mc.thePlayer
-
+        if(!isEnemy(entity))return
         if (shouldPrioritize())
             return
 

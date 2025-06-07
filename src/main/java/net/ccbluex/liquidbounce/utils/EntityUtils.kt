@@ -15,6 +15,9 @@ import net.ccbluex.liquidbounce.utils.extensions.toRadiansD
 import net.ccbluex.liquidbounce.utils.misc.StringUtils.contains
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.monster.EntityMob
+import net.minecraft.entity.passive.EntityAnimal
+import net.minecraft.entity.passive.EntityVillager
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.MathHelper
@@ -38,9 +41,11 @@ object EntityUtils : MinecraftInstance() {
     private val healthSubstrings = arrayOf("hp", "health", "❤", "lives")
 
     fun isSelected(entity: Entity?, canAttackCheck: Boolean): Boolean {
+        if (!targetAnimals && entity is EntityAnimal) return false
+        if (!targetMobs && entity is EntityMob) return false
         if (entity is EntityLivingBase && (targetDead || entity.isEntityAlive) && entity != mc.thePlayer) {
             if (targetInvisible || !entity.isInvisible) {
-                if (targetPlayer && entity is EntityPlayer) {
+                if (targetPlayer && entity is EntityPlayer && !entity.isMob()) {
                     if (canAttackCheck) {
                         if (isBot(entity))
                             return false
