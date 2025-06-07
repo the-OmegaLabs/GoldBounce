@@ -23,7 +23,27 @@ object ColorUtils {
     private val COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]")
 
     val hexColors = IntArray(16)
+    fun interpolateColorsCyclic(colors: Array<Color>, progress: Float): Color {
+        if (colors.isEmpty()) return Color.WHITE
+        if (colors.size == 1) return colors[0]
 
+        val n = colors.size
+        val total = progress * n
+        val index0 = (total.toInt() % n).coerceAtLeast(0)
+        val index1 = (index0 + 1) % n  // 循环到第一个颜色
+        val fraction = total - total.toInt()
+
+        return interpolateColor(colors[index0], colors[index1], fraction)
+    }
+    private fun interpolateColor(color1: Color, color2: Color, fraction: Float): Color {
+        val invertedFraction = 1f - fraction
+        return Color(
+            (color1.red * invertedFraction + color2.red * fraction).toInt(),
+            (color1.green * invertedFraction + color2.green * fraction).toInt(),
+            (color1.blue * invertedFraction + color2.blue * fraction).toInt(),
+            (color1.alpha * invertedFraction + color2.alpha * fraction).toInt()
+        )
+    }
     init {
         repeat(16) { i ->
             val baseColor = (i shr 3 and 1) * 85
