@@ -6,7 +6,6 @@
 package net.ccbluex.liquidbounce.ui.client.altmanager
 
 import com.google.gson.JsonParser
-import com.thealtening.AltService
 import kotlinx.coroutines.launch
 import me.liuli.elixir.account.CrackedAccount
 import me.liuli.elixir.account.MicrosoftAccount
@@ -113,7 +112,7 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
         )
         Fonts.font35.drawStringWithShadow(
             "§7Type: §a${
-                if (altService.currentService == AltService.EnumAltService.THEALTENING) "TheAltening" else if (isValidTokenOffline(
+                if (isValidTokenOffline(
                         mc.getSession().token
                     )
                 ) "Premium" else "Cracked"
@@ -188,7 +187,6 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
 
             5 -> { // Random name button
                 status = "§aLogged into §f§l${randomAccount().name}§a."
-                altService.switchService(AltService.EnumAltService.MOJANG)
             }
 
             6 -> { // Direct login button
@@ -418,7 +416,6 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
 
     companion object {
 
-        val altService = AltService()
         private val activeGenerators = mutableMapOf<String, Boolean>()
 
         fun loadActiveGenerators() {
@@ -443,17 +440,6 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
         fun login(
             minecraftAccount: MinecraftAccount, success: () -> Unit, error: (Exception) -> Unit, done: () -> Unit
         ) = SharedScopes.IO.launch {
-            if (altService.currentService != AltService.EnumAltService.MOJANG) {
-                try {
-                    altService.switchService(AltService.EnumAltService.MOJANG)
-                } catch (e: NoSuchFieldException) {
-                    error(e)
-                    LOGGER.error("Something went wrong while trying to switch alt service.", e)
-                } catch (e: IllegalAccessException) {
-                    error(e)
-                    LOGGER.error("Something went wrong while trying to switch alt service.", e)
-                }
-            }
 
             try {
                 minecraftAccount.update()

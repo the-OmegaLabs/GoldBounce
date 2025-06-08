@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.ui.client.altmanager.menus
 
-import com.thealtening.AltService
 import kotlinx.coroutines.launch
 import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
@@ -97,16 +96,6 @@ class GuiSessionLogin(private val prevGui: GuiAltManager) : GuiScreen() {
 
                     status = when (loginResult) {
                         LoginUtils.LoginResult.LOGGED -> {
-                            if (GuiAltManager.altService.currentService != AltService.EnumAltService.MOJANG) {
-                                try {
-                                    GuiAltManager.altService.switchService(AltService.EnumAltService.MOJANG)
-                                } catch (e: NoSuchFieldException) {
-                                    LOGGER.error("Something went wrong while trying to switch alt service.", e)
-                                } catch (e: IllegalAccessException) {
-                                    LOGGER.error("Something went wrong while trying to switch alt service.", e)
-                                }
-                            }
-
                             "§aLogged into §f§l${mc.session.username}§a."
                         }
                         LoginUtils.LoginResult.FAILED_PARSE_TOKEN -> "§cFailed to parse Session ID!"

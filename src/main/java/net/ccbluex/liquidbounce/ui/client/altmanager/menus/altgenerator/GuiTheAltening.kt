@@ -9,8 +9,6 @@ import com.mojang.authlib.Agent.MINECRAFT
 import com.mojang.authlib.exceptions.AuthenticationException
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService
 import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication
-import com.thealtening.AltService
-import com.thealtening.api.TheAltening
 import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_NAME
 import net.ccbluex.liquidbounce.event.EventManager.callEvent
 import net.ccbluex.liquidbounce.event.SessionEvent
@@ -121,57 +119,7 @@ class GuiTheAltening(private val prevGui: GuiAltManager) : GuiScreen() {
                 generateButton.enabled = false
                 apiKey = apiKeyField.text
 
-                val altening = TheAltening(apiKey)
-                val asynchronous = TheAltening.Asynchronous(altening)
                 status = "§cGenerating account..."
-
-                asynchronous.accountData.thenAccept { account ->
-                    status = "§aGenerated account: §b§l${account.username}"
-
-                    try {
-                        status = "§cSwitching Alt Service..."
-
-                        // Change Alt Service
-                        GuiAltManager.altService.switchService(AltService.EnumAltService.THEALTENING)
-
-                        status = "§cLogging in..."
-
-                        // Set token as username
-                        val yggdrasilUserAuthentication = YggdrasilUserAuthentication(YggdrasilAuthenticationService(NO_PROXY, ""), MINECRAFT)
-                        yggdrasilUserAuthentication.setUsername(account.token)
-                        yggdrasilUserAuthentication.setPassword(CLIENT_NAME)
-
-                        status = try {
-                            yggdrasilUserAuthentication.logIn()
-
-                            mc.session = Session(yggdrasilUserAuthentication.selectedProfile.name, yggdrasilUserAuthentication
-                                    .selectedProfile.id.toString(),
-                                    yggdrasilUserAuthentication.authenticatedToken, "microsoft")
-                            callEvent(SessionEvent())
-
-                            prevGui.status = "§aYour name is now §b§l${yggdrasilUserAuthentication.selectedProfile.name}§c."
-                            mc.displayGuiScreen(prevGui)
-                            ""
-                        } catch (e: AuthenticationException) {
-                            GuiAltManager.altService.switchService(AltService.EnumAltService.MOJANG)
-
-                            LOGGER.error("Failed to login.", e)
-                            "§cFailed to login: ${e.message}"
-                        }
-                    } catch (throwable: Throwable) {
-                        status = "§cFailed to login. Unknown error."
-                        LOGGER.error("Failed to login.", throwable)
-                    }
-
-                    loginButton.enabled = true
-                    generateButton.enabled = true
-                }.handle { _, err ->
-                    status = "§cFailed to generate account."
-                    LOGGER.error("Failed to generate account.", err)
-                }.whenComplete { _, _ ->
-                    loginButton.enabled = true
-                    generateButton.enabled = true
-                }
             }
             2 -> {
                 loginButton.enabled = false
@@ -180,9 +128,6 @@ class GuiTheAltening(private val prevGui: GuiAltManager) : GuiScreen() {
                 Thread {
                     try {
                         status = "§cSwitching Alt Service..."
-
-                        // Change Alt Service
-                        GuiAltManager.altService.switchService(AltService.EnumAltService.THEALTENING)
                         status = "§cLogging in..."
 
                         // Set token as username
@@ -202,7 +147,6 @@ class GuiTheAltening(private val prevGui: GuiAltManager) : GuiScreen() {
                             mc.displayGuiScreen(prevGui)
                             "§aYour name is now §b§l${yggdrasilUserAuthentication.selectedProfile.name}§c."
                         } catch (e: AuthenticationException) {
-                            GuiAltManager.altService.switchService(AltService.EnumAltService.MOJANG)
 
                             LOGGER.error("Failed to login.", e)
                             "§cFailed to login: ${e.message}"
