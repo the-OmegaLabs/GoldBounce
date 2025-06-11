@@ -12,7 +12,7 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.FloatValue
 
-object Camera : Module("Camera", Category.SETTINGS, gameDetecting = false, hideModule = false) {
+object Camera : Module("Camera", Category.SETTINGS, gameDetecting = false, hideModule = false, canBeEnabled = false) {
     val 呵呵臭贝贝是不是想抄我码子 = "你给我操我就让你抄码子嘻嘻"
 
     val motionCamera = BoolValue("MotionCamera", true)

@@ -32,6 +32,12 @@ object Fonts : MinecraftInstance() {
     @FontDetails(fontName = "Product Sans Medium", fontSize = 18)
     lateinit var font18: GameFontRenderer
 
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 24)
+    lateinit var font24: GameFontRenderer
+
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 30)
+    lateinit var font30: GameFontRenderer
+
     @FontDetails(fontName = "Product Sans Medium", fontSize = 32)
     lateinit var font32: GameFontRenderer
 
@@ -43,6 +49,9 @@ object Fonts : MinecraftInstance() {
 
     @FontDetails(fontName = "Product Sans Medium", fontSize = 72)
     lateinit var font72: GameFontRenderer
+
+    @FontDetails(fontName = "Product Sans Medium", fontSize = 52)
+    lateinit var font52: GameFontRenderer
 
     @FontDetails(fontName = "Honor Sans Regular", fontSize = 35)
     lateinit var fontHonor35: GameFontRenderer
@@ -104,9 +113,12 @@ object Fonts : MinecraftInstance() {
         downloadFonts()
         font16 = GameFontRenderer(getFont("Product Sans Regular.ttf", 16))
         font18 = GameFontRenderer(getFont("Product Sans Regular.ttf", 18))
+        font24 = GameFontRenderer(getFont("Product Sans Regular.ttf", 24))
+        font30 = GameFontRenderer(getFont("Product Sans Regular.ttf", 30))
         font32 = GameFontRenderer(getFont("Product Sans Regular.ttf", 32))
         font35 = GameFontRenderer(getFont("Product Sans Regular.ttf", 35))
         font40 = GameFontRenderer(getFont("Product Sans Regular.ttf", 40))
+        font52 = GameFontRenderer(getFont("Product Sans Regular.ttf", 52))
         font72 = GameFontRenderer(getFont("Product Sans Regular.ttf", 72))
         fontHD30 = GameFontRenderer(getFont("HelveticaMedium.ttf", 30))
         fontHD35 = GameFontRenderer(getFont("HelveticaMedium.ttf", 35))

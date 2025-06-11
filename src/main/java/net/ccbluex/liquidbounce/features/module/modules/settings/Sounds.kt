@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.utils.playWavSound
 import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.ListValue
 
-object Sounds : Module("Sounds", Category.SETTINGS) {
+object Sounds : Module("Sounds", Category.SETTINGS, canBeEnabled = false) {
     val enableSounds = ListValue("Enable", getMP3S("/assets/minecraft/liquidbounce/sounds/Enable").toTypedArray(),"Mac")
     val disableSounds = ListValue("Disable", getMP3S("/assets/minecraft/liquidbounce/sounds/Disable").toTypedArray(),"Mac")
     val infoSounds = ListValue("Info", getMP3S("/assets/minecraft/liquidbounce/sounds/Info").toTypedArray(),"Chord")

@@ -107,7 +107,10 @@ class MovementInputEvent(var originalInput: MovementInput) : Event()
  * Called in "onLivingUpdate" after when the player's sprint states are updated
  */
 class PostSprintUpdateEvent : Event()
-
+/**
+ * 通过注入Forge的MixinGuiIngameForge->renderGameOverlay实现
+ */
+class MotionBlurEvent : Event()
 /**
  * Called in "moveFlying"
  */

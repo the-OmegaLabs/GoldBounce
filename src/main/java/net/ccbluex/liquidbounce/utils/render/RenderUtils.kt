@@ -1166,6 +1166,183 @@ object RenderUtils : MinecraftInstance() {
         drawRoundedRectangle(newX1, newY1, newX2, newY2, red, green, blue, alpha, radius)
     }
 
+    fun originalRoundedRect(
+        paramXStart: Float,
+        paramYStart: Float,
+        paramXEnd: Float,
+        paramYEnd: Float,
+        radius: Float,
+        color: Int
+    ) {
+        var paramXStart = paramXStart
+        var paramYStart = paramYStart
+        var paramXEnd = paramXEnd
+        var paramYEnd = paramYEnd
+        val alpha = (color shr 24 and 0xFF) / 255.0f
+        val red = (color shr 16 and 0xFF) / 255.0f
+        val green = (color shr 8 and 0xFF) / 255.0f
+        val blue = (color and 0xFF) / 255.0f
+
+        var z = 0f
+        if (paramXStart > paramXEnd) {
+            z = paramXStart
+            paramXStart = paramXEnd
+            paramXEnd = z
+        }
+
+        if (paramYStart > paramYEnd) {
+            z = paramYStart
+            paramYStart = paramYEnd
+            paramYEnd = z
+        }
+
+        val x1 = (paramXStart + radius).toDouble()
+        val y1 = (paramYStart + radius).toDouble()
+        val x2 = (paramXEnd - radius).toDouble()
+        val y2 = (paramYEnd - radius).toDouble()
+
+        val tessellator = Tessellator.getInstance()
+        val worldrenderer = tessellator.getWorldRenderer()
+
+        enableBlend()
+        disableTexture2D()
+        tryBlendFuncSeparate(770, 771, 1, 0)
+        color(red, green, blue, alpha)
+        worldrenderer.begin(GL_POLYGON, DefaultVertexFormats.POSITION)
+
+        val degree = Math.PI / 180
+        run {
+            var i = 0.0
+            while (i <= 90) {
+                worldrenderer.pos(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius, 0.0).endVertex()
+                i += 1.0
+            }
+        }
+        run {
+            var i = 90.0
+            while (i <= 180) {
+                worldrenderer.pos(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius, 0.0).endVertex()
+                i += 1.0
+            }
+        }
+        run {
+            var i = 180.0
+            while (i <= 270) {
+                worldrenderer.pos(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius, 0.0).endVertex()
+                i += 1.0
+            }
+        }
+        var i = 270.0
+        while (i <= 360) {
+            worldrenderer.pos(x1 + sin(i * degree) * radius, y2 + cos(i * degree) * radius, 0.0).endVertex()
+            i += 1.0
+        }
+
+        tessellator.draw()
+        enableTexture2D()
+        disableBlend()
+    }
+
+
+    fun customRounded(
+        paramXStart: Float,
+        paramYStart: Float,
+        paramXEnd: Float,
+        paramYEnd: Float,
+        rTL: Float,
+        rTR: Float,
+        rBR: Float,
+        rBL: Float,
+        color: Int
+    ) {
+        var paramXStart = paramXStart
+        var paramYStart = paramYStart
+        var paramXEnd = paramXEnd
+        var paramYEnd = paramYEnd
+        val alpha = (color shr 24 and 0xFF) / 255.0f
+        val red = (color shr 16 and 0xFF) / 255.0f
+        val green = (color shr 8 and 0xFF) / 255.0f
+        val blue = (color and 0xFF) / 255.0f
+
+        var z = 0f
+        if (paramXStart > paramXEnd) {
+            z = paramXStart
+            paramXStart = paramXEnd
+            paramXEnd = z
+        }
+
+        if (paramYStart > paramYEnd) {
+            z = paramYStart
+            paramYStart = paramYEnd
+            paramYEnd = z
+        }
+
+        val xTL = (paramXStart + rTL).toDouble()
+        val yTL = (paramYStart + rTL).toDouble()
+
+        val xTR = (paramXEnd - rTR).toDouble()
+        val yTR = (paramYStart + rTR).toDouble()
+
+        val xBR = (paramXEnd - rBR).toDouble()
+        val yBR = (paramYEnd - rBR).toDouble()
+
+        val xBL = (paramXStart + rBL).toDouble()
+        val yBL = (paramYEnd - rBL).toDouble()
+
+        glPushMatrix()
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+        glLineWidth(1f)
+
+        glColor4f(red, green, blue, alpha)
+        glBegin(GL_POLYGON)
+
+        val degree = Math.PI / 180
+        if (rBR <= 0) glVertex2d(xBR, yBR)
+        else {
+            var i = 0.0
+            while (i <= 90) {
+                glVertex2d(xBR + sin(i * degree) * rBR, yBR + cos(i * degree) * rBR)
+                i += 1.0
+            }
+        }
+
+        if (rTR <= 0) glVertex2d(xTR, yTR)
+        else {
+            var i = 90.0
+            while (i <= 180) {
+                glVertex2d(xTR + sin(i * degree) * rTR, yTR + cos(i * degree) * rTR)
+                i += 1.0
+            }
+        }
+
+        if (rTL <= 0) glVertex2d(xTL, yTL)
+        else {
+            var i = 180.0
+            while (i <= 270) {
+                glVertex2d(xTL + sin(i * degree) * rTL, yTL + cos(i * degree) * rTL)
+                i += 1.0
+            }
+        }
+
+        if (rBL <= 0) glVertex2d(xBL, yBL)
+        else {
+            var i = 270.0
+            while (i <= 360) {
+                glVertex2d(xBL + sin(i * degree) * rBL, yBL + cos(i * degree) * rBL)
+                i += 1.0
+            }
+        }
+        glEnd()
+
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glPopMatrix()
+    }
+
     fun drawRoundedRectangle(
         x1: Float,
         y1: Float,
