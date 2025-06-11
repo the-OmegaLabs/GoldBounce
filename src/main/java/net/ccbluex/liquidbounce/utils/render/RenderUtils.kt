@@ -19,15 +19,20 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.setColour
 import net.ccbluex.liquidbounce.utils.skid.moonlight.math.MathUtils.interpolate
 import net.minecraft.client.Minecraft
+import net.minecraft.client.entity.AbstractClientPlayer
+import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.EntityRenderer
 import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.init.Items
+import net.minecraft.item.ItemStack
 import net.minecraft.util.*
 import org.lwjgl.opengl.Display
 import org.lwjgl.opengl.GL11
@@ -45,10 +50,88 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
+
 object RenderUtils : MinecraftInstance() {
     val glCapMap = mutableMapOf<Int, Boolean>()
     val DISPLAY_LISTS_2D = IntArray(4)
     var deltaTime = 0
+
+    /**
+     * 绘制 GUI 物品图标（Minecraft 1.8.9，Kotlin 实现）
+     */
+    fun renderItemIcon(x: Int, y: Int, stack: ItemStack?) {
+        if (stack == null || stack.item === Items.air) return
+
+        val mc = Minecraft.getMinecraft()
+        val renderItem = mc.renderItem
+
+        // 准备 OpenGL 状态
+        GlStateManager.enableRescaleNormal()
+        GlStateManager.enableBlend()
+        GlStateManager.tryBlendFuncSeparate(
+            GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA,
+            GL11.GL_ONE, GL11.GL_ZERO
+        )
+        RenderHelper.enableGUIStandardItemLighting()
+
+        // 实际渲染
+        renderItem.renderItemAndEffectIntoGUI(stack, x, y) // 带效果的物品模型
+        renderItem.renderItemOverlayIntoGUI(mc.fontRendererObj, stack, x, y, null) // 图标叠加
+
+        // 恢复 OpenGL 状态
+        RenderHelper.disableStandardItemLighting()
+        GlStateManager.disableBlend()
+        GlStateManager.disableRescaleNormal()
+    }
+    /**
+     * 绘制玩家头像（Minecraft 1.8.9 版本）
+     */
+    fun drawPlayerHead(x: Int, y: Int, width: Int, height: Int, player: AbstractClientPlayer?) {
+        val mc = Minecraft.getMinecraft()
+        if (player == null || mc.theWorld == null) {
+            return
+        }
+
+        // 获取玩家皮肤
+        val skin = player.getLocationSkin()
+
+        // 计算受伤时的红色叠加
+        val hurtTime = player.hurtTime
+        var redTint = 1.0f
+        if (hurtTime > 0) {
+            var progress = hurtTime.toFloat() / 10.0f
+            progress = min(progress, 1.0f)
+            // 从 0.6f 渐变到 1.0f
+            redTint = 0.6f + (1.0f - 0.6f) * progress
+        }
+
+        // 开启混合
+        enableBlend()
+        GlStateManager.tryBlendFuncSeparate(
+            GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA,
+            GL11.GL_ONE,      GL11.GL_ZERO
+        );
+
+        // 绑定皮肤贴图
+        mc.getTextureManager().bindTexture(skin)
+
+        // 应用红色叠加
+        color(1.0f, redTint, redTint, 1.0f)
+
+        // 绘制头像：原皮肤贴图中 (8,8) 大小为 8×8 的区域，贴到屏幕上 width×height 大小
+        Gui.drawScaledCustomSizeModalRect(
+            x, y,
+            8f, 8f,  // 纹理起始 U,V
+            8, 8,  // 纹理宽高
+            width, height,  // 屏幕上显示的宽高
+            64f, 64f // 整张皮肤贴图尺寸
+        )
+
+        // 恢复颜色 & 关闭混合
+        color(1f, 1f, 1f, 1f)
+        disableBlend()
+    }
+
     fun drawHead(
         skin: ResourceLocation?,
         x: Int,
