@@ -16,6 +16,7 @@ import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.attack.CPSCounter
 import net.ccbluex.liquidbounce.utils.extensions.getPing
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
+import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加
 import net.ccbluex.liquidbounce.utils.render.EaseUtils.easeOutBack
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawImage
@@ -60,7 +61,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
     private var animatedBlocks = 0f
     private var animationProgress = 0f
-    private const val ANIM_SPEED = 0.2f
+    private const val ANIM_SPEED = 0.5f
     private val animationSpeed = 0.05f
     private var isAnimating = true
     private var pulseTime = 0f
@@ -82,14 +83,15 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     private val shadowEnabled = boolean("Shadow", false) { normalMode.get() == "Opai"}
     val shadowStrengh = int("ShadowStrength", 20, 1..20) { normalMode.get() == "Opai"}
     private val clientName = TextValue("ClientName", "Obai")
-
+    private var animWidth = 0f
+    private var animHeight = 0f
     // Opai模式专用值
     private val opaiColorR = int("Opal-R", 255, 0..255) { normalMode.get() == "Opal" }
     private val opaiColorG = int("Opal-G", 255, 0..255) { normalMode.get() == "Opal" }
     private val opaiColorB = int("Opal-B", 255, 0..255) { normalMode.get() == "Opal" }
     private val opaiShadow = boolean("Opal-Shadow", false) { normalMode.get() == "Opal" }
     private val opaiShadowStrength = int("Opal-ShadowStrength", 1, 1..2) { normalMode.get() == "Opal" }
-    private val opaiAnimationSpeed = float("Opal-AnimSpeed", 0.2f, 0.05f..1f) { normalMode.get() == "Opal" }
+    private val opaiAnimationSpeed = float("Opal-AnimSpeed", 0.4f, 0.05f..1f) { normalMode.get() == "Opal" }
 
     // Opai模式常量
     private val versionNameUp = LiquidBounce.clientVersionText
@@ -109,6 +111,25 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         return if (x < 0.5f) 2 * x * x else 1 - (-2 * x + 2).pow(2) / 2
     }
 
+    private fun updateAnimation(targetWidth: Float, targetHeight: Float) {
+        animWidth = AnimationUtils水影加加.animate(
+            targetWidth,
+            animWidth,
+            ANIM_SPEED * RenderUtils.deltaTime * 0.025F
+        )
+
+        animHeight = AnimationUtils水影加加.animate(
+            targetHeight,
+            animHeight,
+            ANIM_SPEED * RenderUtils.deltaTime * 0.025F
+        )
+
+        currentWidth = animWidth
+        currentHeight = animHeight
+    }
+
+
+
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
         val sr = ScaledResolution(mc)
@@ -127,8 +148,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             else -> calculateNormalSize(sr)
         }
 
-        currentWidth = lerp(currentWidth, targetWidth, uiAnimProgress).toFloat()
-        currentHeight = lerp(currentHeight, targetHeight, uiAnimProgress).toFloat()
+        updateAnimation(targetWidth, targetHeight)
 
         drawBackground(sr, currentWidth, currentHeight)
 
@@ -393,11 +413,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     }
 
     private fun calculateScaffoldSize(sr: ScaledResolution): Pair<Float, Float> {
-        return if (normalMode.get() == "Opal") {
-            val stack = mc.thePlayer?.inventory?.getStackInSlot(SilentHotbar.currentSlot)
-            val countWidth = Fonts.fontHonor40.getStringWidth("${stack?.stackSize ?: 0} blocks").toFloat()
-            Pair(200f + countWidth, 27f)
-        } else {
+        return run {
             val stack = mc.thePlayer?.inventory?.getStackInSlot(SilentHotbar.currentSlot)
             val textWidth = Fonts.font40.getStringWidth("${stack?.stackSize ?: 0} blocks").toFloat()
             Pair(200f + textWidth, 36f)
@@ -405,52 +421,49 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     }
 
     private fun drawBackground(sr: ScaledResolution, width: Float, height: Float) {
-        val startX = (sr.scaledWidth - width) / 2
-        val startY = sr.scaledHeight / 9f
+        val screenWidth = sr.scaledWidth.toFloat()
+        // 固定顶部Y坐标为原始位置（屏幕1/9处）
+        val fixedTopY = sr.scaledHeight / 9f
 
-        if (currentState == State.Scaffolding) {
-            RenderUtils.drawRoundedRect(
-                startX, startY,
-                startX + width, startY + height,
-                Color(bgColor.red, bgColor.green, bgColor.blue, (bgColor.alpha * uiAnimProgress).toInt()).rgb,
-                15f
-            )
+        // 计算动态底部Y坐标
+        val dynamicBottomY = fixedTopY + animHeight
 
-            if (normalMode.get() == "Opai" && shadowEnabled.get()) {
+        // 绘制主背景（保持顶部固定）
+        RenderUtils.drawRoundedRect(
+            (screenWidth - animWidth) / 2, // 保持水平居中
+            fixedTopY,                     // 固定顶部
+            (screenWidth + animWidth) / 2, // 左右扩展
+            dynamicBottomY,                // 向下拉伸
+            bgColor.rgb,                   // 使用固定透明度
+            15f
+        )
+
+        // 阴影系统调整
+        when {
+            normalMode.get() == "Opai" && shadowEnabled.get() -> {
                 GlowUtils.drawGlow(
-                    startX, startY,
-                    width, height,
-                    (shadowStrengh.get() * uiAnimProgress).toInt(),
-                    bgColor
-                )
-            } else if (normalMode.get() == "Opal" && opaiShadow.get()) {
-                GlowUtils.drawGlow(
-                    startX, startY,
-                    width, height,
-                    (opaiShadowStrength.get() * 13F * uiAnimProgress).toInt(),
+                    (screenWidth - animWidth)/2 - 5,
+                    fixedTopY,
+                    animWidth + 10,
+                    animHeight,
+                    shadowStrengh.get(),
                     bgColor
                 )
             }
-        }
 
-        else if (normalMode.get() == "Opai") {
-            RenderUtils.drawRoundedRect(
-                startX, startY,
-                startX + width, startY + height,
-                Color(bgColor.red, bgColor.green, bgColor.blue, (bgColor.alpha * uiAnimProgress).toInt()).rgb,
-                15f
-            )
-
-            if (shadowEnabled.get()) {
+            normalMode.get() == "Opal" && opaiShadow.get() -> {
                 GlowUtils.drawGlow(
-                    startX, startY,
-                    width, height,
-                    (shadowStrengh.get() * uiAnimProgress).toInt(),
-                    bgColor
+                    (screenWidth - animWidth)/2,
+                    fixedTopY,
+                    animWidth,
+                    animHeight + 10,
+                    opaiShadowStrength.get() * 13,
+                    Color(255, 255, 255, 80)
                 )
             }
         }
     }
+
 
     private fun drawOpaiShadow(startX: Float, startY: Float, width: Float, height: Float) {
         GlowUtils.drawGlow(

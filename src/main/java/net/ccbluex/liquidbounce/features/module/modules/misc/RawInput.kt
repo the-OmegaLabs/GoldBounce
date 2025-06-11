@@ -12,6 +12,10 @@ object RawInput : Module("RawInput", Category.MISC) {
             chat("警告: RawInput模块在安卓上无法使用，可能会导致视角无法转动!")
             RawInputMod().stop()
             return
+        } else if (SysUtils().isLinux()){
+            chat("警告: RawInput模块在Linux上无法使用，可能会导致视角无法转动!")
+            RawInputMod().stop()
+            return
         }
         RawInputMod().start()
     }

@@ -11,12 +11,14 @@ import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.CategoryElemen
 import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.SearchElement;
 import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.ModuleElement;
 import net.ccbluex.liquidbounce.ui.font.Fonts;
+import net.ccbluex.liquidbounce.utils.GlowUtils;
 import net.ccbluex.liquidbounce.utils.MouseUtils;
 import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加;
 import net.ccbluex.liquidbounce.utils.render.RenderUtils;
 import net.ccbluex.liquidbounce.utils.render.Stencil;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.util.MathHelper;
@@ -79,7 +81,9 @@ public class NewUi extends GuiScreen {
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         // will draw reduced ver once it gets under 1140x780.
-        drawFullSized(mouseX, mouseY, partialTicks, NewGUI.INSTANCE.getAccentColor());
+        GlowUtils.INSTANCE.drawGlow(30, 30, new ScaledResolution(mc).getScaledWidth()-60, new ScaledResolution(mc).getScaledHeight()-60, 4, new Color(0, 0, 0, 150));
+        RenderUtils.INSTANCE.drawRoundedRect(30, new ScaledResolution(mc).getScaledHeight()-30, new ScaledResolution(mc).getScaledWidth()-30, 30, new Color(33, 33, 33, 150).getRGB(), 4F);
+        drawFullSized(mouseX, mouseY, partialTicks, new Color(0,140,255));
     }
 
     private void drawFullSized(int mouseX, int mouseY, float partialTicks, Color accentColor) {

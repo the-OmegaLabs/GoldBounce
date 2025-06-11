@@ -58,4 +58,9 @@ class SysUtils {
                 runtimeName.contains("android") ||
                 osName.contains("android")
     }
+
+    fun isLinux(): Boolean {
+        val osName = System.getProperty("os.name")?.lowercase() ?: ""
+        return osName.contains("linux")
+    }
 }

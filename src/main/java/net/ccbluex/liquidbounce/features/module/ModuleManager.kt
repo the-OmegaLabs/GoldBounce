@@ -276,7 +276,8 @@ object ModuleManager : Listenable {
             Arraylist,
             MotionBlur,
             NewGUI,
-            Interface
+            Interface,
+            Logo
         )
 
         InventoryManager.startCoroutine()

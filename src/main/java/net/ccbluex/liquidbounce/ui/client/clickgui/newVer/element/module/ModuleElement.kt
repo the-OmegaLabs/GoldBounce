@@ -97,7 +97,7 @@ class ModuleElement(val module: Module): MinecraftInstance() {
 
         toggleSwitch.state = module.state
 
-        if (module.values.size > 0) {
+        if (module.values.isNotEmpty()) {
             RenderUtils.drawRect(x + width - 40F, y + 5F, x + width - 39.5F, y + height - 5F, 4281348144L.toInt())
             GlStateManager.resetColor()
             glPushMatrix()
