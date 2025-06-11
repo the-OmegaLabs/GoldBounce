@@ -60,7 +60,7 @@ object RenderUtils : MinecraftInstance() {
      * 绘制 GUI 物品图标（Minecraft 1.8.9，Kotlin 实现）
      */
     fun renderItemIcon(x: Int, y: Int, stack: ItemStack?) {
-        if (stack == null || stack.item === Items.air) return
+        if (stack == null || stack.item == null) return
 
         val mc = Minecraft.getMinecraft()
         val renderItem = mc.renderItem

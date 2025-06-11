@@ -15,6 +15,8 @@ import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.shader.Framebuffer
+import net.minecraftforge.client.event.RenderGameOverlayEvent
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import op.wawa.opacketfix.features.hytpacket.CustomPacket
 import org.lwjgl.opengl.GL11
 import kotlin.div
@@ -65,8 +67,8 @@ object MotionBlur : Module("MotionBlur", Category.RENDER) {
         GL11.glTexParameteri(3553, 10240, 9728)
     }
 
-    @EventTarget
-    fun renderOverlay(event: Render2DEvent) {
+    @SubscribeEvent
+    fun renderOverlay(event: RenderGameOverlayEvent.Post) {
         if (mc.thePlayer == null || mc.thePlayer!!.ticksExisted < 20) return
         if (mc.currentScreen == null) {
             if (OpenGlHelper.isFramebufferEnabled()) {

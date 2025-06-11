@@ -60,8 +60,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "Chill",
             "Myau",
             "RavenB4",
-            "Naven",
-            "Modern"
+            "Naven"
         ),
         "Novoline"
     )
