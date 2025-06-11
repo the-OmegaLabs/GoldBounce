@@ -23,6 +23,7 @@ object Derp : Module("AntiAim", Category.FUN, subjective = true, hideModule = fa
     private val headless = mode == "BigAngle" || mode == "Spinny" || mode == "AI"
     private val angelSwitch by float("AngleSwitch", 30F, -180F..180F) { mode == "BigAngle" }
     private val spinny = mode == "Spinny"
+    private val customPitch by float("CustomPitch", 90F, -180F..180F) { spinny }
     private val increment by float("SpinStrength", 1F, 0F..100F) { spinny }
 
     private var anglePhase = false
@@ -74,10 +75,12 @@ object Derp : Module("AntiAim", Category.FUN, subjective = true, hideModule = fa
             val rot = Rotation(base.yaw, base.pitch)
 
             // flip upside‐down head if desired
-            if (headless) rot.pitch = 180F
 
             when (mode) {
-                "Spinny"   -> rot.yaw += increment
+                "Spinny"   -> {
+                    rot.yaw += increment
+                    rot.pitch = customPitch
+                }
                 "BigAngle" -> rot.yaw = getAwayFromClosestYaw()+getBigAngle()
                 "Random"   -> {
                     rot.pitch = getRandomPitch()
