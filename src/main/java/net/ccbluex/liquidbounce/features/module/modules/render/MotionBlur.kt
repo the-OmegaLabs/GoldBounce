@@ -67,8 +67,8 @@ object MotionBlur : Module("MotionBlur", Category.RENDER) {
         GL11.glTexParameteri(3553, 10240, 9728)
     }
 
-    @SubscribeEvent
-    fun renderOverlay(event: RenderGameOverlayEvent.Post) {
+    @EventTarget
+    fun renderOverlay(event: Render2DEvent) {
         if (mc.thePlayer == null || mc.thePlayer!!.ticksExisted < 20) return
         if (mc.currentScreen == null) {
             if (OpenGlHelper.isFramebufferEnabled()) {
