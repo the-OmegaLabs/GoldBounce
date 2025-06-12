@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.features.module
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
 import net.ccbluex.liquidbounce.event.Listenable
+import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.features.module.modules.misc.GameDetector
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.file.FileManager.modulesConfig
@@ -110,10 +111,13 @@ open class Module(
             // Play sound and add notification
             if (!isStarting) {
                     if(value){
+                        WaterMark.showToggleNotification("Module Toggled", "$name has been Enabled!", true)
                         Sounds.playEnableSound()
                     }else{
+                        WaterMark.showToggleNotification("Module Toggled", "$name has been Disabled!", false)
                         Sounds.playDisableSound()
                     }
+
                     addNotification(
                         Notification(
                             getName(),

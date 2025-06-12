@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.utils
 
+import lombok.Getter
 import net.ccbluex.liquidbounce.features.module.modules.combat.NoFriends
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot.isBot
 import net.ccbluex.liquidbounce.features.module.modules.misc.Teams
@@ -28,14 +29,16 @@ import kotlin.math.sin
 
 object EntityUtils : MinecraftInstance() {
 
+
+    @Getter
     var targetInvisible = false
-
+    @Getter
     var targetPlayer = true
-
+    @Getter
     var targetMobs = true
-
+    @Getter
     var targetAnimals = false
-
+    @Getter
     var targetDead = false
 
     private val healthSubstrings = arrayOf("hp", "health", "❤", "lives")

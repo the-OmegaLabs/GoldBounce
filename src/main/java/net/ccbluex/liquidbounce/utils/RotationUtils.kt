@@ -11,7 +11,6 @@ import net.ccbluex.liquidbounce.features.module.modules.combat.FastBow
 import net.ccbluex.liquidbounce.features.module.modules.render.Rotations
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.utils.RaycastUtils.raycastEntity
-import net.ccbluex.liquidbounce.utils.RotationUtils.BodyPoint.values
 import net.ccbluex.liquidbounce.utils.RotationUtils.MAX_CAPTURE_TICKS
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.extensions.*
@@ -19,7 +18,6 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextDouble
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
-import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.play.client.C03PacketPlayer

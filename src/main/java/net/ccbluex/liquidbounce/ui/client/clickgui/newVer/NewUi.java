@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.ModuleE
 import net.ccbluex.liquidbounce.ui.font.Fonts;
 import net.ccbluex.liquidbounce.utils.GlowUtils;
 import net.ccbluex.liquidbounce.utils.MouseUtils;
-import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加;
+// import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加; // Replaced with manual implementation
 import net.ccbluex.liquidbounce.utils.render.RenderUtils;
 import net.ccbluex.liquidbounce.utils.render.Stencil;
 import net.minecraft.client.gui.Gui;
@@ -29,6 +29,7 @@ import org.lwjgl.input.Mouse;
 import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -36,7 +37,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class NewUi extends GuiScreen {
 
     private static NewUi instance;
-    public static final NewUi getInstance() {
+    public static NewUi getInstance() {
         return instance == null ? instance = new NewUi() : instance;
     }
 
@@ -52,6 +53,9 @@ public class NewUi extends GuiScreen {
 
     public final List<CategoryElement> categoryElements = new ArrayList<>();
 
+    // List to hold all active ripple effects
+    private final List<Ripple> ripples = new ArrayList<>();
+
     private float startYAnim = height / 2F;
     private float endYAnim = height / 2F;
 
@@ -59,6 +63,64 @@ public class NewUi extends GuiScreen {
 
     private float fading = 0F;
 
+    // --- Material Design Animation Helper ---
+    // A simple utility to create smooth ease-out animations.
+    private static class MaterialAnimate {
+        public static float animate(float target, float current, float speed) {
+            if (current == target) return target;
+            float newSpeed = speed * RenderUtils.INSTANCE.getDeltaTime() * 0.025f;
+            if (Math.abs(target - current) < 0.01f) {
+                return target;
+            }
+            return current + (target - current) * MathHelper.clamp_float(newSpeed, 0F, 1F);
+        }
+    }
+
+    // --- Ripple Effect Class ---
+    // Manages the state and rendering of a single ripple.
+    private static class Ripple {
+        private final float x, y;
+        private final long creationTime;
+        private final Color color;
+        private final float maxRadius;
+        private static final long DURATION = 600; // Animation duration in milliseconds
+
+        public Ripple(float x, float y, float maxRadius, Color color) {
+            this.x = x;
+            this.y = y;
+            this.maxRadius = maxRadius;
+            this.color = color;
+            this.creationTime = System.currentTimeMillis();
+        }
+
+        public void draw() {
+            long elapsedTime = System.currentTimeMillis() - this.creationTime;
+            if (elapsedTime > DURATION) {
+                return;
+            }
+
+            // Ease-out-cubic function for smooth expansion
+            double progress = (double) elapsedTime / DURATION;
+            double easedProgress = 1.0 - Math.pow(1.0 - progress, 3);
+
+            float currentRadius = (float) (easedProgress * this.maxRadius);
+
+            // Fade out the ripple as it expands
+            int alpha = (int) (this.color.getAlpha() * (1.0 - progress));
+            if (alpha <= 0) return;
+
+            Color drawColor = new Color(this.color.getRed(), this.color.getGreen(), this.color.getBlue(), alpha);
+
+            RenderUtils.INSTANCE.drawFilledCircle(this.x, this.y, currentRadius, drawColor);
+        }
+
+        public boolean isDone() {
+            return System.currentTimeMillis() - this.creationTime > DURATION;
+        }
+    }
+
+
+    @Override
     public void initGui() {
         Keyboard.enableRepeatEvents(true);
         for (CategoryElement ce : categoryElements) {
@@ -71,6 +133,7 @@ public class NewUi extends GuiScreen {
         super.initGui();
     }
 
+    @Override
     public void onGuiClosed() {
         for (CategoryElement ce : categoryElements) {
             if (ce.getFocused())
@@ -79,15 +142,40 @@ public class NewUi extends GuiScreen {
         Keyboard.enableRepeatEvents(false);
     }
 
+    @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        ScaledResolution sr = new ScaledResolution(mc);
         // will draw reduced ver once it gets under 1140x780.
-        GlowUtils.INSTANCE.drawGlow(30, 30, new ScaledResolution(mc).getScaledWidth()-60, new ScaledResolution(mc).getScaledHeight()-60, 4, new Color(0, 0, 0, 150));
-        RenderUtils.INSTANCE.drawRoundedRect(30, new ScaledResolution(mc).getScaledHeight()-30, new ScaledResolution(mc).getScaledWidth()-30, 30, new Color(33, 33, 33, 150).getRGB(), 4F);
+        GlowUtils.INSTANCE.drawGlow(30, 30, sr.getScaledWidth()-60, sr.getScaledHeight()-60, 4, new Color(0, 0, 0, 150));
+        RenderUtils.INSTANCE.drawRoundedRect(30, sr.getScaledHeight()-30, sr.getScaledWidth()-30, 30, new Color(33, 33, 33, 150).getRGB(), 4F);
         drawFullSized(mouseX, mouseY, partialTicks, new Color(0,140,255));
     }
 
     private void drawFullSized(int mouseX, int mouseY, float partialTicks, Color accentColor) {
+        // Draw the main background
         RenderUtils.INSTANCE.drawRoundedRect(30F, 30F, this.width - 30F, this.height - 30F, 8, 0xFF101010);
+
+        // --- RIPPLE EFFECT RENDERING ---
+        // 1. Start stencil writing
+        Stencil.write(true);
+        // 2. Define the clipping area (the main GUI background) for the ripples
+        RenderUtils.INSTANCE.drawRoundedRect(30F, 30F, this.width - 30F, this.height - 30F, 8, Color.WHITE.getRGB());
+        // 3. Switch to stencil erasing mode
+        Stencil.erase(true);
+
+        // 4. Draw all ripples. They will only be visible inside the stenciled area.
+        for (Ripple ripple : ripples) {
+            ripple.draw();
+        }
+
+        // 5. Clean up the stencil buffer
+        Stencil.dispose();
+
+        // Remove ripples that have finished their animation
+        ripples.removeIf(Ripple::isDone);
+
+        // --- END RIPPLE EFFECT ---
+
         // something to make it look more like windoze
         if (MouseUtils.mouseWithinBounds(mouseX, mouseY, this.width - 54F, 30F, this.width - 30F, 50F))
             fading += 0.2F * RenderUtils.INSTANCE.getDeltaTime() * 0.045F;
@@ -98,6 +186,8 @@ public class NewUi extends GuiScreen {
         GlStateManager.disableAlpha();
         RenderUtils.INSTANCE.drawImage(IconManager.removeIcon, this.width - 47, 35, 10, 10);
         GlStateManager.enableAlpha();
+
+        // --- Player Head ---
         Stencil.write(true);
         RenderUtils.INSTANCE.drawFilledCircle(65, 80, 25F, new Color(45, 45, 45));
         Stencil.erase(true);
@@ -111,8 +201,7 @@ public class NewUi extends GuiScreen {
             OpenGlHelper.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
             glColor4f(1f, 1f, 1f, 1f);
             mc.getTextureManager().bindTexture(skin);
-            Gui.drawScaledCustomSizeModalRect(0, 0, 8F, 8F, 8, 8, 50, 50,
-                    64F, 64F);
+            Gui.drawScaledCustomSizeModalRect(0, 0, 8F, 8F, 8, 8, 50, 50, 64F, 64F);
             glDepthMask(true);
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
@@ -135,8 +224,10 @@ public class NewUi extends GuiScreen {
         for (CategoryElement ce : categoryElements) {
             ce.drawLabel(mouseX, mouseY, 30F, startY, 200F, elementHeight);
             if (ce.getFocused()) {
-                startYAnim = NewGUI.INSTANCE.getFastRenderValue().get() ? startY + 6F : AnimationUtils水影加加.animate(startY + 6F, startYAnim, (startYAnim - (startY + 5F) > 0 ? 0.65F : 0.55F) * RenderUtils.INSTANCE.getDeltaTime() * 0.025F);
-                endYAnim = NewGUI.INSTANCE.getFastRenderValue().get() ? startY + elementHeight - 6F : AnimationUtils水影加加.animate(startY + elementHeight - 6F, endYAnim, (endYAnim - (startY + elementHeight - 5F) < 0 ? 0.65F : 0.55F) * RenderUtils.INSTANCE.getDeltaTime() * 0.025F);
+                // Use the new MaterialAnimate helper for smoother sidebar animation
+                float animationSpeed = 0.5F; // Adjust speed as needed
+                startYAnim = NewGUI.INSTANCE.getFastRenderValue().get() ? startY + 6F : MaterialAnimate.animate(startY + 6F, startYAnim, animationSpeed);
+                endYAnim = NewGUI.INSTANCE.getFastRenderValue().get() ? startY + elementHeight - 6F : MaterialAnimate.animate(startY + elementHeight - 6F, endYAnim, animationSpeed);
 
                 ce.drawPanel(mouseX, mouseY, 230, 50, width - 260, height - 80, Mouse.getDWheel(), accentColor);
             }
@@ -146,7 +237,13 @@ public class NewUi extends GuiScreen {
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
+    @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        // Add a new ripple effect at the mouse position on every click
+        if (mouseButton == 0 && MouseUtils.mouseWithinBounds(mouseX, mouseY, 30F, 30F, this.width - 30F, this.height - 30F)) {
+            ripples.add(new Ripple(mouseX, mouseY, 120F, new Color(255, 255, 255, 60)));
+        }
+
         if (MouseUtils.mouseWithinBounds(mouseX, mouseY, this.width - 54F, 30F, this.width - 30F, 50F)) {
             mc.displayGuiScreen(null);
             return;
@@ -166,6 +263,7 @@ public class NewUi extends GuiScreen {
         }
     }
 
+    @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         for (CategoryElement ce : categoryElements) {
             if (ce.getFocused()) {
@@ -178,12 +276,13 @@ public class NewUi extends GuiScreen {
         super.keyTyped(typedChar, keyCode);
     }
 
+    @Override
     protected void mouseReleased(int mouseX, int mouseY, int state) {
         searchElement.handleMouseRelease(mouseX, mouseY, state, 230, 50, width - 260, height - 80, categoryElements);
         if (!searchElement.isTyping())
             for (CategoryElement ce : categoryElements) {
                 if (ce.getFocused())
-                ce.handleMouseRelease(mouseX, mouseY, state, 230, 50, width - 260, height - 80);
+                    ce.handleMouseRelease(mouseX, mouseY, state, 230, 50, width - 260, height - 80);
             }
         super.mouseReleased(mouseX, mouseY, state);
     }

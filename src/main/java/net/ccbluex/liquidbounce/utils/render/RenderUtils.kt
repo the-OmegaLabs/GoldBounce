@@ -22,16 +22,11 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.entity.AbstractClientPlayer
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.ScaledResolution
-import net.minecraft.client.renderer.EntityRenderer
-import net.minecraft.client.renderer.GLAllocation
-import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.GlStateManager.*
-import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
-import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.util.*
 import org.lwjgl.opengl.Display
@@ -1426,6 +1421,31 @@ object RenderUtils : MinecraftInstance() {
         glPopMatrix()
     }
 
+    fun drawFilledCircle(x: Float, y: Float, radius: Float, color: Color) {
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+
+        glColor4f(
+            color.getRed() / 255.0f,
+            color.getGreen() / 255.0f,
+            color.getBlue() / 255.0f,
+            color.getAlpha() / 255.0f
+        )
+
+        glBegin(GL_TRIANGLE_FAN)
+        glVertex2f(x, y) // Center of circle
+        for (i in 0..360) {
+            val angle = i * Math.PI / 180.0
+            glVertex2f(x + (sin(angle) * radius).toFloat(), y + (cos(angle) * radius).toFloat())
+        }
+        glEnd()
+
+        glDisable(GL_LINE_SMOOTH)
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+    }
     fun drawRoundedRectangle(
         x1: Float,
         y1: Float,

@@ -23,7 +23,7 @@ abstract class Value<T>(
     val name: String,
     protected open var value: T,
     val subjective: Boolean = false,
-    var isSupported: (() -> Boolean)? = null,
+    var supportCondition: (() -> Boolean)? = null,
 ) : ReadWriteProperty<Any?, T> {
 
     var excluded: Boolean = false
@@ -99,10 +99,11 @@ abstract class Value<T>(
     protected open fun onUpdate(value: T) {}
     protected open fun onChange(oldValue: T, newValue: T) = newValue
     protected open fun onChanged(oldValue: T, newValue: T) {}
-    open fun isSupported() = isSupported?.invoke() != false
+
+    open fun isSupported() = supportCondition?.invoke() != false
 
     open fun setSupport(value: (Boolean) -> () -> Boolean) {
-        isSupported = value(isSupported())
+        supportCondition = value(isSupported())
     }
 
     // Support for delegating values using the `by` keyword.
@@ -353,7 +354,10 @@ open class ListValue(
     override fun changeValue(newValue: String) {
         values.find { it.equals(newValue, true) }?.let { value = it }
     }
-
+    fun cycle() {
+        val index = values.indexOf(value)
+        value = values[(index + 1) % values.size]
+    }
     override fun toJsonF() = JsonPrimitive(value)
 
     override fun fromJsonF(element: JsonElement) = if (element.isJsonPrimitive) element.asString else null

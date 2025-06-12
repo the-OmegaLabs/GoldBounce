@@ -6,6 +6,7 @@
 package net.ccbluex.liquidbounce.ui.client.hud
 
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
+import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element

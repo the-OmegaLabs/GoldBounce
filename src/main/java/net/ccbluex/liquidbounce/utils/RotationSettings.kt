@@ -8,7 +8,6 @@ package net.ccbluex.liquidbounce.utils
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.extensions.withGCD
 import net.ccbluex.liquidbounce.value.*
-import net.minecraft.client.model.ModelVillager
 import kotlin.math.abs
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -159,7 +158,7 @@ class RotationSettingsWithRotationModes(
 
     override val rotationsValue = super.rotationsValue.apply { excludeWithState() }
 
-    val rotationModeValue = listValue.apply { isSupported = generalApply }
+    val rotationModeValue = listValue.apply { supportCondition = generalApply }
 
     override val rotationMode by rotationModeValue
 

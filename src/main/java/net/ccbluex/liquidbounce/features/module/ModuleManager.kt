@@ -48,7 +48,9 @@ object ModuleManager : Listenable {
     init {
         registerListener(this)
     }
-
+    fun getModuleByCategory(category: Category): List<Module> {
+        return modules.filter { it.category == category }
+    }
     /**
      * Register all modules
      */

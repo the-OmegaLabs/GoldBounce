@@ -78,6 +78,8 @@ fun playWavSound(path: String) {
     } catch (e: IOException) {
         println("文件加载失败: $path")
         e.printStackTrace()
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 

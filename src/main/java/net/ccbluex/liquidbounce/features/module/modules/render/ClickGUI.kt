@@ -21,7 +21,6 @@ import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.network.play.server.S2EPacketCloseWindow
-import org.lwjgl.input.Keyboard
 import java.awt.Color
 
 object ClickGUI : Module("OldClickGUI", Category.RENDER) {
