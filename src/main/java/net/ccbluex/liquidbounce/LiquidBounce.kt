@@ -81,7 +81,7 @@ object LiquidBounce {
 
     const val MINECRAFT_VERSION = "1.8.9"
     val clientVersionText = "b10"
-    val clientBigVersionText = "Prev20"
+    val clientBigVersionText = "Release"
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy
     val clientCommit = ""
     val clientBranch = "main"
