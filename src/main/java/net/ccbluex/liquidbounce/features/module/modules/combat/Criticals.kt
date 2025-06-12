@@ -21,6 +21,7 @@ import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.float
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.item.ItemAppleGold
 import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
@@ -45,7 +46,8 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
             "AutoFreeze",
             "HuaYuTing",
             "BMCSmart",
-            "BMCBlatant"
+            "BMCBlatant",
+            "Stuck"
         ),
         "Packet"
     )
@@ -60,10 +62,32 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     var offGroundTicks = 0
     var tick = 0
     var onGroundTicks = 0
+
+    // Variables for Stuck mode
+    private var skiptick = 0
+    private var gappleNoGround = false
+
     override fun onEnable() {
         attacks = 0
+        resetStuck()
+        gappleNoGround = false
+
         if (mode == "NoGround")
             mc.thePlayer.tryJump()
+        if (mode.equals("Stuck", ignoreCase = true)) {
+            // As in the original onWorldLoad
+            skiptick = 2
+        }
+    }
+
+    override fun onDisable() {
+        resetStuck()
+        gappleNoGround = false
+        // Reset state for AutoFreeze mode
+        if (stuckEnabled) {
+            getModule("Freeze")?.let { it.state = false }
+            stuckEnabled = false
+        }
     }
 
     fun sendCriticalPacket(
@@ -123,6 +147,46 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
                 stuckEnabled = false
             }
         }
+
+        // Stuck mode logic
+        if (mode.equals("Stuck", ignoreCase = true)) {
+            if (skiptick > 0) {
+                // This is the core of the "stuck" logic.
+                // By preventing gravity from applying on the client, while still sending packets,
+                // we create a desync where the server sees the player as "stuck" midair.
+                // This keeps the player in a "falling" state, enabling vanilla criticals.
+                mc.thePlayer.motionY = 0.0
+                skiptick--
+                return // Skip the rest of the logic for this tick to maintain the "stuck" state
+            }
+
+            // Handle the gappleNoGround flag, which prevents crits after eating a gapple in the air
+            if (isEatingGapple() && !mc.thePlayer.onGround) {
+                gappleNoGround = true
+            }
+            if (!isEatingGapple() && gappleNoGround && mc.thePlayer.onGround) {
+                gappleNoGround = false
+            }
+
+            val target = KillAura.target
+            val aura = getModule(KillAura::class.java)
+
+            // Reset if no target, aura is off, or crit conditions are impossible
+            if (target == null || aura?.state != true || cantCrit(target)) {
+                resetStuck()
+                return
+            }
+
+            // Auto-jump to initiate the "falling" state when on ground and close to the target
+            if (mc.thePlayer.onGround && !mc.gameSettings.keyBindJump.isKeyDown && mc.thePlayer.getDistanceToEntity(target) <= 2.0f) {
+                mc.thePlayer.jump()
+            }
+
+            // When falling and close to the target, increment skiptick to "freeze" the player on the next tick
+            if (mc.thePlayer.motionY < 0.0 && !mc.thePlayer.onGround && mc.thePlayer.getDistanceToEntity(target) <= 2.0f) {
+                skiptick++
+            }
+        }
     }
 
     @EventTarget
@@ -133,7 +197,7 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
 
             if (!thePlayer.onGround || thePlayer.isOnLadder || thePlayer.isInWeb || thePlayer.isInWater ||
                 thePlayer.isInLava || thePlayer.ridingEntity != null || entity.hurtTime > hurtTime ||
-                handleEvents() || !msTimer.hasTimePassed(delay)
+                handleEvents() || !msTimer.hasTimePassed(delay.toLong())
             )
                 return
 
@@ -236,6 +300,21 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
         if (packet is C03PacketPlayer && mode == "NoGround")
             packet.onGround = false
 
+    }
+
+    private fun isEatingGapple(): Boolean {
+        if (mc.thePlayer?.isUsingItem != true) return false
+        val item = mc.thePlayer.itemInUse?.item ?: return false
+        return item is ItemAppleGold
+    }
+
+    private fun cantCrit(targetEntity: EntityLivingBase): Boolean {
+        val player = mc.thePlayer
+        return player.isOnLadder || player.isInWeb || player.isInWater || player.isInLava || player.ridingEntity != null || targetEntity.hurtTime > hurtTime || targetEntity.health <= 0.0f || isEatingGapple() || gappleNoGround
+    }
+
+    private fun resetStuck() {
+        skiptick = 0
     }
 
     override val tag
