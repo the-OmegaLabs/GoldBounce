@@ -296,10 +296,6 @@ public abstract class MixinMinecraft {
         }
     }
 
-    @Redirect(method = "runGameLoop", at = @At(value = "INVOKE", target = "Ljava/util/Queue;isEmpty()Z"))
-    private boolean injectTickBase(Queue instance) {
-        return TickBase.INSTANCE.getDuringTickModification() || instance.isEmpty();
-    }
 
     @Redirect(method = {"middleClickMouse", "rightClickMouse"}, at = @At(value = "FIELD", target = "Lnet/minecraft/entity/player/InventoryPlayer;currentItem:I"))
     private int injectSilentHotbar(InventoryPlayer instance) {
