@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.gui;
 
+import net.ccbluex.liquidbounce.features.module.modules.settings.Interface;
 import net.ccbluex.liquidbounce.features.special.AutoReconnect;
 import net.ccbluex.liquidbounce.features.special.ClientFixes;
 import net.ccbluex.liquidbounce.file.FileManager;
@@ -12,11 +13,18 @@ import net.ccbluex.liquidbounce.utils.ServerUtils;
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiDisconnected;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
@@ -33,7 +41,25 @@ public abstract class MixinGuiDisconnected extends MixinGuiScreen {
     private GuiSlider autoReconnectDelaySlider;
     private GuiButton forgeBypassButton;
     private int reconnectTimer;
+    @Unique
+    private final ResourceLocation template_forge_mixin_1_8_9$xibao = new ResourceLocation("liquidbounce/ui/xibao.png");
 
+    @Unique
+    private final ResourceLocation template_forge_mixin_1_8_9$beibao = new ResourceLocation("liquidbounce/ui/beibao.png");
+
+    @Redirect(method = "drawScreen",at = @At(value = "INVOKE",target = "Lnet/minecraft/client/gui/GuiDisconnected;drawDefaultBackground()V"))
+    private void drawBackground(GuiDisconnected instance){
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        this.mc.getTextureManager().bindTexture("XiBao".equals(Interface.INSTANCE.getXibao().get()) ? template_forge_mixin_1_8_9$xibao : template_forge_mixin_1_8_9$beibao);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
+        worldrenderer.pos(0.0D, this.height, 0.0D).tex(0.0D, 1.0D).endVertex();
+        worldrenderer.pos(this.width, this.height, 0.0D).tex(1.0D, 1.0D).endVertex();
+        worldrenderer.pos(this.width, 0.0D, 0.0D).tex(1.0D, 0.0D).endVertex();
+        worldrenderer.pos(0.0D, 0.0D, 0.0D).tex(0.0D, 0.0D).endVertex();
+        tessellator.draw();
+    }
 
     @Inject(method = "initGui", at = @At("RETURN"))
     private void initGui(CallbackInfo callbackInfo) {

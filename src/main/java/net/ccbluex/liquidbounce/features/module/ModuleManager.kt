@@ -279,7 +279,8 @@ object ModuleManager : Listenable {
             MotionBlur,
             NewGUI,
             Interface,
-            Logo
+            Logo,
+            PotionEffect
         )
 
         InventoryManager.startCoroutine()
