@@ -99,9 +99,9 @@ object EntityUtils : MinecraftInstance() {
 
         // 4. 获取目标实体的碰撞箱（可能需要扩大边界）
         val targetBB = target.entityBoundingBox.expand(
-            target.collisionBorderSize+0.01,  // 扩大边界避免精度问题
-            target.collisionBorderSize+0.01,
-            target.collisionBorderSize+0.01
+            target.collisionBorderSize-0.1,  // 避免精度问题
+            target.collisionBorderSize-0.1,
+            target.collisionBorderSize-0.1
         )
 
         // 5. 检测视线与碰撞箱的交点
