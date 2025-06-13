@@ -1252,7 +1252,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     object CombatListener : Listenable {
         var killCounts = 0
-        private var win = 0
+        var win = 0
         private var totalPlayed = 0
         private var syncEntity: EntityLivingBase? = null
         private var startTime = 0L
