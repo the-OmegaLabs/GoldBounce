@@ -136,8 +136,9 @@ public class NewUi extends GuiScreen {
     @Override
     public void onGuiClosed() {
         for (CategoryElement ce : categoryElements) {
-            if (ce.getFocused())
+            if (ce.getFocused()) {
                 ce.handleMouseRelease(-1, -1, 0, 0, 0, 0, 0);
+            }
         }
         Keyboard.enableRepeatEvents(false);
     }
@@ -155,32 +156,12 @@ public class NewUi extends GuiScreen {
         // Draw the main background
         RenderUtils.INSTANCE.drawRoundedRect(30F, 30F, this.width - 30F, this.height - 30F, 8, 0xFF101010);
 
-        // --- RIPPLE EFFECT RENDERING ---
-        // 1. Start stencil writing
-        Stencil.write(true);
-        // 2. Define the clipping area (the main GUI background) for the ripples
-        RenderUtils.INSTANCE.drawRoundedRect(30F, 30F, this.width - 30F, this.height - 30F, 8, Color.WHITE.getRGB());
-        // 3. Switch to stencil erasing mode
-        Stencil.erase(true);
-
-        // 4. Draw all ripples. They will only be visible inside the stenciled area.
-        for (Ripple ripple : ripples) {
-            ripple.draw();
-        }
-
-        // 5. Clean up the stencil buffer
-        Stencil.dispose();
-
-        // Remove ripples that have finished their animation
-        ripples.removeIf(Ripple::isDone);
-
-        // --- END RIPPLE EFFECT ---
-
         // something to make it look more like windoze
-        if (MouseUtils.mouseWithinBounds(mouseX, mouseY, this.width - 54F, 30F, this.width - 30F, 50F))
+        if (MouseUtils.mouseWithinBounds(mouseX, mouseY, this.width - 54F, 30F, this.width - 30F, 50F)) {
             fading += 0.2F * RenderUtils.INSTANCE.getDeltaTime() * 0.045F;
-        else
+        } else {
             fading -= 0.2F * RenderUtils.INSTANCE.getDeltaTime() * 0.045F;
+        }
         fading = MathHelper.clamp_float(fading, 0F, 1F);
         RenderUtils.INSTANCE.customRounded(this.width - 54F, 30F, this.width - 30F, 50F, 0F, 8F, 0F, 8F, new Color(1F, 0F, 0F, fading).getRGB());
         GlStateManager.disableAlpha();

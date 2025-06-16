@@ -337,7 +337,7 @@ object AntiVoid : Module(name = "AntiVoid", category = Category.PLAYER) {
         )
         return filteredEntities.lastOrNull()
     }
-    private fun checkVoid(): Boolean {
+    fun checkVoid(): Boolean {
         var i = (-(mc.thePlayer.posY-1.4857625)).toInt()
         var dangerous = true
         while (i <= 0) {

@@ -11,6 +11,7 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.aac.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.blocksmc.BlocksMC
 import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.blocksmc.BlocksMC2
+import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.blocksmc.BlocksMCUp
 import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.hypixel.BoostHypixel
 import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.hypixel.FreeHypixel
 import net.ccbluex.liquidbounce.features.module.modules.movement.flymodes.hypixel.Hypixel
@@ -58,7 +59,7 @@ object Fly : Module("Fly", Category.MOVEMENT, Keyboard.KEY_F, hideModule = false
         Hypixel, BoostHypixel, FreeHypixel,
 
         // Other server specific flys
-        NeruxVace, Minesucht, BlocksMC, BlocksMC2,
+        NeruxVace, Minesucht, BlocksMC, BlocksMC2, BlocksMCUp,
 
         // Spartan
         Spartan, Spartan2, BugSpartan,

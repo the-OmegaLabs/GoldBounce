@@ -24,7 +24,7 @@ class ListElement(val saveValue: ListValue): ValueElement<String>(saveValue) {
     private var expandHeight = 0F
     private var expansion = false
 
-    private val maxSubWidth = -(saveValue.values.map { -Fonts.font40.getStringWidth(it) }.sorted().firstOrNull() ?: 0F).toFloat() + 20F
+    private val maxSubWidth = -(saveValue.values.minOfOrNull { -Fonts.font40.getStringWidth(it) } ?: 0F).toFloat() + 20F
 
     companion object {
         val expanding = ResourceLocation("liquidbounce/expand.png") }
