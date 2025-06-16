@@ -10,7 +10,6 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.AutoArmor
 import net.ccbluex.liquidbounce.utils.CoroutineUtils.waitUntil
-import net.ccbluex.liquidbounce.utils.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.isFullBlock
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.shuffled
@@ -510,132 +509,6 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
         }
     }
 
-    /**
-     * Calculates a score for a piece of equipment based on its base stats and enchantments.
-     * @return A float score, higher is better.
-     */
-    private fun getEquipmentScore(stack: ItemStack): Float {
-        val item = stack.item ?: return 0f
-
-        if (item !is ItemTool && item !is ItemSword && item !is ItemBow && item !is ItemFishingRod) {
-            return 0f
-        }
-
-        var score = 0f
-
-        // Base score from material/type
-        val baseScore = when (item) {
-            is ItemSword -> ReflectionUtil.getFieldValue<Double>(item,"attackDamage")
-            is ItemTool -> ReflectionUtil.getFieldValue<Float>(item,"efficiencyOnProperMaterial")
-            is ItemBow -> 2f // Bows don't have a simple base stat, give them a base value
-            is ItemFishingRod -> 1f // Base value for fishing rods
-            else -> 0f
-        }
-        score += baseScore.toFloat()
-
-        // Enchantment score
-        if (stack.isItemEnchanted) {
-            val enchantments = stack.enchantments
-
-            for (enchantment in enchantments.keys) {
-                val level = enchantments[enchantment] ?: continue
-
-                val weight = when (enchantment.effectId) {
-                    // Universal
-                    Enchantment.unbreaking.effectId -> 0.5f
-
-                    // Sword
-                    Enchantment.sharpness.effectId, Enchantment.smite.effectId, Enchantment.baneOfArthropods.effectId -> 2.5f
-                    Enchantment.fireAspect.effectId -> 2.0f
-                    Enchantment.looting.effectId -> 0.2f // Utility, not direct combat power
-
-                    // Tool
-                    Enchantment.efficiency.effectId -> 2.0f
-                    Enchantment.fortune.effectId -> 2.2f
-                    Enchantment.silkTouch.effectId -> 1.8f
-
-                    // Bow
-                    Enchantment.power.effectId -> 2.5f
-                    Enchantment.punch.effectId -> 1.0f
-                    Enchantment.flame.effectId -> 2.0f
-                    Enchantment.infinity.effectId -> 2.0f
-
-                    // Fishing Rod
-                    Enchantment.lure.effectId -> 1.5f
-
-                    else -> 0.1f // Generic low weight for other/unknown enchants
-                }
-                score += level * weight
-            }
-        }
-        return score
-    }
-
-    /**
-     * Compares a given piece of equipment to all other equipment of the same type to determine if it's the best one.
-     * Comparison is based on a calculated score, then durability, then inventory position.
-     * @return True if no better equipment of the same type was found.
-     */
-    private fun isBestEquipment(
-        stack: ItemStack,
-        stacks: List<ItemStack?>,
-        entityStacksMap: Map<ItemStack, EntityItem>? = null
-    ): Boolean {
-        val item = stack.item
-        val currentScore = getEquipmentScore(stack)
-        val index = stacks.indexOf(stack)
-        val isSorted = canBeSortedTo(index, item, stacks.size)
-
-        val stacksToIterate = stacks.toMutableList()
-        var distanceSqToItem = 0.0
-
-        if (entityStacksMap != null) {
-            val entityItem = entityStacksMap[stack]
-            if (entityItem != null) {
-                distanceSqToItem = mc.thePlayer.getDistanceSqToEntity(entityItem)
-                stacksToIterate.addAll(entityStacksMap.keys)
-            }
-        }
-
-        for ((otherIndex, otherStack) in stacksToIterate.withIndex()) {
-            if (stack == otherStack) continue
-
-            val otherItem = otherStack?.item ?: continue
-            // Compare only items of the same class (e.g. ItemSword vs ItemSword)
-            if (item.javaClass != otherItem.javaClass) continue
-
-            val otherScore = getEquipmentScore(otherStack)
-
-            // Primary Comparison: Score
-            if (otherScore > currentScore) return false
-
-            // Tie-breaking for equal scores
-            if (otherScore == currentScore) {
-                // Tie-breaker 1: Total Durability (with Unbreaking)
-                if (otherStack.totalDurability > stack.totalDurability) return false
-
-                if (otherStack.totalDurability == stack.totalDurability) {
-                    // Tie-breaker 2: Inventory position, sorted status, distance on ground
-                    val actualOtherIndex = if (otherIndex >= stacks.size) -1 else otherIndex
-
-                    if (index == -1 && actualOtherIndex == -1) { // Both items are on the ground
-                        val otherEntityItem = entityStacksMap?.get(otherStack)
-                        if (otherEntityItem != null && distanceSqToItem > mc.thePlayer.getDistanceSqToEntity(otherEntityItem)) {
-                            return false // Other item is closer
-                        }
-                    } else {
-                        // Prefer sorted items or items in higher index slots (further down in inventory)
-                        val isOtherSorted = canBeSortedTo(actualOtherIndex, otherItem, stacks.size)
-                        if (!isSorted && (isOtherSorted || actualOtherIndex > index)) {
-                            return false
-                        }
-                    }
-                }
-            }
-        }
-        return true // No strictly better item found
-    }
-
     private fun isUsefulEquipment(
         stack: ItemStack?, stacks: List<ItemStack?>,
         entityStacksMap: Map<ItemStack, EntityItem>? = null,
@@ -645,20 +518,37 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
         return when (item) {
             is ItemArmor -> stack in getBestArmorSet(stacks, entityStacksMap)
 
-            is ItemTool, is ItemSword, is ItemBow -> {
-                isBestEquipment(stack, stacks, entityStacksMap)
+            is ItemTool -> {
+                val blockType = when (item) {
+                    is ItemAxe -> Blocks.log
+                    is ItemPickaxe -> Blocks.stone
+                    else -> Blocks.dirt
+                }
+
+                return hasBestParameters(stack, stacks, entityStacksMap) {
+                    it.item.getStrVsBlock(it, blockType) * it.durability
+                }
             }
 
             is ItemFishingRod -> {
-                // Count all fishing rods in inventory and on the ground
-                val rodCount = stacks.count { it?.item is ItemFishingRod } +
-                        (entityStacksMap?.keys?.count { it.item is ItemFishingRod } ?: 0)
+                val fishingRod = stacks.count { it?.item is ItemFishingRod }
 
-                if (rodCount <= maxFishingRodStacks) return true
+                if (fishingRod <= maxFishingRodStacks) return true
 
-                // If we have more rods than the allowed limit, only keep the best one(s)
-                isBestEquipment(stack, stacks, entityStacksMap)
+                hasBestParameters(stack, stacks, entityStacksMap) {
+                    it.durability.toFloat()
+                }
             }
+
+            is ItemSword ->
+                hasBestParameters(stack, stacks, entityStacksMap) {
+                    it.attackDamage.toFloat()
+                }
+
+            is ItemBow ->
+                hasBestParameters(stack, stacks, entityStacksMap) {
+                    it.getEnchantmentLevel(Enchantment.power).toFloat()
+                }
 
             else -> false
         }
@@ -974,6 +864,72 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
 
             canBeSortedTo(otherIndex, otherItem, stacks.size) || otherIndex > index
         }
+    }
+
+    private fun hasBestParameters(
+        stack: ItemStack?, stacks: List<ItemStack?>,
+        entityStacksMap: Map<ItemStack, EntityItem>? = null, parameters: (ItemStack) -> Float,
+    ): Boolean {
+        val item = stack?.item ?: return false
+
+        val index = stacks.indexOf(stack)
+
+        val currentStats = parameters(stack)
+
+        val isSorted = canBeSortedTo(index, item, stacks.size)
+
+        val stacksToIterate = stacks.toMutableList()
+
+        var distanceSqToItem = .0
+
+        if (!entityStacksMap.isNullOrEmpty()) {
+            distanceSqToItem = mc.thePlayer.getDistanceSqToEntity(entityStacksMap[stack] ?: return false)
+            stacksToIterate += entityStacksMap.keys
+        }
+
+        stacksToIterate.forEachIndexed { otherIndex, otherStack ->
+            val otherItem = otherStack?.item ?: return@forEachIndexed
+
+            // Check if items aren't the same instance but are the same type
+            if (stack == otherStack || item.javaClass != otherItem.javaClass)
+                return@forEachIndexed
+
+            // Items dropped on ground should have index -1
+            val otherIndex = if (otherIndex > stacks.lastIndex) -1 else otherIndex
+
+            val otherStats = parameters(otherStack)
+
+            val isOtherSorted = canBeSortedTo(otherIndex, otherItem, stacks.size)
+
+            // Compare stats one by one
+            when (otherStats.compareTo(currentStats)) {
+                // Other item had better base stat, compared item isn't the best
+                1 -> return false
+                // Both have the same base stat, compare sum of their enchantment levels
+                0 -> when (otherStack.enchantmentSum.compareTo(stack.enchantmentSum)) {
+                    1 -> return false
+                    // Same base stat, sum of enchantment levels, compare durability * unbreaking
+                    0 -> when (otherStack.totalDurability.compareTo(stack.totalDurability)) {
+                        1 -> return false
+                        // Both items are pretty much equally good, sorted item wins over not sorted, otherwise the one with higher index
+                        0 -> {
+                            // Only true when both items are dropped on ground, if other item is closer, compared one isn't the best
+                            if (index == otherIndex) {
+                                val otherEntityItem = entityStacksMap?.get(otherStack) ?: return@forEachIndexed
+                                when (distanceSqToItem.compareTo(mc.thePlayer.getDistanceSqToEntity(otherEntityItem))) {
+                                    1 -> return false
+                                    // Both items are exactly far, pretty much impossible
+                                    0 -> return true
+                                }
+                            } else if (!isSorted && (isOtherSorted || otherIndex > index))
+                                return false
+                        }
+                    }
+                }
+            }
+        }
+
+        return true
     }
 
     @Suppress("DEPRECATION")
