@@ -18,56 +18,89 @@ import net.minecraft.potion.Potion
 /**
  * Working on Hypixel (Watchdog)
  * Tested on: play.hypixel.net
- * Credit: @LiquidSquid / Nextgen
+ * Credit: @LiquidSquid / Nextgen, with logic from Faiths Client
  */
 object HypixelLowHop : SpeedMode("HypixelLowHop") {
 
     override fun onUpdate() {
         val player = mc.thePlayer ?: return
 
-        if (!player.isMoving || player.fallDistance > 1.2) return
+        // FastStop logic from Faiths client
+        if (!player.isMoving) {
+            player.motionX = 0.0
+            player.motionZ = 0.0
+            return
+        }
+
+        // Force sprinting from Faiths client
+        player.isSprinting = true
 
         if (player.onGround) {
+            // Jump and let onJump handle the speed
             player.tryJump()
-            strafe()
             return
         } else {
-
-            when (airTicks) {
-                1 -> {
-                    strafe()
+            // MotionY-based speed boost from Faiths' updateEventHandler
+            val motionY = player.motionY
+            if (motionY < 0.1 && motionY > 0.01) {
+                player.motionX *= 1.005
+                player.motionZ *= 1.005
+            }
+            if (motionY < 0.005 && motionY > 0.0) {
+                player.motionX *= 1.005
+                player.motionZ *= 1.005
+            }
+            if (motionY < 0.001 && motionY > -0.03) {
+                if (player.isPotionActive(Potion.moveSpeed)) {
+                    player.motionX *= 1.005
+                    player.motionZ *= 1.005
+                } else {
+                    player.motionX *= 1.002
+                    player.motionZ *= 1.002
                 }
-
-                5 -> player.motionY -= 0.1905189780583944
-                4 -> player.motionY -= 0.03
-                6 -> player.motionY *= 1.01
-                7 -> if (glide) player.motionY /= 1.5
             }
 
+            // Merged logic for air ticks from both original code and Faiths client
+            when (airTicks) {
+                4 -> {
+                    // From original GoldBounce code
+                    player.motionY -= 0.03
+                }
+                5 -> {
+                    // From Faiths: strafe. From original GoldBounce: Y motion adjustment.
+                    strafe(0.315f)
+                    player.motionY -= 0.1905189780583944
+                }
+                6 -> {
+                    // From Faiths: strafe. From original GoldBounce: Y motion adjustment.
+                    strafe()
+                    player.motionY *= 1.01
+                }
+                7 -> {
+                    // From original GoldBounce code
+                    if (glide) player.motionY /= 1.5
+                }
+            }
+
+            // Kept from original code for longer glides
             if (airTicks >= 7 && glide) {
                 strafe(speed = speed.coerceAtLeast(0.281F), strength = 0.7)
             }
 
+            // Kept from original code for damage boost
             if (player.hurtTime == 9) {
                 strafe()
-            }
-
-            if ((player.getActivePotionEffect(Potion.moveSpeed)?.amplifier ?: 0) == 2) {
-                when (airTicks) {
-                    1, 2, 5, 6, 8 -> {
-                        player.motionX *= 1.2
-                        player.motionZ *= 1.2
-                    }
-                }
             }
         }
     }
 
     override fun onJump(event: JumpEvent) {
         val player = mc.thePlayer ?: return
-        if (!player.isMoving) return
-        val atLeast = 0.281F + 0.13F * (player.getActivePotionEffect(Potion.moveSpeed)?.amplifier ?: 0)
-
-        strafe(speed = speed.coerceAtLeast(atLeast))
+        if (!player.isMoving) {
+            event.cancelEvent() // Don't jump if not moving
+            return
+        }
+        // Logic from Faiths client's onGround jump (case 0): strafe with a fixed high value
+        strafe(0.485f)
     }
 }
