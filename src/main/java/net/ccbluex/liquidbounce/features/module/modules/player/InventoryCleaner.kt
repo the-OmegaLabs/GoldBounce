@@ -526,7 +526,6 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
         // Base score from material/type
         val baseScore = when (item) {
             is ItemSword -> ReflectionUtil.getFieldValue<Double>(item,"attackDamage")
-            is ItemTool -> ReflectionUtil.getFieldValue<Float>(item,"efficiencyOnProperMaterial")
             is ItemBow -> 2f // Bows don't have a simple base stat, give them a base value
             is ItemFishingRod -> 1f // Base value for fishing rods
             else -> 0f

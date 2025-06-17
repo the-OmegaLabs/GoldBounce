@@ -12,6 +12,7 @@ import net.ccbluex.liquidbounce.LiquidBounce.hud
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.PacketEvent
 import net.ccbluex.liquidbounce.event.Render2DEvent
+import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.AutoArmor
@@ -19,10 +20,12 @@ import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner
 import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner.canBeSortedTo
 import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner.isStackUseful
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
+import net.ccbluex.liquidbounce.utils.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.component1
 import net.ccbluex.liquidbounce.utils.extensions.component2
+import net.ccbluex.liquidbounce.utils.extensions.component3
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.canClickInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.chestStealerCurrentSlot
@@ -39,14 +42,20 @@ import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.gui.inventory.GuiChest
+import net.minecraft.client.renderer.RenderHelper
+import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.EntityLiving.getArmorPosition
 import net.minecraft.init.Items
-import net.minecraft.item.ItemArmor
-import net.minecraft.item.ItemStack
+import net.minecraft.inventory.ContainerChest
+import net.minecraft.item.*
 import net.minecraft.network.play.client.C0DPacketCloseWindow
 import net.minecraft.network.play.server.S2DPacketOpenWindow
 import net.minecraft.network.play.server.S2EPacketCloseWindow
 import net.minecraft.network.play.server.S30PacketWindowItems
+import net.minecraft.potion.Potion
+import net.minecraft.tileentity.TileEntityChest
+import net.minecraft.util.BlockPos
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import kotlin.math.sqrt
 
@@ -112,9 +121,8 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
         }
 
     private var easingProgress = 0f
-
     private var receivedId: Int? = null
-
+    private var chestPos: BlockPos? = null
     private var stacks = emptyList<ItemStack?>()
 
     private suspend fun shouldOperate(): Boolean {
@@ -225,6 +233,45 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
         val sortableToSlot: Int?
     )
 
+    private fun getEnchantmentScore(stack: ItemStack): Float {
+        if (!stack.isItemEnchanted) return 0f
+        var score = 0f
+        val enchantments = EnchantmentHelper.getEnchantments(stack)
+        for ((_, level) in enchantments) {
+            score += level * 0.5f
+        }
+        return score
+    }
+
+    private fun getStackScore(stack: ItemStack): Float {
+        val item = stack.item
+
+        if (!isStackUseful(stack, stacks)) return -1f
+
+        var score = getEnchantmentScore(stack)
+
+        when (item) {
+            is ItemArmor -> score += item.damageReduceAmount * 2.5f
+            is ItemSword -> score += ReflectionUtil.getFieldValue<Float>(item,"attackDamage") * 2f
+            is ItemAxe -> score += 4f // Base score for being a weapon
+            is ItemTool -> score += 0.5f // Lower priority for general tools unless enchanted
+            is ItemBow -> score += 5f
+            is ItemPotion -> {
+                if (item.getEffects(stack)?.any { Potion.potionTypes[it.potionID]?.isBadEffect == false } == true) {
+                    score += 7f
+                }
+            }
+            is ItemFood -> {
+                if (item == Items.golden_apple) score += 10f else score += item.getHealAmount(stack) * 0.5f
+            }
+            Items.ender_pearl -> score += 8f
+            Items.arrow -> score += 0.2f
+            Items.slime_ball -> if (stack.hasTagCompound() && stack.tagCompound.hasKey("ench")) score += 100f // Keep special case
+        }
+
+        return score
+    }
+
     private fun getItemsToSteal(): MutableList<ItemTakeRecord> {
         val sortBlacklist = BooleanArray(9)
         var spaceInInventory = countSpaceInInventory()
@@ -257,12 +304,13 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
 
                 ItemTakeRecord(index, stack, sortableTo)
             }.also { list ->
-                if (randomSlot) list.shuffle() // 随机化物品顺序
-                list.sortByDescending { it.stack.item is ItemArmor }
-                if (AutoArmor.canEquipFromChest()) {
-                    list.sortByDescending { it.stack.item is ItemArmor }
+                if (randomSlot) {
+                    list.shuffle()
+                } else {
+                    // New score-based sorting for enchanted items and general value
+                    list.sortByDescending { getStackScore(it.stack) }
                 }
-                list.sortByDescending { it.stack.item == Items.slime_ball && it.stack.hasTagCompound() && it.stack.tagCompound.hasKey("ench") }
+
                 if (smartOrder) {
                     sortBasedOnOptimumPath(list)
                 }
@@ -274,23 +322,29 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
 
 
     private fun sortBasedOnOptimumPath(itemsToSteal: MutableList<ItemTakeRecord>) {
-        for (i in itemsToSteal.indices) {
-            var nextIndex = i
+        if (itemsToSteal.isEmpty()) return
+        val sortedList = mutableListOf<ItemTakeRecord>()
+        val remainingItems = itemsToSteal.toMutableList()
+
+        // Start with the first item from the pre-sorted list (which is the highest value one)
+        var currentItem = remainingItems.removeAt(0)
+        sortedList.add(currentItem)
+
+        while (remainingItems.isNotEmpty()) {
+            var nextIndex = -1
             var minDistance = Int.MAX_VALUE
-            var next: ItemTakeRecord? = null
-            for (j in i + 1 until itemsToSteal.size) {
-                val distance = squaredDistanceOfSlots(itemsToSteal[i].index, itemsToSteal[j].index)
+            for (i in remainingItems.indices) {
+                val distance = squaredDistanceOfSlots(currentItem.index, remainingItems[i].index)
                 if (distance < minDistance) {
                     minDistance = distance
-                    next = itemsToSteal[j]
-                    nextIndex = j
+                    nextIndex = i
                 }
             }
-            if (next != null) {
-                itemsToSteal[nextIndex] = itemsToSteal[i + 1]
-                itemsToSteal[i + 1] = next
-            }
+            currentItem = remainingItems.removeAt(nextIndex)
+            sortedList.add(currentItem)
         }
+        itemsToSteal.clear()
+        itemsToSteal.addAll(sortedList)
     }
 
     // Progress bar
@@ -305,7 +359,6 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
             return
         }
 
-        // 原有进度条逻辑（当silentGUI关闭时）
         if (!progressBar || mc.currentScreen !is GuiChest || progress == null) return
 
         val (scaledWidth, scaledHeight) = ScaledResolution(mc)
@@ -316,19 +369,27 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
 
         easingProgress += (progress!! - easingProgress) / 6f * event.partialTicks
 
-        // 只在进度变化时渲染
         drawRect(minX - 2, minY - 2, maxX + 2, maxY + 2, Color(200, 200, 200).rgb)
         drawRect(minX, minY, maxX, maxY, Color(50, 50, 50).rgb)
         drawRect(minX, minY, minX + (maxX - minX) * easingProgress, maxY, Color.HSBtoRGB(easingProgress / 5, 1f, 1f) or 0xFF0000)
     }
 
 
+
     @EventTarget
     fun onPacket(event: PacketEvent) {
         when (val packet = event.packet) {
-            is C0DPacketCloseWindow, is S2DPacketOpenWindow, is S2EPacketCloseWindow -> {
+            is S2DPacketOpenWindow -> {
+                if (packet.guiId == "minecraft:chest") {
+                    chestPos = mc.objectMouseOver?.blockPos
+                }
                 receivedId = null
                 progress = null
+            }
+            is C0DPacketCloseWindow, is S2EPacketCloseWindow -> {
+                receivedId = null
+                progress = null
+                chestPos = null
             }
             is S30PacketWindowItems -> {
                 if (packet.func_148911_c() == 0) return
@@ -338,7 +399,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 }
 
                 receivedId = packet.func_148911_c()
-                stacks = packet.itemStacks.toList()  // 更新物品列表
+                stacks = packet.itemStacks.toList()
             }
         }
     }
