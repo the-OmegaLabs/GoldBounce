@@ -40,7 +40,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle("欢迎您。${global().getIpLocation()}")
+                Display.setTitle("欢迎您。${global().getIpLocation()} 本客户端永久开源免费 严禁售卖 官方群聊718366220")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }

@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.injection.forge.mixins.client;
 import net.ccbluex.liquidbounce.LiquidBounce;
 import net.ccbluex.liquidbounce.event.*;
 import net.ccbluex.liquidbounce.features.module.modules.combat.AutoClicker;
+import net.ccbluex.liquidbounce.utils.modernsplash.ModernSplash;
 import net.ccbluex.liquidbounce.features.module.modules.combat.TickBase;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.AbortBreaking;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler;
@@ -22,6 +23,7 @@ import net.ccbluex.liquidbounce.utils.CPSCounter;
 import net.ccbluex.liquidbounce.utils.ClientUtils;
 import net.ccbluex.liquidbounce.utils.ReflectionUtil;
 import net.ccbluex.liquidbounce.utils.SilentHotbar;
+import net.ccbluex.liquidbounce.utils.modernsplash.CustomSplash;
 import net.ccbluex.liquidbounce.utils.render.IconUtils;
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister;
 import net.ccbluex.liquidbounce.utils.render.RenderUtils;
@@ -33,6 +35,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemBlock;
@@ -41,8 +44,10 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -98,6 +103,8 @@ public abstract class MixinMinecraft {
     @Shadow
     public abstract void displayGuiScreen(GuiScreen guiScreenIn);
 
+    @Shadow public TextureManager renderEngine;
+
     @Inject(
             at = @At("RETURN"),
             method = "getLimitFramerate",
@@ -121,7 +128,6 @@ public abstract class MixinMinecraft {
     private void hook(CallbackInfo ci) {
         EventManager.INSTANCE.callEvent(new GameLoopEvent());
     }
-
     @Inject(method = "startGame", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;checkGLError(Ljava/lang/String;)V", ordinal = 2, shift = At.Shift.AFTER))
     private void startGame(CallbackInfo callbackInfo) {
         LiquidBounce.INSTANCE.startClient();
@@ -153,7 +159,15 @@ public abstract class MixinMinecraft {
             Display.setTitle(LiquidBounce.INSTANCE.getClientTitle());
         }
     }
+    @Redirect(method = "startGame", at = @At(value = "INVOKE", remap = false, target = "Lnet/minecraftforge/fml/client/SplashProgress;drawVanillaScreen(Lnet/minecraft/client/renderer/texture/TextureManager;)V"))
+    private void rdDrawVanillaScreen(TextureManager renderEngine) throws LWJGLException {
+        CustomSplash.drawVanillaScreen(renderEngine);
+    }
 
+    @Redirect(method = "startGame", at = @At(value = "INVOKE", remap = false, target = "Lnet/minecraftforge/fml/client/SplashProgress;clearVanillaResources(Lnet/minecraft/client/renderer/texture/TextureManager;Lnet/minecraft/util/ResourceLocation;)V"))
+    private void rdClear(TextureManager renderEngine, ResourceLocation mojangLogo) {
+        CustomSplash.clearVanillaResources(renderEngine, mojangLogo);
+    }
     @Inject(method = "displayGuiScreen", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;currentScreen:Lnet/minecraft/client/gui/GuiScreen;", shift = At.Shift.AFTER))
     private void handleDisplayGuiScreen(CallbackInfo callbackInfo) {
         if (currentScreen instanceof net.minecraft.client.gui.GuiMainMenu || (currentScreen != null && currentScreen.getClass().getName().startsWith("net.labymod") && currentScreen.getClass().getSimpleName().equals("ModGuiMainMenu"))) {

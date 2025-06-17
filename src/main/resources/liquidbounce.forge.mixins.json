@@ -65,6 +65,7 @@
     "render.MixinTileEntityRendererDispatcher",
     "render.MixinVisGraph",
     "resources.MixinSkinManager",
+    "tweaks.FMLClientHandlerMixin",
     "tweaks.LoadControllerMixin",
     "tweaks.MixinAnvilChunkLoader",
     "tweaks.MixinMinecraftServer",
@@ -79,6 +80,7 @@
     "gui.MixinGuiTextField",
     "render.MixinItemRenderer",
     "render.MixinRenderGlobal",
-    "tweaks.MixinEntityFX"
+    "tweaks.MixinEntityFX",
+    "tweaks.TextureUtilMixin"
   ]
 }

@@ -54,6 +54,7 @@ import net.ccbluex.liquidbounce.utils.client.SysUtils
 import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
+import net.ccbluex.liquidbounce.utils.modernsplash.ModernSplash
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
