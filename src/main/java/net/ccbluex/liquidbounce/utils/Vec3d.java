@@ -8,16 +8,16 @@ import javax.annotation.Nullable;
 
 public class Vec3d
 {
-    public static final Vec3d ZERO = new Vec3d(0.0D, 0.0D, 0.0D);
+    public static Vec3d ZERO = new Vec3d(0.0D, 0.0D, 0.0D);
 
     /** X coordinate of Vec3D */
-    public final double x;
+    public double x;
 
     /** Y coordinate of Vec3D */
-    public final double y;
+    public double y;
 
     /** Z coordinate of Vec3D */
-    public final double z;
+    public double z;
 
     public Vec3d(double xIn, double yIn, double zIn)
     {

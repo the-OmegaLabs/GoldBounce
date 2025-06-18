@@ -553,7 +553,7 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
 
         performBlockRaytrace(rotation, reach)?.let {
             if (!options.rotationsActive || it.blockPos == target.blockPos && (!raycastProperly || it.sideHit == target.enumFacing)) {
-                val result = if (raycastProperly && it != null) {
+                val result = if (raycastProperly) {
                     PlaceInfo(it.blockPos, it.sideHit, it.hitVec)
                 } else {
                     target

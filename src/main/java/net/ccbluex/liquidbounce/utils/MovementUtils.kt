@@ -15,6 +15,7 @@ import net.ccbluex.liquidbounce.utils.extensions.toDegreesF
 import net.ccbluex.liquidbounce.utils.extensions.toRadiansD
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.play.client.C03PacketPlayer
+import net.minecraft.potion.Potion
 import net.minecraft.util.Vec3
 import kotlin.math.cos
 import kotlin.math.sin
@@ -166,6 +167,27 @@ object MovementUtils : MinecraftInstance(), Listenable {
             }
         }
     }
+    /**
+     * Calculates the player's base movement speed, including sprint and potion effects.
+     * This is a self-contained replacement for the missing MovementUtils.getBaseMoveSpeed().
+     * @return The base speed in blocks per tick.
+     */
+    fun getBaseMoveSpeed(): Float {
+        var baseSpeed: Float = 0.2873F // Default sprint speed
+        val player = mc.thePlayer ?: return baseSpeed
 
-    
+        if (player.isPotionActive(Potion.moveSpeed)) {
+            val amplifier = player.getActivePotionEffect(Potion.moveSpeed).amplifier
+            baseSpeed *= 1.0F + 0.2F * (amplifier + 1)
+        }
+
+        if (player.isPotionActive(Potion.moveSlowdown)) {
+            val amplifier = player.getActivePotionEffect(Potion.moveSlowdown).amplifier
+            baseSpeed *= 1.0F - 0.15F * (amplifier + 1)
+        }
+
+        return baseSpeed
+    }
+
+
 }

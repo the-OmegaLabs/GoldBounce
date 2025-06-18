@@ -74,6 +74,7 @@
     "world.MixinWorldClient"
   ],
   "client": [
+    "block.MixinBlockChest",
     "block.MixinBlockSlime",
     "gui.MixinGuiAchievement",
     "gui.MixinGuiContainer",

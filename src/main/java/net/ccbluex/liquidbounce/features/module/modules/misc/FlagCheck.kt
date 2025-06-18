@@ -5,10 +5,12 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.misc
 
+import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler
+import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.*
@@ -25,6 +27,7 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.network.play.server.S01PacketJoinGame
 import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.util.BlockPos
+import net.minecraft.util.ResourceLocation
 import net.minecraft.util.Vec3
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.abs
@@ -130,6 +133,9 @@ object FlagCheck : Module("FlagCheck", Category.MISC, gameDetecting = true, hide
             if (deltaYaw > 90 || deltaPitch > 90) {
                 forceRotateDetected = true
                 flagCount++
+                WaterMark.showIconNotification("Flag Detected","ForceRotate (${deltaYaw.roundToLong()}° | ${deltaPitch.roundToLong()}°)",
+                    ResourceLocation("liquidbounce/notification/blocked.png")
+                )
                 chat("§dDetected §3Force-Rotate §e(${deltaYaw.roundToLong()}° | ${deltaPitch.roundToLong()}°) §b(§c${flagCount}x§b)")
             } else {
                 forceRotateDetected = false
@@ -138,6 +144,9 @@ object FlagCheck : Module("FlagCheck", Category.MISC, gameDetecting = true, hide
             if (!forceRotateDetected) {
                 lagbackDetected = true
                 flagCount++
+                WaterMark.showIconNotification("Flag Detected","Lagback)",
+                    ResourceLocation("liquidbounce/notification/blocked.png")
+                )
                 chat("§dDetected §3Lagback §b(§c${flagCount}x§b)")
             }
 

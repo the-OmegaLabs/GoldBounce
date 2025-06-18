@@ -30,6 +30,7 @@ import net.ccbluex.liquidbounce.features.module.modules.settings.Camera
 import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.features.module.modules.settings.Interface
+import net.ccbluex.liquidbounce.features.module.modules.settings.MovementMonitor
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
 import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles

@@ -215,6 +215,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         )
     }
+
     private val blinkBlockTicks by int("BlinkBlockTicks", 3, 2..5) {
         autoBlock !in listOf(
             "Off",
@@ -395,7 +396,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
         blinkedPackets.clear()
     }
-
+    /**
+     * Checks if the current autoblock mode is set to "Fake"
+     * Used to prevent slowdown when using fake blocking
+     */
+    fun isFakeBlocking(): Boolean {
+        return autoBlock == "Fake"
+    }
     private fun reset() {
         target = null
         hittable = false
@@ -517,7 +524,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                     if (!blockStatus && blinked && BlinkUtils.isBlinking) {
                         BlinkUtils.unblink()
                         blinked = false
-                        startBlocking(target!!, interactAutoBlock, autoBlock == "Fake") // block again
+                        startBlocking(target!!, interactAutoBlock, autoBlock == "Fake")
                     }
                 }
             }
