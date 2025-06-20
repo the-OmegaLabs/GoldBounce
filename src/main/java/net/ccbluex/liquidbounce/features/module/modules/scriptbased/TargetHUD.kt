@@ -16,6 +16,7 @@ import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import org.lwjgl.opengl.GL11.*
@@ -24,6 +25,9 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.math.*
+import net.minecraft.util.EnumChatFormatting.BOLD
+import net.ccbluex.liquidbounce.utils.render.Stencil
+
 
 object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
@@ -31,11 +35,11 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private val hudStyle by ListValue(
         "Style",
         arrayOf(
-            // New Styles
             "Flux",
             "Arc",
             "Compact",
-            // Original Styles
+            "Moon4",
+            "Southside",
             "Novoline",
             "戶籍",
             "Chill",
@@ -46,7 +50,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "Pulse",
             "Neon"
         ),
-        "Flux" // Default to the new style
+        "Flux"
     )
     private val posX by int("PosX", 0, -400..400)
     private val posY by int("PosY", 0, -400..400)
@@ -77,6 +81,16 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private val barColorB by int("RavenB4-BarColorB", 255, 0..255) { hudStyle == "RavenB4" }
     private val animSpeedRB4 by int("RavenB4-AnimSpeed", 3, 1..10) { hudStyle == "RavenB4" }
 
+    // Moon4 Settings
+    private val moon4BarColorR by int("Moon4-BarR", 70, 0..255) { hudStyle == "Moon4" }
+    private val moon4BarColorG by int("Moon4-BarG", 130, 0..255) { hudStyle == "Moon4" }
+    private val moon4BarColorB by int("Moon4-BarB", 255, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorR by int("Moon4-BGR", 30, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorG by int("Moon4-BGG", 30, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorB by int("Moon4-BGB", 30, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorA by int("Moon4-BGA", 180, 0..255) { hudStyle == "Moon4" }
+    private val moon4AnimSpeed by int("Moon4-AnimSpeed", 4, 1..10) { hudStyle == "Moon4" }
+
     // State Variables
     private val decimalFormat = DecimalFormat("0.0", DecimalFormatSymbols(Locale.ENGLISH))
     private var target: EntityLivingBase? = null
@@ -95,18 +109,280 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private val neonColor = Color(255, 50, 255)
     // Animation States
     private var easingHealth = 0F
+    private var moon4EasingHealth = 0F
+    private var southsideEasingHealth = 0F
     private var slideIn = 0F
     private var damageHealth = 0F
 
     override fun onEnable() {
         easingHealth = 0F
+        moon4EasingHealth = 0F
+        southsideEasingHealth = 0f
         slideIn = 0F
         damageHealth = 0f
         hue = 0.0f
         target = null
         lastTarget = null
     }
-    // 新增Wave样式实现
+
+    private fun updateSouthsideEasingHealth(targetHealth: Float, maxHealth: Float) {
+        val changeAmount = abs(southsideEasingHealth - targetHealth)
+        var speed = 0.02f * deltaTime
+
+        if (changeAmount > 5) {
+            speed *= 2.0f
+        } else if (changeAmount > 2) {
+            speed *= 1.5f
+        }
+
+        if (abs(southsideEasingHealth - targetHealth) < 0.1f) {
+            southsideEasingHealth = targetHealth
+        } else if (southsideEasingHealth > targetHealth) {
+            southsideEasingHealth -= min(speed * 1.2f, southsideEasingHealth - targetHealth)
+        } else {
+            southsideEasingHealth += min(speed, targetHealth - southsideEasingHealth)
+        }
+        southsideEasingHealth = southsideEasingHealth.coerceAtMost(maxHealth)
+    }
+
+    private fun renderSouthsideHUD(x: Float, y: Float) {
+        val entity = target ?: lastTarget ?: return
+
+        val health = entity.health
+        val maxHealth = entity.maxHealth
+        val healthPercent = (health / maxHealth).coerceIn(0f, 1f)
+
+        // Update easing health
+        updateSouthsideEasingHealth(health, maxHealth)
+        val easingHealthPercent = (southsideEasingHealth / maxHealth).coerceIn(0f, 1f)
+
+        val name = entity.name
+        val width = Fonts.font40.getStringWidth(name) + 75f
+        val presentWidth = easingHealthPercent * width
+
+        GlStateManager.pushMatrix()
+
+        // Animation
+        val animOutput = slideIn
+        GlStateManager.translate((x + width / 2) * (1 - animOutput).toDouble(), (y + 20) * (1 - animOutput).toDouble(), 0.0)
+        GlStateManager.scale(animOutput, animOutput, animOutput)
+
+        // Background
+        RenderUtils.drawRect(x, y, x + width, y + 40, Color(0, 0, 0, 100).rgb)
+        RenderUtils.drawRect(x, y, x + presentWidth, y + 40, Color(230, 230, 230, 100).rgb)
+
+        // Vertical health indicator
+        val healthColor = when {
+            healthPercent > 0.5 -> Color(63, 157, 4, 150)
+            healthPercent > 0.25 -> Color(255, 144, 2, 150)
+            else -> Color(168, 1, 1, 150)
+        }
+        RenderUtils.drawRect(x, y + 12.5f, x + 3, y + 27.5f, healthColor.rgb)
+
+        // Head
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, x.toInt() + 7, y.toInt() + 7, 26, 26, Color.WHITE)
+        } ?: RenderUtils.drawRect(x + 6, y + 6, x + 34, y + 34, Color.BLACK.rgb)
+
+
+        // Text
+        Fonts.font40.drawString(name, x + 40, y + 7, Color(200, 200, 200, 255).rgb)
+        Fonts.font35.drawString("${health.toInt()} HP", x + 40, y + 22, Color(200, 200, 200, 255).rgb)
+
+        // Held Item
+        val itemStack = entity.heldItem
+        val itemX = x + Fonts.font40.getStringWidth(name) + 50
+        if (itemStack != null) {
+            GlStateManager.pushMatrix()
+            GlStateManager.translate(itemX, y + 12, 0f)
+            GlStateManager.scale(1.5f, 1.5f, 1.5f) // Make item bigger
+            RenderHelper.enableGUIStandardItemLighting()
+            mc.renderItem.renderItemAndEffectIntoGUI(itemStack, 0, 0)
+            RenderHelper.disableStandardItemLighting()
+            GlStateManager.popMatrix()
+        } else {
+            Fonts.font40.drawString("?", x + Fonts.font40.getStringWidth(name) + 55, y + 11, Color(200, 200, 200, 255).rgb)
+        }
+
+        GlStateManager.popMatrix()
+    }
+
+
+    // ... [Rest of the existing code is unchanged] ...
+    // Note: To save space, the rest of the file is omitted, but the changes below are essential.
+    // Make sure the following changes are also applied to your existing file.
+
+    @EventTarget
+    fun onRender2D(event: Render2DEvent) {
+        val kaTarget = KillAura.target
+
+        // Update target logic
+        if (kaTarget != null && kaTarget is EntityPlayer && !AntiBot.isBot(kaTarget)) {
+            target = kaTarget
+        } else if (mc.currentScreen is GuiChat) {
+            target = mc.thePlayer
+        } else if (target != null && (KillAura.target == null || !target!!.isEntityAlive || AntiBot.isBot(target!!))) {
+            target = null
+        }
+
+        // Handle target change for animations
+        if (target != lastTarget) {
+            if (lastTarget != null) { // Smooth out previous target
+                easingHealth = lastTarget!!.health
+                damageHealth = lastTarget!!.health
+            } else if (target != null) { // Instantly set for new target
+                easingHealth = target!!.health
+                damageHealth = target!!.health
+            }
+            // Instantly set health for animated styles to prevent animating from old target
+            if (target != null) {
+                moon4EasingHealth = target!!.health
+                southsideEasingHealth = target!!.health
+            }
+        }
+
+        lastTarget = target
+
+        // Update global animations
+        hue += 0.05f * deltaTime * 0.1f
+        if (hue > 1F) hue = 0F
+
+        slideIn = lerp(slideIn, if (target != null) 1F else 0F, animSpeed)
+
+        if (slideIn < 0.01F && target == null) return
+
+        val sr = ScaledResolution(mc)
+
+        // Centralized positioning
+        val x = sr.scaledWidth / 2F + posX
+        val y = sr.scaledHeight / 2F + posY
+
+        when (hudStyle.lowercase(Locale.getDefault())) {
+            // New Styles
+            "flux" -> renderFluxHUD(x, y)
+            "arc" -> renderArcHUD(x, y)
+            "compact" -> renderCompactHUD(x, y)
+            "moon4" -> renderMoon4HUD(x, y)
+            "southside" -> renderSouthsideHUD(x,y)
+            "novoline" -> renderNovolineHUD(sr)
+            "戶籍" -> render0x01a4HUD(sr)
+            "chill" -> renderChillHUD(sr)
+            "myau" -> renderMyauHUD(sr)
+            "ravenb4" -> renderRavenB4HUD(sr)
+            "naven" -> renderNavenHUD(sr)
+            "wave" -> renderWaveHUD(x, y)
+            "pulse" -> renderPulseHUD(x, y)
+            "neon" -> renderNeonHUD(x, y)
+        }
+    }
+
+    private fun renderMoon4HUD(x: Float, y: Float) {
+        val entity = target ?: lastTarget ?: return
+
+        // Animate towards the current target's health, or towards 0 if no target.
+        val currentHealth = target?.health ?: 0f
+        moon4EasingHealth += ((currentHealth - moon4EasingHealth) / 2.0F.pow(10.0F - moon4AnimSpeed)) * deltaTime
+
+        val mainColor = Color(moon4BarColorR, moon4BarColorG, moon4BarColorB)
+        val bgColor = Color(moon4BGColorR, moon4BGColorG, moon4BGColorB, moon4BGColorA)
+
+        val boldName = "$BOLD${entity.name}"
+        val healthInt = entity.health.toInt()
+        val percentText = "$BOLD${healthInt}HP"
+
+        val nameLength = (Fonts.fontSF40.getStringWidth(boldName)).coerceAtLeast(
+            Fonts.fontSF35.getStringWidth(percentText)
+        ).toFloat() + 20F
+
+        val healthPercent = (entity.health / entity.maxHealth).coerceIn(0F, 1F)
+        val barWidth = healthPercent * (nameLength - 2F)
+        val animateThingy = (moon4EasingHealth.coerceIn(entity.health, entity.maxHealth) / entity.maxHealth) * (nameLength - 2F)
+
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(x, y, 0F)
+        GlStateManager.scale(slideIn, slideIn, slideIn)
+
+        // Backgrounds
+        RenderUtils.drawRoundedRect(-2F, -2F, 3F + nameLength + 36F, 2F + 36F, bgColor.rgb, 3f)
+        RenderUtils.drawRoundedRect(-1F, -1F, 2F + nameLength + 36F, 1F + 36F, Color(0, 0, 0, 50).rgb, 3f)
+
+        // Head with Stencil
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let { playerInfo ->
+            Stencil.write(false)
+            glDisable(GL_TEXTURE_2D)
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            RenderUtils.drawRoundedRect(1f, 0.5f, 1f + 35f, 0.5f + 35f, Color.WHITE.rgb, 7F)
+            glDisable(GL_BLEND)
+            glEnable(GL_TEXTURE_2D)
+            Stencil.erase(true)
+            Target().drawHead(playerInfo.locationSkin, 1, 0, 35, 35, Color.WHITE)
+            Stencil.dispose()
+        }
+
+        // Text
+        Fonts.fontSF40.drawStringWithShadow(boldName, 2F + 36F, 2F, -1)
+        Fonts.fontSF35.drawStringWithShadow(percentText, 38F, 15F, Color.WHITE.rgb)
+
+        // Health Bar
+        RenderUtils.drawRoundedRect(37F, 23F, 37F + nameLength, 33f, Color(0, 0, 0, 100).rgb, 3f)
+        if (moon4EasingHealth > entity.health) {
+            RenderUtils.drawRoundedRect(38F, 24F, 38F + animateThingy, 32f, mainColor.darker().rgb, 3f)
+        }
+        RenderUtils.drawRoundedRect(38F, 24F, 38F + barWidth, 32f, mainColor.rgb, 3f)
+
+        GlStateManager.popMatrix()
+    }
+
+    private fun renderFluxHUD(x: Float, y: Float) {
+        val entity = target ?: lastTarget ?: return
+        val width = 140F
+        val height = 46F
+
+        // Update animations
+        easingHealth = lerp(easingHealth, entity.health, animSpeed)
+
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(x, y, 0F)
+        GlStateManager.scale(slideIn, slideIn, slideIn)
+        GlStateManager.translate(-x, -y, 0F)
+
+        // Background
+        RenderUtils.drawRoundedRect(x, y, x + width, y + height, Color(25, 25, 25, (200 * slideIn).toInt()).rgb, 4F)
+
+        // Head
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, (x + 6).toInt(), (y + 6).toInt(), 34, 34, Color.WHITE)
+        }
+
+        // Name
+        Fonts.font40.drawString(entity.name, x + 46, y + 8, Color.WHITE.rgb)
+
+        // Health Bar
+        val healthPercent = (easingHealth / entity.maxHealth).coerceIn(0F, 1F)
+        val healthBarWidth = (width - 52) * healthPercent
+        val barColor = when(fluxColorMode) {
+            "Custom" -> Color(fluxColorRed, fluxColorGreen, fluxColorBlue)
+            "Rainbow" -> Color.getHSBColor(hue, 0.7f, 0.9f)
+            else -> ColorUtils.healthColor(easingHealth, entity.maxHealth)
+        }
+
+        RenderUtils.drawRect(x + 46, y + 22, x + width - 6, y + 30, Color(45, 45, 45).rgb)
+        RenderUtils.drawRect(x + 46, y + 22, x + 46 + healthBarWidth, y + 30, barColor.rgb)
+
+        // Health Text
+        val healthText = decimalFormat.format(easingHealth)
+        Fonts.font35.drawString(healthText, x + 48, y + 23, Color.WHITE.rgb)
+
+        // Distance Text
+        val distance = mc.thePlayer.getDistanceToEntity(entity)
+        val distanceText = "${decimalFormat.format(distance)}m"
+        // 您可以在这里添加一个图标
+        // drawIcon(x + 46, y + 33, icon_path)
+        Fonts.font35.drawString(distanceText, x + 46, y + 33, Color(200, 200, 200).rgb)
+
+        GlStateManager.popMatrix()
+    }
     private fun renderWaveHUD(x: Float, y: Float) {
         val entity = target ?: return
         val width = 160F
@@ -169,212 +445,6 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         GlStateManager.popMatrix()
     }
-
-    private fun renderPulseHUD(x: Float, y: Float) {
-        val entity = target ?: return
-        val size = 70F
-
-        val pulsePhase = (System.currentTimeMillis() % 1000) / 1000f
-        val pulseScale = 1f + sin(pulsePhase * 2 * PI) * 0.05f
-
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(x, y, 0F)
-        GlStateManager.scale(pulseScale, pulseScale, 1.0)
-
-        RenderUtils.drawFilledCircle(x + size/2F, y + size/2F, size/2F, Color(20, 20, 20, 200))
-
-        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
-            Target().drawHead(it.locationSkin, x.toInt() + 5, y.toInt() + 5, (size - 10).toInt(), (size - 10).toInt(), Color.WHITE)
-        }
-
-        val healthPercent = entity.health / entity.maxHealth
-        val ringColor = ColorUtils.healthColor(entity.health, entity.maxHealth)
-
-        glPushMatrix()
-        glTranslatef(x + size/2, y + size/2, 0F)
-        for (i in 0..3) {
-            val scale = 1.1f + i * 0.1f
-            val alpha = (200 * (1 - i/3f)).toInt()
-            drawCircleArc(0F, 0F, size/2 + i*3, pulseThickness, -90F, 360F * healthPercent, Color(ringColor.red, ringColor.green, ringColor.blue, alpha))
-        }
-        glPopMatrix()
-
-        Fonts.font40.drawCenteredString(entity.name, x + size/2, y + size + 5F, Color.WHITE.rgb)
-        Fonts.font35.drawCenteredString("${decimalFormat.format(entity.health)}m", x + size/2, y + size + 20F, Color(200, 200, 200).rgb)
-
-        GlStateManager.popMatrix()
-    }
-
-    private fun renderNeonHUD(x: Float, y: Float) {
-        val entity = target ?: return
-        val width = 180F
-        val height = 60F
-
-        easingHealth = lerp(easingHealth, entity.health, animSpeed * 2)
-
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(x, y, 0F)
-        GlStateManager.scale(slideIn, slideIn, 1F)
-        RenderUtils.drawRoundedRect(0F, 0F, width, height, Color(10, 10, 10, 180).rgb, 8F)
-
-        if(neonGlow) {
-            for(i in 1..3) {
-                val glowSize = i * 2F
-                RenderUtils.drawRoundedRect(-glowSize, -glowSize, width+glowSize, height+glowSize,
-                    Color(neonColor.red, neonColor.green, neonColor.blue, 30/i).rgb, 8F + glowSize)
-            }
-        }
-
-        // 头像绘制
-        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
-            Target().drawHead(it.locationSkin, 8, 8, 44, 44, Color.WHITE)
-        }
-
-        // 名称文本
-        Fonts.font40.drawString(entity.name, 60F, 12F, Color.WHITE.rgb)
-
-        // 霓虹健康条
-        val healthPercent = easingHealth / entity.maxHealth
-        val barHeight = 12F
-        val barX = 60F
-        val barY = 28F
-
-        // 背景条
-        RenderUtils.drawRoundedRect(barX, barY, width - 20F, barY + barHeight, Color(30, 30, 30).rgb, 4F)
-
-        // 前景条（霓虹效果）
-        val gradientWidth = (width - 80F) * healthPercent
-        RenderUtils.drawRoundedRect(barX, barY, barX + gradientWidth, barY + barHeight,
-            neonColor.brighter().rgb, 4F)
-
-        // 健康数值
-        val healthText = "${decimalFormat.format(easingHealth)} / ${entity.maxHealth}"
-        Fonts.font35.drawString(healthText, width - Fonts.font35.getStringWidth(healthText) - 15F, barY + 2F, neonColor.brighter().rgb)
-
-        // 距离显示
-        val distance = mc.thePlayer.getDistanceToEntity(entity)
-        val distanceText = "${decimalFormat.format(distance)}m"
-        Fonts.font35.drawString(distanceText, barX, barY + barHeight + 5F, Color(200, 200, 200).rgb)
-
-        GlStateManager.popMatrix()
-    }
-
-    private fun drawGlowingRect(x: Float, y: Float, width: Float, height: Float, color: Color, radius: Float) {
-        for(i in 1..3) {
-            val glowSize = i * 1.5F
-            RenderUtils.drawRoundedRect(x - glowSize, y - glowSize,
-                x + width + glowSize, y + height + glowSize,
-                Color(color.red, color.green, color.blue, 50/i).rgb, radius + glowSize)
-        }
-    }
-    @EventTarget
-    fun onRender2D(event: Render2DEvent) {
-        val kaTarget = KillAura.target
-
-        // Update target logic
-        if (kaTarget != null && kaTarget is EntityPlayer && !AntiBot.isBot(kaTarget)) {
-            target = kaTarget
-        } else if (mc.currentScreen is GuiChat) {
-            target = mc.thePlayer
-        } else if (target != null && (KillAura.target == null || !target!!.isEntityAlive || AntiBot.isBot(target!!))) {
-            target = null
-        }
-
-        // Handle target change for animations
-        if (target != lastTarget) {
-            if (lastTarget != null) { // Smooth out previous target
-                easingHealth = lastTarget!!.health
-                damageHealth = lastTarget!!.health
-            } else if (target != null) { // Instantly set for new target
-                easingHealth = target!!.health
-                damageHealth = target!!.health
-            }
-        }
-
-        lastTarget = target
-
-        // Update global animations
-        hue += 0.05f * deltaTime * 0.1f
-        if (hue > 1F) hue = 0F
-
-        slideIn = lerp(slideIn, if (target != null) 1F else 0F, animSpeed)
-
-        if (slideIn < 0.01F && target == null) return
-
-        val sr = ScaledResolution(mc)
-
-        // Centralized positioning
-        val x = sr.scaledWidth / 2F + posX
-        val y = sr.scaledHeight / 2F + posY
-
-        when (hudStyle.lowercase(Locale.getDefault())) {
-            // New Styles
-            "flux" -> renderFluxHUD(x, y)
-            "arc" -> renderArcHUD(x, y)
-            "compact" -> renderCompactHUD(x, y)
-            // Original Styles
-            "novoline" -> renderNovolineHUD(sr)
-            "户籍" -> render0x01a4HUD(sr)
-            "chill" -> renderChillHUD(sr)
-            "myau" -> renderMyauHUD(sr)
-            "ravenb4" -> renderRavenB4HUD(sr)
-            "naven" -> renderNavenHUD(sr)
-            "wave" -> renderWaveHUD(x, y)
-            "pulse" -> renderPulseHUD(x, y)
-            "neon" -> renderNeonHUD(x, y)
-        }
-    }
-
-    private fun renderFluxHUD(x: Float, y: Float) {
-        val entity = target ?: lastTarget ?: return
-        val width = 140F
-        val height = 46F
-
-        // Update animations
-        easingHealth = lerp(easingHealth, entity.health, animSpeed)
-
-        GlStateManager.pushMatrix()
-        GlStateManager.translate(x, y, 0F)
-        GlStateManager.scale(slideIn, slideIn, slideIn)
-        GlStateManager.translate(-x, -y, 0F)
-
-        // Background
-        RenderUtils.drawRoundedRect(x, y, x + width, y + height, Color(25, 25, 25, (200 * slideIn).toInt()).rgb, 4F)
-
-        // Head
-        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
-            Target().drawHead(it.locationSkin, (x + 6).toInt(), (y + 6).toInt(), 34, 34, Color.WHITE)
-        }
-
-        // Name
-        Fonts.font40.drawString(entity.name, x + 46, y + 8, Color.WHITE.rgb)
-
-        // Health Bar
-        val healthPercent = (easingHealth / entity.maxHealth).coerceIn(0F, 1F)
-        val healthBarWidth = (width - 52) * healthPercent
-        val barColor = when(fluxColorMode) {
-            "Custom" -> Color(fluxColorRed, fluxColorGreen, fluxColorBlue)
-            "Rainbow" -> Color.getHSBColor(hue, 0.7f, 0.9f)
-            else -> ColorUtils.healthColor(easingHealth, entity.maxHealth)
-        }
-
-        RenderUtils.drawRect(x + 46, y + 22, x + width - 6, y + 30, Color(45, 45, 45).rgb)
-        RenderUtils.drawRect(x + 46, y + 22, x + 46 + healthBarWidth, y + 30, barColor.rgb)
-
-        // Health Text
-        val healthText = decimalFormat.format(easingHealth)
-        Fonts.font35.drawString(healthText, x + 48, y + 23, Color.WHITE.rgb)
-
-        // Distance Text
-        val distance = mc.thePlayer.getDistanceToEntity(entity)
-        val distanceText = "${decimalFormat.format(distance)}m"
-        // 您可以在这里添加一个图标
-        // drawIcon(x + 46, y + 33, icon_path)
-        Fonts.font35.drawString(distanceText, x + 46, y + 33, Color(200, 200, 200).rgb)
-
-        GlStateManager.popMatrix()
-    }
-
     private fun renderArcHUD(x: Float, y: Float) {
         val entity = target ?: lastTarget ?: return
         val size = 50F
@@ -471,7 +541,94 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         GlStateManager.popMatrix()
     }
+    private fun renderPulseHUD(x: Float, y: Float) {
+        val entity = target ?: return
+        val size = 70F
 
+        val pulsePhase = (System.currentTimeMillis() % 1000) / 1000f
+        val pulseScale = 1f + sin(pulsePhase * 2 * PI) * 0.05f
+
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(x, y, 0F)
+        GlStateManager.scale(pulseScale, pulseScale, 1.0)
+
+        RenderUtils.drawFilledCircle(x + size/2F, y + size/2F, size/2F, Color(20, 20, 20, 200))
+
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, x.toInt() + 5, y.toInt() + 5, (size - 10).toInt(), (size - 10).toInt(), Color.WHITE)
+        }
+
+        val healthPercent = entity.health / entity.maxHealth
+        val ringColor = ColorUtils.healthColor(entity.health, entity.maxHealth)
+
+        glPushMatrix()
+        glTranslatef(x + size/2, y + size/2, 0F)
+        for (i in 0..3) {
+            val scale = 1.1f + i * 0.1f
+            val alpha = (200 * (1 - i/3f)).toInt()
+            drawCircleArc(0F, 0F, size/2 + i*3, pulseThickness, -90F, 360F * healthPercent, Color(ringColor.red, ringColor.green, ringColor.blue, alpha))
+        }
+        glPopMatrix()
+
+        Fonts.font40.drawCenteredString(entity.name, x + size/2, y + size + 5F, Color.WHITE.rgb)
+        Fonts.font35.drawCenteredString("${decimalFormat.format(entity.health)}m", x + size/2, y + size + 20F, Color(200, 200, 200).rgb)
+
+        GlStateManager.popMatrix()
+    }
+
+    private fun renderNeonHUD(x: Float, y: Float) {
+        val entity = target ?: return
+        val width = 180F
+        val height = 60F
+
+        easingHealth = lerp(easingHealth, entity.health, animSpeed * 2)
+
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(x, y, 0F)
+        GlStateManager.scale(slideIn, slideIn, 1F)
+        RenderUtils.drawRoundedRect(0F, 0F, width, height, Color(10, 10, 10, 180).rgb, 8F)
+
+        if(neonGlow) {
+            for(i in 1..3) {
+                val glowSize = i * 2F
+                RenderUtils.drawRoundedRect(-glowSize, -glowSize, width+glowSize, height+glowSize,
+                    Color(neonColor.red, neonColor.green, neonColor.blue, 30/i).rgb, 8F + glowSize)
+            }
+        }
+
+        // 头像绘制
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, 8, 8, 44, 44, Color.WHITE)
+        }
+
+        // 名称文本
+        Fonts.font40.drawString(entity.name, 60F, 12F, Color.WHITE.rgb)
+
+        // 霓虹健康条
+        val healthPercent = easingHealth / entity.maxHealth
+        val barHeight = 12F
+        val barX = 60F
+        val barY = 28F
+
+        // 背景条
+        RenderUtils.drawRoundedRect(barX, barY, width - 20F, barY + barHeight, Color(30, 30, 30).rgb, 4F)
+
+        // 前景条（霓虹效果）
+        val gradientWidth = (width - 80F) * healthPercent
+        RenderUtils.drawRoundedRect(barX, barY, barX + gradientWidth, barY + barHeight,
+            neonColor.brighter().rgb, 4F)
+
+        // 健康数值
+        val healthText = "${decimalFormat.format(easingHealth)} / ${entity.maxHealth}"
+        Fonts.font35.drawString(healthText, width - Fonts.font35.getStringWidth(healthText) - 15F, barY + 2F, neonColor.brighter().rgb)
+
+        // 距离显示
+        val distance = mc.thePlayer.getDistanceToEntity(entity)
+        val distanceText = "${decimalFormat.format(distance)}m"
+        Fonts.font35.drawString(distanceText, barX, barY + barHeight + 5F, Color(200, 200, 200).rgb)
+
+        GlStateManager.popMatrix()
+    }
     // Helper function to draw an arc, can be moved to RenderUtils later
     private fun drawCircleArc(x: Float, y: Float, radius: Float, lineWidth: Float, startAngle: Float, endAngle: Float, color: Color) {
         glPushMatrix()
