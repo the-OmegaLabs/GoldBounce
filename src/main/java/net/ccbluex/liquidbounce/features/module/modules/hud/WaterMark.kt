@@ -14,6 +14,7 @@ import net.ccbluex.liquidbounce.utils.extensions.getPing
 import net.ccbluex.liquidbounce.utils.render.AnimationUtils
 import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
 import net.ccbluex.liquidbounce.value.ListValue
 import net.ccbluex.liquidbounce.value.TextValue
 import net.ccbluex.liquidbounce.value.boolean
@@ -126,16 +127,18 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             if (alpha <= 10) return
 
             val icon = if (enabled) toggleIconOn else toggleIconOff
-            val iconSize = 20f
+            val iconSize = 25f
             val padding = (getHeight() - iconSize) / 2f
+            val offset = 10F
 
             // Draw Icon
-            RenderUtils.drawImage(icon, (x + padding).toInt(), (y + padding).toInt(), iconSize.toInt(), iconSize.toInt(), Color(255, 255, 255, alpha))
+            //RenderUtils.drawImage(icon, (x + padding).toInt(), (y + padding).toInt(), iconSize.toInt(), iconSize.toInt(), Color(255, 255, 255, alpha))
+            drawToggleButton(x,y,35F,enabled)
 
             // Draw Text
             val textX = x + iconSize + padding * 2
-            Fonts.font40.drawString(title, textX, y + padding - 2, Color(255, 255, 255, alpha).rgb)
-            Fonts.font35.drawString(message, textX, y + padding + 12, Color(200, 200, 200, alpha).rgb)
+            Fonts.font40.drawString(title, textX+offset, y + padding+4, Color(255, 255, 255, alpha).rgb)
+            Fonts.font35.drawString(message, textX+offset, y + padding + 14, Color(200, 200, 200, alpha).rgb)
         }
     }
 
@@ -465,7 +468,41 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
         glDisable(GL_SCISSOR_TEST)
     }
-
+    private fun drawToggleButton(StartX:Float, StartY: Float, BigBoardHeight: Float, ModuleState: Boolean){
+        val buttonHeight = 19F
+        val buttonWidth = 32F
+        val buttonRounded = buttonHeight/2
+        val buttonToButtonDistance = 4F
+        val smallButtonHeight = buttonHeight-buttonToButtonDistance*2
+        val smallButtonRounded = smallButtonHeight/2
+        val smallButtonWidth = smallButtonHeight
+        val toBigBorderLen = 6F
+        val ButtonStartX = BigBoardHeight/2 - buttonHeight/2
+        var smallButtonStartX = 0F
+        if (ModuleState) {
+            smallButtonStartX = StartX + toBigBorderLen + buttonWidth - buttonToButtonDistance - smallButtonWidth
+        }else{
+            smallButtonStartX= StartX + toBigBorderLen + buttonToButtonDistance
+        }
+        if (ModuleState){
+            drawRoundedBorderRect(StartX+toBigBorderLen,StartY+ButtonStartX,StartX+toBigBorderLen+buttonWidth,StartY+ButtonStartX+buttonHeight,1F,Color(opaiColorR.get(),opaiColorG.get(),opaiColorB.get(),255).rgb,Color(opaiColorR.get(),opaiColorG.get(),opaiColorB.get(),255).rgb,buttonRounded)
+        }else{
+            drawRoundedBorderRect(StartX+toBigBorderLen,StartY+ButtonStartX,StartX+toBigBorderLen+buttonWidth,StartY+ButtonStartX+buttonHeight,color1 = Color(10,10,10,255).rgb,color2 = Color(120,120,120,255).rgb, radius = buttonRounded, width = 3F)
+        }
+        val awtColorChanges = if (ModuleState){
+            Color(safeColor(opaiColorR.get()-120),safeColor(opaiColorG.get()-120),safeColor(opaiColorB.get()-120),255).rgb
+        }else{
+            Color(120,120,120,255).rgb
+        }
+        drawRoundedBorderRect(smallButtonStartX,StartY+ButtonStartX+buttonToButtonDistance,smallButtonStartX+smallButtonWidth,StartY+ButtonStartX+buttonToButtonDistance+smallButtonHeight,1F,
+            awtColorChanges,awtColorChanges,smallButtonRounded)
+        //抗锯齿
+    }
+    private fun safeColor(ColorA: Int) : Int{
+        if (ColorA>255) return 255
+        else if (ColorA<0) return 0
+        else return ColorA
+    }
     // --- Utility ---
     private fun getUsedMemory() = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)
     private fun getMaxMemory() = Runtime.getRuntime().maxMemory() / (1024 * 1024)
