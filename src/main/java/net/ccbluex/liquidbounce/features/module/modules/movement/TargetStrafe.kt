@@ -1,15 +1,11 @@
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
-/**
-From Crosssine client
- **/
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger.transgender
-import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
@@ -43,7 +39,7 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
-        if (renderModeValue.get() != "None" && canStrafe(targetEntity)) {
+        if (renderModeValue.get() != "None" && canStrafe()) {
             if (targetEntity == null || !doStrafe) {
                 if (transgender) chat("TargetStrafe entity$targetEntity doStrafe$doStrafe returned")
                 return
@@ -110,7 +106,6 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
                 for (i in 0..10) {
                     counter[0] = counter[0] + 1
                     val rainbow = Color(ColorManager.astolfoRainbow(counter[0] * 100, 5, 107))
-                    //final Color rainbow = new Color(Color.HSBtoRGB((float) ((mc.thePlayer.ticksExisted / 70.0 + sin(i / 50.0 * 1.75)) % 1.0f), 0.7f, 1.0f));
                     GL11.glColor3f(rainbow.red / 255.0f, rainbow.green / 255.0f, rainbow.blue / 255.0f)
                     if (rad < 0.8 && rad > 0.0) GL11.glVertex3d(
                         x + rad * cos(i * 6.283185307179586 / 3.0),
@@ -192,8 +187,13 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
 
     @EventTarget
     fun onMove(event: MoveEvent) {
+        val moveFix = LiquidBounce.moduleManager[MoveFix::class.java]
+        if (moveFix.state && MoveFix.mode.get() == "Bloxd") {
+            return
+        }
+
         if (doStrafe && (!ongroundValue.get() || mc.thePlayer.onGround)) {
-            if (!canStrafe(targetEntity)) {
+            if (!canStrafe()) {
                 isEnabled = false
                 if (transgender) chat("TargetStrafe can not strafe on $targetEntity returned")
                 return
@@ -220,60 +220,56 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
             isEnabled = true
             if (!thirdPersonViewValue.get())
                 return
-            mc.gameSettings.thirdPersonView = if (canStrafe(targetEntity)) 3 else 0
+            mc.gameSettings.thirdPersonView = if (canStrafe()) 3 else 0
         } else {
             isEnabled = false
-            if (!thirdPersonViewValue.get()) return
-            mc.gameSettings.thirdPersonView = 3
-        }
-    }
-
-    private fun canStrafe(target: EntityLivingBase?): Boolean {
-        return target != null && (!holdSpaceValue.get() || mc.gameSettings.keyBindJump.isKeyDown) && (!onlySpeedValue.get() || LiquidBounce.moduleManager[Speed::class.java].state) && (!onlyFlightValue.get() || LiquidBounce.moduleManager.getModule(
-            "Fly"
-        )!!.state)
-    }
-
-    fun modifyStrafe(event: StrafeEvent): Boolean {
-        if (!isEnabled || event.isCancelled) {
-            return false
-        } else {
-            MovementUtils.strafe()
-            return true
-        }
-    }
-
-    fun toggleStrafe(): Boolean {
-        return targetEntity != null && (!holdSpaceValue.get() || mc.gameSettings.keyBindJump.isKeyDown) && (!onlySpeedValue.get() || LiquidBounce.moduleManager[Speed::class.java]!!.state) && (!onlyFlightValue.get() || LiquidBounce.moduleManager.getModule(
-            "Fly"
-        )!!.state)
-    }
-
-    @EventTarget
-    fun onUpdate(event: UpdateEvent) {
-        targetEntity = if (KillAura.state) KillAura.target else null
-        if (mc.thePlayer.isCollidedHorizontally) {
-            direction = -direction
-            direction = if (direction >= 0) {
-                1.0
-            } else {
-                -1.0
+            if (thirdPersonViewValue.get() && mc.gameSettings.thirdPersonView == 3) {
+                mc.gameSettings.thirdPersonView = 0
             }
         }
     }
 
-    fun doMove(event: MoveEvent): Boolean {
-        if (!state)
-            return false
-        if (doStrafe && (!ongroundValue.get() || mc.thePlayer.onGround)) {
-            val entity: EntityLivingBase = targetEntity ?: return false
-            MovementUtils.doTargetStrafe(entity, direction.toFloat(), radiusValue.get(), event)
-            callBackYaw = RotationUtils.getRotationsEntity(entity).yaw.toDouble()
+    fun canStrafe(): Boolean {
+        targetEntity = if (KillAura.state) KillAura.target else null
+        return state && targetEntity != null && (!holdSpaceValue.get() || mc.gameSettings.keyBindJump.isKeyDown) && (!onlySpeedValue.get() || LiquidBounce.moduleManager[Speed::class.java].state) && (!onlyFlightValue.get() || LiquidBounce.moduleManager.getModule(
+            "Fly"
+        )!!.state)
+    }
+
+    fun getStrafeMove(event: MoveEvent) {
+        if (canStrafe() && doStrafe && (!ongroundValue.get() || mc.thePlayer.onGround)) {
+            if (mc.thePlayer.isCollidedHorizontally || checkVoid()) {
+                direction *= -1.0
+            }
+
+            val strictMode = if (radiusModeValue.get().equals("Strict", ignoreCase = true)) 1 else 0
+            MovementUtils.doTargetStrafe(
+                targetEntity!!,
+                direction.toFloat(),
+                radiusValue.get(),
+                event,
+                strictMode
+            )
+            callBackYaw = RotationUtils.getRotationsEntity(targetEntity!!).yaw.toDouble()
             isEnabled = true
         } else {
             isEnabled = false
         }
-        return true
+    }
+
+
+    @EventTarget
+    fun onUpdate(event: UpdateEvent) {
+        targetEntity = if (KillAura.state) KillAura.target else null
+        isEnabled = canStrafe()
+
+        if(thirdPersonViewValue.get()) {
+            if(isEnabled) {
+                mc.gameSettings.thirdPersonView = 3
+            } else if(mc.gameSettings.thirdPersonView == 3) {
+                mc.gameSettings.thirdPersonView = 0
+            }
+        }
     }
 
     private fun checkVoid(): Boolean {
@@ -294,6 +290,6 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
         }
         return true
     }
-    override val tag
-        get() = renderModeValue.get()
+
+    override val tag get() = renderModeValue.get()
 }

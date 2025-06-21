@@ -7,6 +7,7 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.serverRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.syncSpecialModuleRotations
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
+import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.float
 import net.minecraft.entity.EntityLivingBase
@@ -23,6 +24,7 @@ object Derp : Module("AntiAim", Category.FUN, subjective = true, hideModule = fa
     private val headless = mode == "BigAngle" || mode == "Spinny" || mode == "AI"
     private val angelSwitch by float("AngleSwitch", 30F, -180F..180F) { mode == "BigAngle" }
     private val spinny = mode == "Spinny"
+    private val disableInAir by boolean("DisableInAir",true)
     private val customPitch by float("CustomPitch", 90F, -180F..180F) { spinny }
     private val increment by float("SpinStrength", 1F, 0F..100F) { spinny }
 
@@ -74,8 +76,11 @@ object Derp : Module("AntiAim", Category.FUN, subjective = true, hideModule = fa
             val base = currentRotation ?: serverRotation
             val rot = Rotation(base.yaw, base.pitch)
 
-            // flip upside‐down head if desired
 
+            if (disableInAir && !mc.thePlayer.onGround) {
+                return rot.fixedSensitivity()
+            }
+            // flip upside‐down head if desired
             when (mode) {
                 "Spinny"   -> {
                     rot.yaw += increment

@@ -67,6 +67,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             } else {
                 groundTicksLocal = 0
             }
+            // bhopJumps = groundTicks > 5 ? 0 : bhopJumps;
             if (groundTicksLocal > 5) {
                 jumpfunny = 0
             }
@@ -88,6 +89,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         when (packet) {
             is S12PacketEntityVelocity -> {
                 if (packet.entityID == player.entityId) {
+                    // This enables the damage boost speed.
                     jumpticks = System.currentTimeMillis() + 1300
                 }
             }
@@ -122,18 +124,21 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             bloxdPhysics.velocityVector.y = 0.0
             bloxdPhysics.impulseVector.y = 0.0
         } else {
+            // if (mc.thePlayer.onGround && pBody.velocityVector.y < 0) { pBody.velocityVector.set(0, 0, 0); }
             if (player.onGround && bloxdPhysics.velocityVector.y < 0) {
                 bloxdPhysics.velocityVector.set(0.0, 0.0, 0.0)
             }
 
-            if (player.motionY > 0.4199 && player.motionY < 0.4201) {
+            // [FIX] Checks for onGround when detecting a jump.
+            // if (mc.thePlayer.onGround && mc.thePlayer.motionY == JUMP_MOTION)
+            if (player.onGround && player.motionY > 0.4199 && player.motionY < 0.4201) {
                 jumpfunny = min(jumpfunny + 1, 3)
                 bloxdPhysics.impulseVector.add(0.0, 8.0, 0.0)
             }
 
             if (mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
-                val isAttacking = KillAura.target != null
-                bloxdPhysics.gravityMul = if (isAttacking && bloxdPhysics.velocityVector.y >= 0) 4.0 else 2.0
+                 // Uses a constant gravity multiplier of 2.
+                bloxdPhysics.gravityMul = 2.0
 
                 val finalMotion = bloxdPhysics.getMotionForTick()
                 event.y = finalMotion.y * (1.0 / 30.0)
@@ -142,6 +147,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             }
         }
 
+        // [FIX] The speed calculation is now corrected in getBloxdSpeed()
         val speed = getBloxdSpeed()
         val moveDirection = getMoveDirection(speed)
         event.x = moveDirection.x
@@ -155,66 +161,42 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
     }
 
     /**
-     * [REWORKED] Speed calculation now defaults to sprint speed.
+     * [REWORKED] Speed calculation
+     * It uses direct Minecraft motion values instead of BPS conversions.
      */
     private fun getBloxdSpeed(): Double {
         val player = mc.thePlayer ?: return 0.0
-        val BPS_TO_MC_SPEED = 0.0232
 
+        //  We use a reasonable fixed speed for climbing.
         if (spiderValue.get() && player.isCollidedHorizontally) {
-            return 4.0 * BPS_TO_MC_SPEED
+            return 0.0928 // Roughly 4 BPS
         }
 
-        var baseSpeedBPS = if (MovementUtils.isMoving()) {
-            6.49
-        } else {
-            0.0
+        if (!MovementUtils.isMoving()) {
+            return 0.0
         }
 
-        if (player.isSneaking) {
-            baseSpeedBPS = 1.95
-        }
-
-        var finalSpeedBPS = baseSpeedBPS
-
-        if (jumpfunny > 0 && baseSpeedBPS > 0) {
-            val hopBonus = when (jumpfunny) {
-                1 -> 1.15
-                2 -> 1.225
-                3 -> 1.30
-                else -> 1.0
-            }
-            finalSpeedBPS *= hopBonus
-        }
-
-        if (player.isPotionActive(Potion.moveSpeed)) {
-            val effect = player.getActivePotionEffect(Potion.moveSpeed)
-            val speedMultiplier = when (effect.amplifier) {
-                0 -> 1.50
-                1 -> 2.20
-                else -> 1.0 + (effect.amplifier + 1) * 0.5
-            }
-            finalSpeedBPS *= speedMultiplier
-        }
-        if (player.isPotionActive(Potion.moveSlowdown)) {
-            val effect = player.getActivePotionEffect(Potion.moveSlowdown)
-            val slownessMultiplier = when (effect.amplifier) {
-                0 -> 0.70
-                1 -> 0.60
-                else -> 1.0 - (effect.amplifier + 1) * 0.2
-            }
-            finalSpeedBPS *= slownessMultiplier
-        }
-
+        // knockback has the highest priority.
+        // knockbackTime > Date.now() ? 1 : ...
         if (System.currentTimeMillis() < jumpticks) {
-            return 1.0
+            return 1.0 // High motion value for knockback boosting.
         }
 
+        // check for item usage.
+        // ... (mc.thePlayer.isUsingItem() ? 0.06 : ...)
         if (player.isUsingItem) {
             return 0.06
         }
 
-        return finalSpeedBPS * BPS_TO_MC_SPEED
+        // base speed + additive BHop bonus.
+        // This replaces the incorrect BPS conversion and multiplicative bonuses.
+        // ... : 0.26 + 0.025 * bhopJumps
+        var finalSpeed = 0.26
+        if (jumpfunny > 0) {
+            finalSpeed += 0.025 * jumpfunny
+        }
+
+        return finalSpeed
     }
 
     private fun getMoveDirection(speed: Double): Vec3d {

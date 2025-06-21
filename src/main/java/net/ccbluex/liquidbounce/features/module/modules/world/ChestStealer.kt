@@ -272,14 +272,32 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
         return score
     }
 
+    /**
+     * [MODIFIED] This function is updated to dynamically support chests of any size.
+     * It calculates the chest's inventory size by subtracting the player's static inventory size (36)
+     * from the total number of item stacks received from the server. This makes it adaptable to
+     * single chests, double chests, and any custom-sized chests (e.g., 4-row chests).
+     */
     private fun getItemsToSteal(): MutableList<ItemTakeRecord> {
         val sortBlacklist = BooleanArray(9)
+
+        // The player's inventory size is constant (9 hotbar + 27 main = 36 slots).
+        val playerInventorySize = 36
+        // Calculate the chest's size dynamically. The 'stacks' list contains both chest and player items.
+        val chestSize = stacks.size - playerInventorySize
+
+        // If for some reason there are no chest slots (e.g., it's not a real container), return an empty list.
+        if (chestSize <= 0) {
+            return mutableListOf()
+        }
+
         var spaceInInventory = countSpaceInInventory()
-        val itemsToSteal = stacks.dropLast(36) // 只处理箱子的前几个槽位（不包括玩家背包）
-            .mapIndexedNotNullTo(ArrayList(32)) { index, stack ->
+        // We now iterate only over the chest's contents, which are the first 'chestSize' items in the 'stacks' list.
+        val itemsToSteal = stacks.take(chestSize)
+            .mapIndexedNotNullTo(ArrayList(chestSize)) { index, stack ->
                 stack ?: return@mapIndexedNotNullTo null
 
-                if (index in TickScheduler) return@mapIndexedNotNullTo null  // 跳过已调度的槽位
+                if (index in TickScheduler) return@mapIndexedNotNullTo null  // Skip already scheduled slots
 
                 val mergeableCount = mc.thePlayer.inventory.mainInventory.sumOf { otherStack ->
                     otherStack?.takeIf { it.isItemEqual(stack) && ItemStack.areItemStackTagsEqual(stack, otherStack) }
@@ -289,7 +307,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
                 if (mergeableCount == 0 && spaceInInventory <= 0) return@mapIndexedNotNullTo null
                 if (handleEvents() && !isStackUseful(stack, stacks, noLimits = mergeableCount >= stack.stackSize)) return@mapIndexedNotNullTo null
                 var sortableTo: Int? = null
-                if (handleEvents() && mergeableCount<=0) {
+                if (handleEvents() && mergeableCount <= 0) {
                     for (hotbarIndex in 0..8) {
                         if (!canBeSortedTo(hotbarIndex, stack.item)) continue
                         val hotbarStack = stacks.getOrNull(stacks.size - 9 + hotbarIndex)
@@ -318,7 +336,6 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
 
         return itemsToSteal
     }
-
 
 
     private fun sortBasedOnOptimumPath(itemsToSteal: MutableList<ItemTakeRecord>) {
@@ -373,6 +390,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD, hideModule = false)
         drawRect(minX, minY, maxX, maxY, Color(50, 50, 50).rgb)
         drawRect(minX, minY, minX + (maxX - minX) * easingProgress, maxY, Color.HSBtoRGB(easingProgress / 5, 1f, 1f) or 0xFF0000)
     }
+
 
 
 
