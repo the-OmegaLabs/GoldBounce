@@ -6,6 +6,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger.transgender
+import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
@@ -236,7 +237,11 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
         )!!.state)
     }
 
-    fun getStrafeMove(event: MoveEvent) {
+    /**
+     * [新增] 供 MoveFix 调用的专用函数
+     * @param event MoveFix 传递过来的 MoveEvent 对象
+     */
+    fun applyStrafeToMove(event: MoveEvent) {
         if (canStrafe() && doStrafe && (!ongroundValue.get() || mc.thePlayer.onGround)) {
             if (mc.thePlayer.isCollidedHorizontally || checkVoid()) {
                 direction *= -1.0
@@ -256,7 +261,6 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
             isEnabled = false
         }
     }
-
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {

@@ -1,9 +1,9 @@
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
+import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.Vec3d
@@ -13,8 +13,9 @@ import net.ccbluex.liquidbounce.value.ListValue
 import net.minecraft.network.PacketBuffer
 import net.minecraft.network.play.server.S12PacketEntityVelocity
 import net.minecraft.network.play.server.S3FPacketCustomPayload
-import net.minecraft.potion.Potion
+import net.minecraft.util.EnumFacing
 import net.minecraft.util.MathHelper
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -67,7 +68,6 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             } else {
                 groundTicksLocal = 0
             }
-            // bhopJumps = groundTicks > 5 ? 0 : bhopJumps;
             if (groundTicksLocal > 5) {
                 jumpfunny = 0
             }
@@ -89,7 +89,6 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         when (packet) {
             is S12PacketEntityVelocity -> {
                 if (packet.entityID == player.entityId) {
-                    // This enables the damage boost speed.
                     jumpticks = System.currentTimeMillis() + 1300
                 }
             }
@@ -114,6 +113,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         }
     }
 
+
     @EventTarget
     fun onMove(event: MoveEvent) {
         if (mode.get() != "Bloxd") return
@@ -124,22 +124,15 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             bloxdPhysics.velocityVector.y = 0.0
             bloxdPhysics.impulseVector.y = 0.0
         } else {
-            // if (mc.thePlayer.onGround && pBody.velocityVector.y < 0) { pBody.velocityVector.set(0, 0, 0); }
             if (player.onGround && bloxdPhysics.velocityVector.y < 0) {
                 bloxdPhysics.velocityVector.set(0.0, 0.0, 0.0)
             }
-
-            // [FIX] Checks for onGround when detecting a jump.
-            // if (mc.thePlayer.onGround && mc.thePlayer.motionY == JUMP_MOTION)
             if (player.onGround && player.motionY > 0.4199 && player.motionY < 0.4201) {
                 jumpfunny = min(jumpfunny + 1, 3)
                 bloxdPhysics.impulseVector.add(0.0, 8.0, 0.0)
             }
-
             if (mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
-                 // Uses a constant gravity multiplier of 2.
                 bloxdPhysics.gravityMul = 2.0
-
                 val finalMotion = bloxdPhysics.getMotionForTick()
                 event.y = finalMotion.y * (1.0 / 30.0)
             } else {
@@ -147,12 +140,19 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             }
         }
 
-        // [FIX] The speed calculation is now corrected in getBloxdSpeed()
-        val speed = getBloxdSpeed()
-        val moveDirection = getMoveDirection(speed)
-        event.x = moveDirection.x
-        event.z = moveDirection.z
+        val targetStrafe = LiquidBounce.moduleManager[TargetStrafe::class.java]
+        if (targetStrafe.state && TargetStrafe.canStrafe()) {
+            // 如果 TargetStrafe 应该工作，就让它来计算并修改 event
+            TargetStrafe.applyStrafeToMove(event)
+        } else {
+            // 否则，执行 MoveFix 自己的移动逻辑
+            val speed = getBloxdSpeed()
+            val moveDirection = getMoveDirection(speed)
+            event.x = moveDirection.x
+            event.z = moveDirection.z
+        }
 
+        // 3. 最终安全检查
         if (!mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
             event.x = 0.0
             event.y = 0.0
@@ -160,42 +160,29 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         }
     }
 
-    /**
-     * [REWORKED] Speed calculation
-     * It uses direct Minecraft motion values instead of BPS conversions.
-     */
     private fun getBloxdSpeed(): Double {
         val player = mc.thePlayer ?: return 0.0
 
-        //  We use a reasonable fixed speed for climbing.
         if (spiderValue.get() && player.isCollidedHorizontally) {
-            return 0.0928 // Roughly 4 BPS
+            return 0.0928
         }
 
         if (!MovementUtils.isMoving()) {
             return 0.0
         }
 
-        // knockback has the highest priority.
-        // knockbackTime > Date.now() ? 1 : ...
         if (System.currentTimeMillis() < jumpticks) {
-            return 1.0 // High motion value for knockback boosting.
+            return 1.0
         }
 
-        // check for item usage.
-        // ... (mc.thePlayer.isUsingItem() ? 0.06 : ...)
         if (player.isUsingItem) {
             return 0.06
         }
 
-        // base speed + additive BHop bonus.
-        // This replaces the incorrect BPS conversion and multiplicative bonuses.
-        // ... : 0.26 + 0.025 * bhopJumps
         var finalSpeed = 0.26
         if (jumpfunny > 0) {
             finalSpeed += 0.025 * jumpfunny
         }
-
         return finalSpeed
     }
 
@@ -256,18 +243,18 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         val calcYaw = if (isSilent) {
             yaw + 45.0f * angleDiff.toFloat()
         } else yaw
-        var calcMoveDir = Math.abs(strafe).coerceAtLeast(Math.abs(forward))
+        var calcMoveDir = abs(strafe).coerceAtLeast(abs(forward))
         calcMoveDir *= calcMoveDir
         val calcMultiplier = MathHelper.sqrt_float(calcMoveDir / 1.0f.coerceAtMost(calcMoveDir * 2.0f))
         if (isSilent) {
             when (angleDiff) {
                 1, 3, 5, 7, 9 -> {
-                    if ((Math.abs(forward) > 0.005 || Math.abs(strafe) > 0.005) && !(Math.abs(forward) > 0.005 && Math.abs(
+                    if ((abs(forward) > 0.005 || abs(strafe) > 0.005) && !(abs(forward) > 0.005 && abs(
                             strafe
                         ) > 0.005)
                     ) {
                         friction /= calcMultiplier
-                    } else if (Math.abs(forward) > 0.005 && Math.abs(strafe) > 0.005) {
+                    } else if (abs(forward) > 0.005 && abs(strafe) > 0.005) {
                         friction *= calcMultiplier
                     }
                 }
