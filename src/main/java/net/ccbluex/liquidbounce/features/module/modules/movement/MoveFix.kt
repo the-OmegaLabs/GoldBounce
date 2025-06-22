@@ -13,7 +13,6 @@ import net.ccbluex.liquidbounce.value.ListValue
 import net.minecraft.network.PacketBuffer
 import net.minecraft.network.play.server.S12PacketEntityVelocity
 import net.minecraft.network.play.server.S3FPacketCustomPayload
-import net.minecraft.util.EnumFacing
 import net.minecraft.util.MathHelper
 import kotlin.math.abs
 import kotlin.math.cos
@@ -31,6 +30,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
     private val bloxdPhysics = NoaPhysics()
     private var groundTicksLocal = 0
     private var lastMotionY = 0.0
+    private var wasClimbing = false
 
     var silentFix = false
     var doFix = false
@@ -53,6 +53,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         bloxdPhysics.reset()
         groundTicksLocal = 0
         lastMotionY = 0.0
+        wasClimbing = false
     }
 
     @EventTarget
@@ -113,63 +114,60 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         }
     }
 
-
     @EventTarget
-    fun onMove(event: MoveEvent) {
-        if (mode.get() != "Bloxd") return
-        val player = mc.thePlayer ?: return
+    fun onStrafe(event: StrafeEvent) {
+        if (mode.get() == "Grim") {
+            if (doFix) {
+                runStrafeFixLoop(silentFix, event)
+            }
+            return
+        }
 
-        if (spiderValue.get() && player.isCollidedHorizontally && player.motionY < 0.2) {
-            event.y = 0.2
-            bloxdPhysics.velocityVector.y = 0.0
-            bloxdPhysics.impulseVector.y = 0.0
-        } else {
+        if (mode.get() == "Bloxd") {
+            val player = mc.thePlayer ?: return
+
             if (player.onGround && bloxdPhysics.velocityVector.y < 0) {
                 bloxdPhysics.velocityVector.set(0.0, 0.0, 0.0)
             }
+
             if (player.onGround && player.motionY > 0.4199 && player.motionY < 0.4201) {
                 jumpfunny = min(jumpfunny + 1, 3)
                 bloxdPhysics.impulseVector.add(0.0, 8.0, 0.0)
             }
-            if (mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
-                bloxdPhysics.gravityMul = 2.0
-                val finalMotion = bloxdPhysics.getMotionForTick()
-                event.y = finalMotion.y * (1.0 / 30.0)
-            } else {
-                event.y = 0.0
+
+            if (spiderValue.get()) {
+                if (player.isCollidedHorizontally && (abs(event.forward) > 0.005f || abs(event.strafe) > 0.005f)) {
+                    bloxdPhysics.velocityVector.set(0.0, 8.0, 0.0)
+                    wasClimbing = true
+                } else if (wasClimbing) {
+                    bloxdPhysics.velocityVector.set(0.0, 0.0, 0.0)
+                    wasClimbing = false
+                }
             }
-        }
 
-        val targetStrafe = LiquidBounce.moduleManager[TargetStrafe::class.java]
-        if (targetStrafe.state && TargetStrafe.canStrafe()) {
-            // 如果 TargetStrafe 应该工作，就让它来计算并修改 event
-            TargetStrafe.applyStrafeToMove(event)
-        } else {
-            // 否则，执行 MoveFix 自己的移动逻辑
             val speed = getBloxdSpeed()
-            val moveDirection = getMoveDirection(speed)
-            event.x = moveDirection.x
-            event.z = moveDirection.z
-        }
+            val moveDir = getBloxdMoveVec(event.forward, event.strafe, speed)
 
-        // 3. 最终安全检查
-        if (!mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
-            event.x = 0.0
-            event.y = 0.0
-            event.z = 0.0
+            event.cancelEvent()
+
+            player.motionX = moveDir.x
+            player.motionZ = moveDir.z
+            player.motionY = if (mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
+                bloxdPhysics.getMotionForTick().y * (1.0 / 30.0)
+            } else {
+                0.0
+            }
+
+            if (!mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
+                player.motionX = 0.0
+                player.motionY = 0.0
+                player.motionZ = 0.0
+            }
         }
     }
 
     private fun getBloxdSpeed(): Double {
         val player = mc.thePlayer ?: return 0.0
-
-        if (spiderValue.get() && player.isCollidedHorizontally) {
-            return 0.0928
-        }
-
-        if (!MovementUtils.isMoving()) {
-            return 0.0
-        }
 
         if (System.currentTimeMillis() < jumpticks) {
             return 1.0
@@ -186,38 +184,30 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         return finalSpeed
     }
 
-    private fun getMoveDirection(speed: Double): Vec3d {
+    private fun getBloxdMoveVec(forwardIn: Float, strafeIn: Float, speed: Double): Vec3d {
         val player = mc.thePlayer ?: return Vec3d(0.0, 0.0, 0.0)
-        var moveForward = player.movementInput.moveForward
-        var moveStrafe = player.movementInput.moveStrafe
-        var yaw = player.rotationYaw
-        if (moveForward == 0.0f && moveStrafe == 0.0f) {
+        var forward = forwardIn
+        var strafe = strafeIn
+        val yaw = player.rotationYaw
+
+        val sqrt = MathHelper.sqrt_float(forward * forward + strafe * strafe)
+        if (sqrt >= 0.01f) {
+            if (sqrt > 1.0f) { // Normalize to 1 for diagonal movement
+                forward /= sqrt
+                strafe /= sqrt
+            }
+        } else {
             return Vec3d(0.0, 0.0, 0.0)
         }
-        if (moveForward != 0.0f) {
-            if (moveStrafe > 0.0f) {
-                yaw += (if (moveForward > 0.0f) -45 else 45).toFloat()
-            } else if (moveStrafe < 0.0f) {
-                yaw += (if (moveForward > 0.0f) 45 else -45).toFloat()
-            }
-            moveStrafe = 0.0f
-            if (moveForward > 0.0f) {
-                moveForward = 1.0f
-            } else if (moveForward < 0.0f) {
-                moveForward = -1.0f
-            }
-        }
-        val yawRad = yaw.toDouble().toRadians()
-        val x = (moveForward * sin(yawRad) - moveStrafe * cos(yawRad)) * -speed
-        val z = (moveForward * cos(yawRad) + moveStrafe * sin(yawRad)) * speed
-        return Vec3d(x, 0.0, z)
-    }
 
-    @EventTarget
-    fun onStrafe(event: StrafeEvent) {
-        if (doFix && mode.get() == "Grim") {
-            runStrafeFixLoop(silentFix, event)
-        }
+        val yawRad = yaw.toDouble().toRadians()
+        val sinYaw = sin(yawRad)
+        val cosYaw = cos(yawRad)
+
+        val x = (strafe * cosYaw - forward * sinYaw) * speed
+        val z = (forward * cosYaw + strafe * sinYaw) * speed
+
+        return Vec3d(x, 0.0, z)
     }
 
     fun applyForceStrafe(isSilent: Boolean, runStrafeFix: Boolean) {
@@ -306,6 +296,7 @@ class NoaPhysics {
     var gravityMul = 2.0
     private val mass = 1.0
     private val delta = 1.0 / 30.0
+
     fun reset() {
         impulseVector.set(0.0, 0.0, 0.0); forceVector.set(0.0, 0.0, 0.0); velocityVector.set(0.0, 0.0, 0.0)
     }

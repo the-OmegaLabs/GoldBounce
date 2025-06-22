@@ -53,7 +53,7 @@ class ClientShutdownEvent : Event()
  * Called when another entity moves
  */
 data class EntityMovementEvent(val movedEntity: Entity) : Event()
-
+class MoveMathEvent() : CancellableEvent()
 /**
  * Called when player jumps
  *

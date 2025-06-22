@@ -237,30 +237,6 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
         )!!.state)
     }
 
-    /**
-     * [新增] 供 MoveFix 调用的专用函数
-     * @param event MoveFix 传递过来的 MoveEvent 对象
-     */
-    fun applyStrafeToMove(event: MoveEvent) {
-        if (canStrafe() && doStrafe && (!ongroundValue.get() || mc.thePlayer.onGround)) {
-            if (mc.thePlayer.isCollidedHorizontally || checkVoid()) {
-                direction *= -1.0
-            }
-
-            val strictMode = if (radiusModeValue.get().equals("Strict", ignoreCase = true)) 1 else 0
-            MovementUtils.doTargetStrafe(
-                targetEntity!!,
-                direction.toFloat(),
-                radiusValue.get(),
-                event,
-                strictMode
-            )
-            callBackYaw = RotationUtils.getRotationsEntity(targetEntity!!).yaw.toDouble()
-            isEnabled = true
-        } else {
-            isEnabled = false
-        }
-    }
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {

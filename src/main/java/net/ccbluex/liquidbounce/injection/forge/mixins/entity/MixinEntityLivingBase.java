@@ -5,9 +5,11 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.entity;
 
+import net.ccbluex.liquidbounce.LiquidBounce;
 import net.ccbluex.liquidbounce.event.EventManager;
 import net.ccbluex.liquidbounce.event.EventState;
 import net.ccbluex.liquidbounce.event.JumpEvent;
+import net.ccbluex.liquidbounce.event.MoveMathEvent;
 import net.ccbluex.liquidbounce.features.module.modules.movement.AirJump;
 import net.ccbluex.liquidbounce.features.module.modules.movement.LiquidWalk;
 import net.ccbluex.liquidbounce.features.module.modules.movement.NoJumpDelay;
@@ -72,6 +74,8 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
     @Shadow
     protected abstract void updateAITick();
 
+    @Shadow public float moveForward;
+
     /**
      * @author CCBlueX
      */
@@ -111,7 +115,12 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
         final JumpEvent postjumpEvent = new JumpEvent((float) motionY, EventState.POST);
         EventManager.INSTANCE.callEvent(postjumpEvent);
     }
-
+    @Inject(method = "moveEntityWithHeading", at = @At("HEAD"), cancellable = true)
+    private void callMoveMath(CallbackInfo ccb) {
+        MoveMathEvent moveMath = new MoveMathEvent();
+        LiquidBounce.INSTANCE.getEventManager().callEvent(moveMath);
+        if (moveMath.isCancelled()) ccb.cancel();
+    }
     @Inject(method = "onLivingUpdate", at = @At("HEAD"))
     private void headLiving(CallbackInfo callbackInfo) {
         if (NoJumpDelay.INSTANCE.handleEvents() || Scaffold.INSTANCE.handleEvents() && Tower.INSTANCE.getTowerModeValues().equals("Pulldown")) jumpTicks = 0;

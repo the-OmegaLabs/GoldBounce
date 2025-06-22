@@ -52,6 +52,104 @@ object RenderUtils : MinecraftInstance() {
     var deltaTime = 0
 
     /**
+     * 在实体上绘制一个面向相机的纹理 (1.8.9 版本)
+     *
+     * @param xPos          纹理在局部空间的 X 偏移
+     * @param yPos          纹理在局部空间的 Y 偏移
+     * @param width         绘制的纹理宽度
+     * @param height        绘制的纹理高度
+     * @param textureWidth  整个纹理文件的宽度
+     * @param textureHeight 整个纹理文件的高度
+     * @param entity        目标实体
+     * @param texture       要绘制的纹理
+     * @param rotate        是否让纹理旋转
+     * @param c             左上角颜色
+     * @param c1            右上角颜色
+     * @param c2            右下角颜色
+     * @param c3            左下角颜色
+     */
+    fun drawTextureOnEntity(
+        xPos: Int,
+        yPos: Int,
+        width: Int,
+        height: Int,
+        textureWidth: Float,
+        textureHeight: Float,
+        entity: Entity,
+        texture: ResourceLocation?,
+        rotate: Boolean,
+        c: Color,
+        c1: Color,
+        c2: Color,
+        c3: Color
+    ) {
+        val renderManager = mc.getRenderManager()
+        val partialTicks = mc.timer.renderPartialTicks
+
+        val x = (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks) - renderManager.viewerPosX
+        val y =
+            (entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks + 1.0) - renderManager.viewerPosY
+        val z = (entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks) - renderManager.viewerPosZ
+
+        pushMatrix()
+        translate(x, y, z)
+
+        rotate(-renderManager.playerViewY, 0.0f, 1.0f, 0.0f)
+        rotate(renderManager.playerViewX, 1.0f, 0.0f, 0.0f)
+
+        if (rotate) {
+            val angle = (sin(System.currentTimeMillis() / 800.0) * 360.0).toFloat()
+            rotate(angle, 0.0f, 0.0f, 1.0f)
+        }
+
+        scale(-0.03f, -0.03f, 0.03f)
+
+        enableBlend()
+        disableDepth()
+        tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+
+        mc.getTextureManager().bindTexture(texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        val tessellator = Tessellator.getInstance()
+        val worldrenderer = tessellator.getWorldRenderer()
+        worldrenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR)
+
+        val u1 = 0f
+        val v1 = 0f
+        val u2 = width.toFloat() / textureWidth
+        val v2 = height.toFloat() / textureHeight
+
+        worldrenderer.pos(xPos.toDouble(), (yPos + height).toDouble(), 0.0)
+            .tex(u1.toDouble(), v2.toDouble())
+            .color(c3.getRed(), c3.getGreen(), c3.getBlue(), c3.getAlpha())
+            .endVertex()
+
+        worldrenderer.pos((xPos + width).toDouble(), (yPos + height).toDouble(), 0.0)
+            .tex(u2.toDouble(), v2.toDouble())
+            .color(c2.getRed(), c2.getGreen(), c2.getBlue(), c2.getAlpha())
+            .endVertex()
+
+        worldrenderer.pos((xPos + width).toDouble(), yPos.toDouble(), 0.0)
+            .tex(u2.toDouble(), v1.toDouble())
+            .color(c1.getRed(), c1.getGreen(), c1.getBlue(), c1.getAlpha())
+            .endVertex()
+
+        worldrenderer.pos(xPos.toDouble(), yPos.toDouble(), 0.0)
+            .tex(u1.toDouble(), v1.toDouble())
+            .color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha())
+            .endVertex()
+
+        tessellator.draw()
+
+        enableDepth()
+        disableBlend()
+        color(1.0f, 1.0f, 1.0f, 1.0f)
+
+        popMatrix()
+    }
+    /**
      * 绘制 GUI 物品图标（Minecraft 1.8.9，Kotlin 实现）
      */
     fun renderItemIcon(x: Int, y: Int, stack: ItemStack?) {

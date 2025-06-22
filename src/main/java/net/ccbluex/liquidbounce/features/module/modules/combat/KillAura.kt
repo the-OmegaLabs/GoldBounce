@@ -45,6 +45,7 @@ import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawEntityBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawPlatform
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawTargetCapsule
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawTextureOnEntity
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomClickDelay
 import net.ccbluex.liquidbounce.value.*
@@ -1104,6 +1105,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (renderMode == "Capsule" && currentTarget != null) {
             val color = Color(currentRed, currentGreen, currentBlue, 255)
             drawTargetCapsule(currentTarget, 0.5, true, color)
+        } else if(renderMode == "Nursultan" && currentTarget != null) {
+            drawTextureOnEntity(-24, -24, 48, 48, 48F, 48F, currentTarget, ResourceLocation("liquidbounce/target.png"), true, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE);
         }
 
         if (circle) {
