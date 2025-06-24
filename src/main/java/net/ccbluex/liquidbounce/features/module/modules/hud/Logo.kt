@@ -13,16 +13,19 @@ import net.minecraft.util.ResourceLocation
 import java.awt.Color
 
 object Logo : Module("Logo",Category.HUD) {
-    val mode by ListValue("Mode", arrayOf("FanArt", "Bounce", "Sketch", "Static", "Tenna", "Raven"), "Tenna")
+    val mode by ListValue("Mode", arrayOf("ESound", "Bounce", "Sketch", "Static", "Tenna", "Nigga"), "Tenna")
     val xoffset by int("XOffset", 10, -100..100)
     val yoffset by int("YOffset", 10, -100..100)
     val colorR by int("ColorR", 255, 0..255)
     val colorG by int("ColorG", 255, 0..255)
     val colorB by int("ColorB", 255, 0..255)
     val colorA by int("ColorAlpha", 255, 0..255)
+    val tennaSpeed by int("TennaSpeed", 20, 1..300) {mode == "Tenna"}
     val color = Color(colorR, colorG, colorB, colorA)
     var scaledX = 0
     var scaledY = 0
+    var tennaFrame = 1
+    var speedCounter = 0
     @EventTarget
     fun onRender2D(event: Render2DEvent){
         scaledX = xoffset
@@ -38,6 +41,27 @@ object Logo : Module("Logo",Category.HUD) {
                     "oldBounce", scaledX.toFloat() + Fonts.minecraftFont.getStringWidth("G"), scaledY.toFloat(),
                     Color.WHITE.rgb
                 )
+            }
+
+            "Sketch" -> {
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/sketch.png"), scaledX, scaledY, 99, 23)
+            }
+
+            "ESound" -> {
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/esound.png"), scaledX, scaledY, 100, 100)
+            }
+
+            "Nigga" -> {
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/blocksmc.png"), scaledX, scaledY, 100, 100)
+            }
+
+            "Tenna" -> {
+                if (tennaFrame == 94) {
+                    tennaFrame = 1
+                } else {
+                    ++tennaFrame
+                }
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${tennaFrame}"), scaledX, scaledY, 88, 146)
             }
         }
     }

@@ -39,6 +39,8 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
+
 @Mixin(EntityLivingBase.class)
 public abstract class MixinEntityLivingBase extends MixinEntity {
 
@@ -114,12 +116,6 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
 
         final JumpEvent postjumpEvent = new JumpEvent((float) motionY, EventState.POST);
         EventManager.INSTANCE.callEvent(postjumpEvent);
-    }
-    @Inject(method = "moveEntityWithHeading", at = @At("HEAD"), cancellable = true)
-    private void callMoveMath(CallbackInfo ccb) {
-        MoveMathEvent moveMath = new MoveMathEvent();
-        LiquidBounce.INSTANCE.getEventManager().callEvent(moveMath);
-        if (moveMath.isCancelled()) ccb.cancel();
     }
     @Inject(method = "onLivingUpdate", at = @At("HEAD"))
     private void headLiving(CallbackInfo callbackInfo) {

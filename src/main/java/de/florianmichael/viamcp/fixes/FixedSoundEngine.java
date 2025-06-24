@@ -84,7 +84,7 @@ public class FixedSoundEngine {
         {
             return false;
         }
-        else if (worldIn.canBlockBePlaced(iblock.getBlock(), pos, false, side, null, stack))
+        else if (worldIn.canBlockBePlaced(iblock.getBlock(), pos, false, side, (Entity)null, stack))
         {
             int i = iblock.getMetadata(stack.getMetadata());
             IBlockState iblockstate1 = iblock.getBlock().onBlockPlaced(worldIn, pos, side, hitX, hitY, hitZ, i, playerIn);
@@ -106,7 +106,7 @@ public class FixedSoundEngine {
                 }
                 else
                 {
-                    worldIn.playSoundEffect((float)pos.getX() + 0.5F, (float)pos.getY() + 0.5F, (float)pos.getZ() + 0.5F, iblock.getBlock().stepSound.getPlaceSound(), (iblock.getBlock().stepSound.getVolume() + 1.0F) / 2.0F, iblock.getBlock().stepSound.getFrequency() * 0.8F);
+                    worldIn.playSoundEffect((double)((float)pos.getX() + 0.5F), (double)((float)pos.getY() + 0.5F), (double)((float)pos.getZ() + 0.5F), iblock.getBlock().stepSound.getPlaceSound(), (iblock.getBlock().stepSound.getVolume() + 1.0F) / 2.0F, iblock.getBlock().stepSound.getFrequency() * 0.8F);
                 }
 
                 --stack.stackSize;

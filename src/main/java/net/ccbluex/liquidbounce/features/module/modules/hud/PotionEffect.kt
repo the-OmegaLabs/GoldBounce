@@ -28,6 +28,8 @@ object PotionEffect : Module("PotionEffect", Category.HUD) {
 
     // --- User-configurable values ---
     private val backgroundAlpha = IntegerValue("BackgroundAlpha", 120, 0..255)
+    private val leftRectRadius = FloatValue("LeftRectValue", 0f,0f..10f)
+    private val rightRectRadius = FloatValue("RightRectValue", 0f, 0f..10f)
     private val animationSpeed = FloatValue("AnimationSpeed", 0.15f, 0.01f..0.5f)
     private val barWidth = FloatValue("BarWidth", 5f, 1f..10f)
     private val xOffset = FloatValue("X-Offset", 5f, 0f..50f)
@@ -133,10 +135,10 @@ object PotionEffect : Module("PotionEffect", Category.HUD) {
             val bgColor = Color(40, 40, 40, (backgroundAlpha.get() * animationY).toInt())
 
             // Draw the main container with left-rounded corners
-            drawRoundedRect(startX, startY, endX, startY + animatedHeight, bgColor.rgb, 8f)
+            drawRoundedRect(startX, startY, endX, startY + animatedHeight, bgColor.rgb, leftRectRadius.get())
             drawGlow(startX,startY,endX-startX,endY-startY,8,bgColor)
             // Draw the colored side-bar
-            drawRoundedRect(startX, startY, startX + barWidth.get(), startY + animatedHeight, dataColor.rgb, 0.0f)
+            drawRoundedRect(startX, startY, startX + barWidth.get(), startY + animatedHeight, dataColor.rgb, rightRectRadius.get())
 
             // Prepare for text and icon drawing
             glPushMatrix()

@@ -34,11 +34,7 @@ import net.minecraft.util.ResourceLocation
 import java.util.*
 
 object Gapple : Module("Gapple", Category.PLAYER) {
-    private val modeValue = ListValue("Mode", arrayOf("Auto", "LegitAuto", "Legit", "Head", "Grim"), "Auto")
-    private val lagValue = BoolValue("AirLag", true) { modeValue.get() == "Grim" }
-    private val noMove = BoolValue("StopMove", true) { modeValue.get() == "Grim" }
-    private val debug = BoolValue("Debug", true) { modeValue.get() == "Grim" }
-    private val auto = BoolValue("AutoGApple", true) { modeValue.get() == "Grim" }
+    private val modeValue = ListValue("Mode", arrayOf("Auto", "LegitAuto", "Legit", "Head"), "Auto")
     private val percent = FloatValue("HealthPercent", 75.0f, 1.0f..100.0f) { modeValue.get() != "Grim" }
     private val min = IntegerValue("MinDelay", 75, 1..5000) { modeValue.get() != "Grim" }
     private val max = IntegerValue("MaxDelay", 125, 1..5000) { modeValue.get() != "Grim" }
@@ -84,73 +80,15 @@ object Gapple : Module("Gapple", Category.PLAYER) {
         tryHeal = false
     }
 
-    @EventTarget
-    fun onMoveMath(event: MoveMathEvent) {
-        if (modeValue.get() != "Grim") return
-        if (lagValue.get() && ReflectionUtil.getFieldValue<Int>(
-                mc.thePlayer,
-                "positionUpdateTicks"
-            ) < 19 && !needSkip
-        ) event.cancelEvent()
-        else if (needSkip) needSkip = false
-    }
-
-    @EventTarget
-    fun onMovementInput(event: MovementInputEvent) {
-        if (eating2 && noMove.get()) {
-            event.originalInput.moveForward = 0f
-            event.originalInput.moveStrafe = 0f
-        }
-    }
 
     @EventTarget
     fun onPacket(event: PacketEvent) {
-        if (modeValue.get() == "Grim") {
-            if (event.eventType.stateName == "SEND") {
-                val packet: Packet<*>? = event.packet
-
-                if (packet is C00Handshake || packet is C00PacketLoginStart ||
-                    packet is C00PacketServerQuery || packet is C01PacketPing ||
-                    packet is C01PacketEncryptionResponse || packet is C01PacketChatMessage
-                ) {
-                    return
-                }
-
-                if ((packet !is C09PacketHeldItemChange) && (packet !is C0EPacketClickWindow) && (packet !is C16PacketClientStatus) && (packet !is C0DPacketCloseWindow)
-                ) {
-                    if (eating2) {
-                        event.cancelEvent()
-                        packets.add(packet)
-                    }
-                }
-                if (packet is C09PacketHeldItemChange || packet is C0EPacketClickWindow || packet is C0DPacketCloseWindow || packet is C07PacketPlayerDigging || packet is C01PacketChatMessage) {
-                    event.cancelEvent()
-                }
-
-                if (!(packet is C09PacketHeldItemChange || packet is C0EPacketClickWindow || packet is C0DPacketCloseWindow || packet is C07PacketPlayerDigging || packet is C01PacketChatMessage || packet is C08PacketPlayerBlockPlacement)) {
-                    packets.add(packet)
-                    event.cancelEvent()
-                }
-
-                if (packet is C03PacketPlayer) {
-                    i++
-                }
-            } else {
-                if (mc.thePlayer == null || !mc.playerController.currentGameType.isSurvivalOrAdventure) return
-
-                val packet: Packet<*>? = event.packet
-                if (packet is S12PacketEntityVelocity) {
-                    if (packet.entityID == mc.thePlayer.entityId) needSkip = true
-                }
-            }
-        } else {
             val packet = event.packet
             if (eating != -1 && packet is C03PacketPlayer) {
                 eating++
             } else if (packet is S09PacketHeldItemChange || packet is C09PacketHeldItemChange) {
                 eating = -1
             }
-        }
     }
 
     private fun run() {
@@ -212,45 +150,6 @@ object Gapple : Module("Gapple", Category.PLAYER) {
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
-        if (modeValue.get() == "Grim") {
-            if (mc.thePlayer == null || mc.thePlayer.isDead) {
-                state = false
-                return
-            }
-            if (this.getAppleGold() == -1) {
-                WaterMark.showIconNotification(
-                    "未找到苹果",
-                    "已退出GApple",
-                    ResourceLocation("liquidbounce/notification/blocked.png")
-                )
-                state = false
-                return
-            }
-            if (getAppleGold() >= 0) {
-                if (debug.get()) chat(i.toString())
-
-                if (i > 32) {
-                    sendPacket(C09PacketHeldItemChange(getAppleGold()))
-                    sendPacket(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-                    run()
-                    sendPacket(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-                    state = false
-                    WaterMark.showIconNotification(
-                        "GApple",
-                        "已完成进食",
-                        ResourceLocation("liquidbounce/notification/enabled.png")
-                    )
-                    if (auto.get()) {
-                        KillAura.target?.let {
-                            if (it.name != null) {
-                                state = true
-                            }
-                        }
-                    }
-                }
-            }
-            return
-        }
         if (tryHeal) {
             when (modeValue.get().lowercase()) {
                 "auto" -> {

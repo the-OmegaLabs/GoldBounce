@@ -90,6 +90,7 @@ object LiquidBounce {
     var inited = false
     var local: Boolean = false
     var clientSoundsEnabled = true
+    var hasPlayedAnim = false
     private lateinit var executor: ExecutorService
     /**
      * Defines if the client is in development mode.
