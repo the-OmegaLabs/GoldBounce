@@ -11,6 +11,7 @@ import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
+import kotlin.math.floor
 
 object Logo : Module("Logo",Category.HUD) {
     val mode by ListValue("Mode", arrayOf("ESound", "Bounce", "Sketch", "Static", "Tenna", "Nigga"), "Tenna")
@@ -20,7 +21,6 @@ object Logo : Module("Logo",Category.HUD) {
     val colorG by int("ColorG", 255, 0..255)
     val colorB by int("ColorB", 255, 0..255)
     val colorA by int("ColorAlpha", 255, 0..255)
-    val tennaSpeed by int("TennaSpeed", 20, 1..300) {mode == "Tenna"}
     val color = Color(colorR, colorG, colorB, colorA)
     var scaledX = 0
     var scaledY = 0
@@ -56,10 +56,10 @@ object Logo : Module("Logo",Category.HUD) {
             }
 
             "Tenna" -> {
-                if (tennaFrame == 94) {
+                if (tennaFrame == 187) {
                     tennaFrame = 1
                 }
-                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${tennaFrame}.png"), scaledX, scaledY, 88, 146)
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${(tennaFrame/2).toInt()}.png"), scaledX, scaledY, 88, 146)
                 tennaFrame++
             }
         }
