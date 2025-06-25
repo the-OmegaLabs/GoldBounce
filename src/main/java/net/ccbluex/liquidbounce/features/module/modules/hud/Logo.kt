@@ -59,7 +59,7 @@ object Logo : Module("Logo",Category.HUD) {
                 if (tennaFrame == 187) {
                     tennaFrame = 1
                 }
-                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${ceil(tennaFrame/2.0)}.png"), scaledX, scaledY, 88, 146)
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${(ceil(tennaFrame/2.0)).toInt()}.png"), scaledX, scaledY, 88, 146)
                 tennaFrame++
             }
         }
