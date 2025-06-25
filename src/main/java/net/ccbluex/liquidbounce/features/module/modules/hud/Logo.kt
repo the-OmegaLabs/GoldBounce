@@ -11,6 +11,7 @@ import net.ccbluex.liquidbounce.value.int
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
+import kotlin.math.ceil
 import kotlin.math.floor
 
 object Logo : Module("Logo",Category.HUD) {
@@ -54,12 +55,11 @@ object Logo : Module("Logo",Category.HUD) {
             "Nigga" -> {
                 RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/blocksmc.png"), scaledX, scaledY, 100, 100)
             }
-
             "Tenna" -> {
                 if (tennaFrame == 187) {
                     tennaFrame = 1
                 }
-                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${(tennaFrame/2).toInt()}.png"), scaledX, scaledY, 88, 146)
+                RenderUtils.drawImage(ResourceLocation("liquidbounce/icons/tenna/${ceil(tennaFrame/2.0)}.png"), scaledX, scaledY, 88, 146)
                 tennaFrame++
             }
         }
