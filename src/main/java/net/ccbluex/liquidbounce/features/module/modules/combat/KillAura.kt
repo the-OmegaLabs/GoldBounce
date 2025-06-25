@@ -240,7 +240,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val maxSwingProgress by int("MaxOpponentSwingProgress", 1, 0..5) { smartAutoBlock }
 
     // Rotations
-    private val options = RotationSettings(this).withoutKeepRotation()
+    val options = RotationSettings(this).withoutKeepRotation()
 
     // Raycast
     private val raycastValue = boolean("RayCast", true) { options.rotationsActive }

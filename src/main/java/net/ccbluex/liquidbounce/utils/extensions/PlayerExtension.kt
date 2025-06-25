@@ -5,16 +5,19 @@
  */
 package net.ccbluex.liquidbounce.utils.extensions
 
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.file.FileManager.friendsConfig
 import net.ccbluex.liquidbounce.injection.implementations.IMixinEntity
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.Rotation
+import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.getFixedSensitivityAngle
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.attack.CPSCounter
 import net.ccbluex.liquidbounce.utils.block.state
 import net.ccbluex.liquidbounce.utils.client.MinecraftInstance.Companion.mc
+import net.ccbluex.liquidbounce.utils.movement.DirectionalInput
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.stripColor
 import net.minecraft.client.Minecraft
 import net.minecraft.client.entity.EntityPlayerSP
@@ -65,6 +68,34 @@ fun EntityPlayerSP.isNearEdge(threshold: Float): Boolean {
     return false
 }
 
+fun EntityPlayerSP.getMovementDirectionOfInput(input: DirectionalInput): Float {
+    return getMovementDirectionOfInput(if (KillAura.options.strict && currentRotation != null && KillAura.state) currentRotation!!.yaw else this.rotation.yaw, input)
+}
+
+fun getMovementDirectionOfInput(facingYaw: Float, input: DirectionalInput): Float {
+    var actualYaw = facingYaw
+    var forward = 1f
+
+    // Check if client-user tries to walk backwards (+180 to turn around)
+    if (input.backwards) {
+        actualYaw += 180f
+        forward = -0.5f
+    } else if (input.forwards) {
+        forward = 0.5f
+    }
+
+    // Check which direction the client-user tries to walk sideways
+    if (input.left) {
+        actualYaw -= 90f * forward
+    }
+    if (input.right) {
+        actualYaw += 90f * forward
+    }
+
+    return actualYaw
+}
+val EntityPlayerSP.direction: Float
+    get() = getMovementDirectionOfInput(DirectionalInput(movementInput))
 fun getNearestPointBB(eye: Vec3, box: AxisAlignedBB): Vec3 {
     val origin = doubleArrayOf(eye.xCoord, eye.yCoord, eye.zCoord)
     val destMins = doubleArrayOf(box.minX, box.minY, box.minZ)

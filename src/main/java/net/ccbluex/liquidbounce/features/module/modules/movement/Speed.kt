@@ -97,7 +97,8 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
         OnGround,
         SlowHop,
         Legit,
-        CustomSpeed
+        CustomSpeed,
+        GrimAC
     )
 
     /**
@@ -234,7 +235,13 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
 
         modeModule.onStrafe()
     }
+    @EventTarget
+    fun onPlayerTick(event: PlayerTickEvent) {
+        if (mc.thePlayer?.isSneaking == true)
+            return
 
+        modeModule.onPlayerTick()
+    }
     @EventTarget
     fun onJump(event: JumpEvent) {
         if (mc.thePlayer?.isSneaking == true)

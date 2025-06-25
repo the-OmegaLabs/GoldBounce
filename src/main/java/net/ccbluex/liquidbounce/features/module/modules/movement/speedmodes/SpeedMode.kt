@@ -8,9 +8,11 @@ package net.ccbluex.liquidbounce.features.module.modules.movement.speedmodes
 import net.ccbluex.liquidbounce.event.JumpEvent
 import net.ccbluex.liquidbounce.event.MoveEvent
 import net.ccbluex.liquidbounce.event.PacketEvent
+import net.ccbluex.liquidbounce.event.PlayerTickEvent
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 
 open class SpeedMode(val modeName: String) : MinecraftInstance() {
+    open fun onPlayerTick() {}
     open fun onMotion() {}
     open fun onUpdate() {}
     open fun onMove(event: MoveEvent) {}
@@ -20,5 +22,4 @@ open class SpeedMode(val modeName: String) : MinecraftInstance() {
     open fun onPacket(event: PacketEvent) {}
     open fun onEnable() {}
     open fun onDisable() {}
-
 }
