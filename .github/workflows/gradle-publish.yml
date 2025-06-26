@@ -27,10 +27,14 @@ jobs:
           chmod +x ./gradlew
           ./gradlew setupCiWorkspace
           ./gradlew build
-      
-      # 新增上传JAR文件的步骤
+
+      # 新增上传JAR文件的步骤，并在zip文件名中加入commit sha256
+      - name: Zip JARs with commit SHA
+        run: |
+          mkdir -p build/artifacts
+          zip build/artifacts/build-artifacts-${{ github.sha }}.zip build/libs/*.jar
       - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
-          path: build/libs/*.jar
+          name: build-artifacts-${{ github.sha }}
+          path: build/artifacts/build-artifacts-${{ github.sha }}.zip

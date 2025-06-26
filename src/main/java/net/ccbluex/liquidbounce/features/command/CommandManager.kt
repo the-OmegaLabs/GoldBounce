@@ -43,6 +43,7 @@ object CommandManager {
         registerCommand(HurtCommand)
         registerCommand(GiveCommand)
         registerCommand(UsernameCommand)
+        registerCommand(TitleCommand())
         registerCommand(TargetCommand)
         registerCommand(TacoCommand)
         registerCommand(BindsCommand)

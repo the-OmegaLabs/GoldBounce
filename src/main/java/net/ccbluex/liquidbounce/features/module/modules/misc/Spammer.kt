@@ -39,7 +39,7 @@ object Spammer : Module("Spammer", Category.MISC, subjective = true, hideModule 
     }
 
     private val message by
-    TextValue("Message", "GET GOOD GET GOLDBOUNCE | gb.bzym.fun | uushab1 on bilibili")
+    TextValue("Message", "GET GOOD GET GOLDBOUNCE | gb.bzym.fun | bzym2 on bilibili")
 
     private val custom by boolean("Custom", false)
 

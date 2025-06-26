@@ -5,7 +5,7 @@
 █   █▄▄▄█   █  █▄█  █       █   █ █▄█   █  ▄   ██  █▄█  █       █  ▄    █    █  █    ▄▄▄█
 █       █   █      ██       █   █       █ █▄█   █       █       █ █ █   █    █▄▄█   █▄▄▄ 
 █▄▄▄▄▄▄▄█▄▄▄█▄▄▄▄██▄█▄▄▄▄▄▄▄█▄▄▄█▄▄▄▄▄▄██▄▄▄▄▄▄▄█▄▄▄▄▄▄▄█▄▄▄▄▄▄▄█▄█  █▄▄█▄▄▄▄▄▄▄█▄▄▄▄▄▄▄█
-a open-source minecraft hacked-client for 1.8.9.
+An open-source minecraft hacked-client for 1.8.9.
 https://liquidbounce.net/
 
 ➔ How to install on Forge
