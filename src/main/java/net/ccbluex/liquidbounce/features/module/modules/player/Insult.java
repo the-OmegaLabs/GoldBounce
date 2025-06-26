@@ -17,6 +17,7 @@ import net.ccbluex.liquidbounce.event.EventTarget;
 import net.ccbluex.liquidbounce.features.module.Module;
 import net.ccbluex.liquidbounce.features.module.Category;
 import net.ccbluex.liquidbounce.file.FileManager;
+import net.ccbluex.liquidbounce.script.api.global.Chat;
 import net.ccbluex.liquidbounce.utils.FileUtils;
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils;
 import net.ccbluex.liquidbounce.value.BoolValue;
@@ -29,24 +30,28 @@ import java.io.FileWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+// QWEN ni ma si le
 public class Insult extends Module {
 
     public static final ListValue modeValue = new ListValue("Mode", new String[]{"Clear", "WithWords", "RawWords"}, "RawWords",false,()->true);
     private static final BoolValue waterMarkValue = new BoolValue("WaterMark", true,false,()->true);
-    private static final IntegerValue delayValue = new IntegerValue("DelaySeconds", 3, new IntRange(20,500000), false,()->true); // 0 to 10 seconds
+//    private static final IntegerValue delayValue = new IntegerValue("DelaySeconds", 3, new IntRange(0,30), false,()->true); // 0 to 10 seconds
 
     private final File insultFile = new File(LiquidBounce.INSTANCE.getFileManager().getDir(), "insult.json");
     private final List<String> insultWords = new ArrayList<>();
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+//    private static long lastMessageTime = System.currentTimeMillis();
 
     public Insult() {
         super("Insult", Category.WORLD,0,false,true,"LLL kid","Insult",false,false,false);
         loadFile();
+    }
+
+    @EventTarget
+    public void onEnable(){
+
     }
 
     public void loadFile() {
@@ -127,17 +132,21 @@ public class Insult extends Module {
                 break;
         }
 
-        int delay = delayValue.get(); // Get delay in seconds
+        int delay = 0;
+        // delayValue.get(); // Get delay in seconds
         scheduleMessage(message, name, delay);
     }
 
-    private void scheduleMessage(String msg, String name, int delaySeconds) {
-        if (delaySeconds <= 0) {
+    private void scheduleMessage(String msg, String name, int delay_se) {
+        // Delay check
+//        Chat.print(String.valueOf(System.currentTimeMillis() - lastMessageTime < delayValue.get() * 1000));
+//        if (System.currentTimeMillis() - lastMessageTime < delayValue.get() * 1000) {
+//            Chat.print(delayValue.get()+"");
             sendInsultWords(msg, name);
-            return;
-        }
+//            lastMessageTime = System.currentTimeMillis();
+//            return;
+//        }
 
-        scheduler.schedule(() -> sendInsultWords(msg, name), delaySeconds, TimeUnit.SECONDS);
     }
 
     private void sendInsultWords(String msg, String name) {
@@ -158,7 +167,6 @@ public class Insult extends Module {
 
     @Override
     public void onDisable() {
-        scheduler.shutdownNow(); // Clean up executor when module is disabled
         super.onDisable();
     }
 }
