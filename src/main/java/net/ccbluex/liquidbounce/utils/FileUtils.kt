@@ -25,6 +25,7 @@ object FileUtils {
         return stringBuilder.toString()
     }
 
+    @JvmStatic
     fun unpackFile(file: File, name: String) {
         val fos = FileOutputStream(file)
         IOUtils.copy(FileUtils::class.java.classLoader.getResourceAsStream(name), fos)
