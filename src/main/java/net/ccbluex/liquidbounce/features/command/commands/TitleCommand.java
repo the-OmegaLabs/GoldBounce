@@ -4,6 +4,7 @@
 package net.ccbluex.liquidbounce.features.command.commands;
 
 import net.ccbluex.liquidbounce.features.command.Command;
+import net.ccbluex.liquidbounce.script.api.global.Chat;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.Display;
 
@@ -22,6 +23,10 @@ public class TitleCommand extends Command {
             }
         }
         // Remove ".title "
-        Display.setTitle(shabi.toString().substring(6));
+        try{
+            Display.setTitle(shabi.toString().substring(args[0].length()+1));
+        } catch (StringIndexOutOfBoundsException e){
+            Chat.print("java.lang.StringIndexOutOfBoundsException: String index out of range");
+        }
     }
 }
