@@ -20,6 +20,7 @@ import kotlin.math.min
 import kotlin.math.sin
 
 object MoveFix : Module("MoveFix", Category.MOVEMENT) {
+    @JvmStatic
     val mode = ListValue("Mode", arrayOf("Grim", "Bloxd"), "Grim")
     private val silentFixValue = BoolValue("Silent", true) { mode.get() == "Grim" }
 
