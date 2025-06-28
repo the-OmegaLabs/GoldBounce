@@ -17,21 +17,26 @@ public class ReflectionUtil {
 	private static final Map<AbstractMap.SimpleEntry, Field> fieldCache =
 			new LinkedHashMap<AbstractMap.SimpleEntry, Field>();
 
-	private ReflectionUtil() {
+	private ReflectionUtil () {
 	}
 
 	@SneakyThrows
 	@NotNull
-	public final Field getField(@NotNull Class<?> clazz, @NotNull String fieldName) {
+	public static final Field getField (
+			@NotNull Class<?> clazz,
+			@NotNull String fieldName
+	                                   ) {
 		Intrinsics.checkNotNullParameter(clazz, "clazz");
 		Intrinsics.checkNotNullParameter(fieldName, "fieldName");
 
 		// Create cache key using a Pair (or TuplesKt.to() if you prefer)
-		AbstractMap.SimpleEntry key = new AbstractMap.SimpleEntry<>(clazz,
-		                                                            fieldName);
+		AbstractMap.SimpleEntry key = new AbstractMap.SimpleEntry<>(
+				clazz,
+				fieldName
+		);
 
 		// Try to get cached field
-		Field field = (Field) fieldCache.get(key);
+		Field field = fieldCache.get(key);
 
 		if (field == null) {
 			try {
@@ -45,19 +50,26 @@ public class ReflectionUtil {
 
 		return field;
 	}
-	@SneakyThrows
-	public final <T> T getFieldValue (@NotNull Object instance, @NotNull String fieldName) {
+
+	public static <T> T getFieldValue (
+			@NotNull Object instance,
+			@NotNull String fieldName
+	                                  ) throws
+			IllegalAccessException {
 		Intrinsics.checkNotNullParameter(instance, "instance");
 		Intrinsics.checkNotNullParameter(fieldName, "fieldName");
-		Field field = this.getField(instance.getClass(), fieldName);
-		return (T)field.get(instance);
+		Field field = getField(instance.getClass(), fieldName);
+		return (T) field.get(instance);
 	}
 
-	@SneakyThrows
-	public final void setFieldValue (@NotNull Object instance, @NotNull String fieldName, @Nullable Object value) {
+	public static final void setFieldValue (
+			@NotNull Object instance,
+			@NotNull String fieldName, @Nullable Object value
+	                                       ) throws
+			IllegalAccessException {
 		Intrinsics.checkNotNullParameter(instance, "instance");
 		Intrinsics.checkNotNullParameter(fieldName, "fieldName");
-		Field field = this.getField(instance.getClass(), fieldName);
+		Field field = getField(instance.getClass(), fieldName);
 		field.set(instance, value);
 	}
 }
