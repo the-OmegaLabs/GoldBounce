@@ -8,20 +8,15 @@ package net.ccbluex.liquidbounce.injection.forge.mixins.client;
 import net.ccbluex.liquidbounce.LiquidBounce;
 import net.ccbluex.liquidbounce.event.*;
 import net.ccbluex.liquidbounce.features.module.modules.combat.AutoClicker;
-import net.ccbluex.liquidbounce.utils.modernsplash.ModernSplash;
-import net.ccbluex.liquidbounce.features.module.modules.combat.TickBase;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.AbortBreaking;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler;
 import net.ccbluex.liquidbounce.features.module.modules.exploit.MultiActions;
-import net.ccbluex.liquidbounce.features.module.modules.render.MotionBlur;
 import net.ccbluex.liquidbounce.features.module.modules.world.FastPlace;
-import net.ccbluex.liquidbounce.features.module.modules.world.LegitScaffold;
 import net.ccbluex.liquidbounce.injection.forge.SplashProgressLock;
 import net.ccbluex.liquidbounce.ui.client.GuiClientConfiguration;
 import net.ccbluex.liquidbounce.ui.client.GuiMainMenu;
 import net.ccbluex.liquidbounce.utils.CPSCounter;
 import net.ccbluex.liquidbounce.utils.ClientUtils;
-import net.ccbluex.liquidbounce.utils.ReflectionUtil;
 import net.ccbluex.liquidbounce.utils.SilentHotbar;
 import net.ccbluex.liquidbounce.utils.modernsplash.CustomSplash;
 import net.ccbluex.liquidbounce.utils.render.IconUtils;
@@ -44,7 +39,6 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.LWJGLException;
@@ -59,7 +53,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.nio.ByteBuffer;
-import java.util.Queue;
 
 import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
 

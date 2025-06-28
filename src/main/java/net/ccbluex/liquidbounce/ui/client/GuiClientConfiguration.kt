@@ -6,9 +6,7 @@
 package net.ccbluex.liquidbounce.ui.client
 
 import net.ccbluex.liquidbounce.LiquidBounce.background
-import net.ccbluex.liquidbounce.LiquidBounce.clientVersionText
-import net.ccbluex.liquidbounce.LiquidBounce.isInDev
-import net.ccbluex.liquidbounce.bzym.global
+import net.ccbluex.liquidbounce.bzym.GlobalFeatures
 import net.ccbluex.liquidbounce.file.FileManager.backgroundImageFile
 import net.ccbluex.liquidbounce.file.FileManager.backgroundShaderFile
 import net.ccbluex.liquidbounce.file.FileManager.saveConfig
@@ -40,7 +38,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle("欢迎您。${global().getIpLocation()} 本客户端永久开源免费 严禁售卖 官方群聊718366220")
+                Display.setTitle("欢迎您。${GlobalFeatures().getIpLocation()} 本客户端永久开源免费 严禁售卖 官方群聊718366220")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }

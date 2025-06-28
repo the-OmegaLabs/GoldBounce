@@ -103,7 +103,7 @@ processResources {
     rename "(.+_at.cfg)", "META-INF/\$1"
 }
 
-task moveResources {
+tasks.register('moveResources') {
     doLast {
         copy {
             from "${buildDir}/resources/main"
@@ -147,7 +147,7 @@ jar.dependsOn("shadowJar")
 tasks.reobfShadowJar.mustRunAfter shadowJar
 tasks.generateGitProperties.enabled = false
 
-task copyZipInclude(type: Copy) {
+tasks.register('copyZipInclude', Copy) {
     from 'zip_include/'
     into 'build/libs/zip'
 }

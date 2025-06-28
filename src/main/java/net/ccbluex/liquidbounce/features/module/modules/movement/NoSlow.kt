@@ -9,13 +9,11 @@ import io.netty.buffer.Unpooled
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
-import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.utils.BlinkUtils
 import net.ccbluex.liquidbounce.utils.MovementUtils.hasMotion
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
-import net.ccbluex.liquidbounce.utils.ReflectionUtil
+import net.ccbluex.liquidbounce.utils.reflection.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
@@ -41,9 +39,6 @@ import net.minecraft.network.status.server.S01PacketPong
 import net.minecraft.util.BlockPos
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.Vec3
-import net.minecraftforge.client.event.MouseEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.input.Mouse
 
 
 object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {

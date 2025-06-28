@@ -13,9 +13,8 @@ import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold.shouldGoDown
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.MovementUtils
-import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
-import net.ccbluex.liquidbounce.utils.ReflectionUtil
+import net.ccbluex.liquidbounce.utils.reflection.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.getBlock
@@ -24,7 +23,6 @@ import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.blocksAmount
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
 import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.IntegerValue
 import net.ccbluex.liquidbounce.value.boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.ccbluex.liquidbounce.value.int
@@ -34,9 +32,7 @@ import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 import net.minecraft.potion.Potion
 import net.minecraft.stats.StatList
 import net.minecraft.util.BlockPos
-import net.minecraft.util.Vec3
 import kotlin.math.truncate
-import kotlin.text.get
 
 object Tower : MinecraftInstance(), Listenable {
 

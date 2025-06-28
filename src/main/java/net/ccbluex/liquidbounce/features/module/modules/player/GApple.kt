@@ -3,13 +3,9 @@ package net.ccbluex.liquidbounce.features.module.modules.player
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
-import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
-import net.ccbluex.liquidbounce.utils.ReflectionUtil
-import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.BoolValue
@@ -20,17 +16,10 @@ import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.init.Items
 import net.minecraft.item.ItemAppleGold
 import net.minecraft.network.Packet
-import net.minecraft.network.handshake.client.C00Handshake
-import net.minecraft.network.login.client.C00PacketLoginStart
-import net.minecraft.network.login.client.C01PacketEncryptionResponse
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.S09PacketHeldItemChange
-import net.minecraft.network.play.server.S12PacketEntityVelocity
-import net.minecraft.network.status.client.C00PacketServerQuery
-import net.minecraft.network.status.client.C01PacketPing
 import net.minecraft.potion.Potion
 import net.minecraft.util.MathHelper
-import net.minecraft.util.ResourceLocation
 import java.util.*
 
 object Gapple : Module("Gapple", Category.PLAYER) {
