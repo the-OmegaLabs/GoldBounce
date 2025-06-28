@@ -21,6 +21,7 @@ public class TitleCommand extends Command {
                 shabi.append(" ");
             }
         }
-        Display.setTitle(shabi.toString());
+        // Remove ".title "
+        Display.setTitle(shabi.toString().substring(6));
     }
 }

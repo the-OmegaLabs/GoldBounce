@@ -47,7 +47,8 @@ public final class GlobalFeatures {
 	 * @param maxDistance 最大检测距离。
 	 * @return true 如果视线指向目标实体的碰撞箱；否则 false。
 	 */
-	public boolean isPlayerLookingAtEntity (@NotNull Entity target, double maxDistance) {
+	public boolean isPlayerLookingAtEntity (@NotNull Entity target, double maxDistance) throws
+			IllegalAccessException {
 		Intrinsics.checkNotNullParameter(target, "target");
 
 		EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
