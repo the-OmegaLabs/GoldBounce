@@ -12,7 +12,6 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.Velocity.clicks
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler
-import net.ccbluex.liquidbounce.features.module.modules.movement.Speed
 import net.ccbluex.liquidbounce.utils.MovementUtils.isOnGround
 import net.ccbluex.liquidbounce.utils.MovementUtils.speed
 import net.ccbluex.liquidbounce.utils.PacketUtils
@@ -70,47 +69,47 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             "Click", "BlocksMC", "IntaveA", "IntaveB", "Polar"
         ), "Simple"
     )
-    private val GrimReduceFactor by float("Factor", 0.6f, 0.0f..1.0f) { mode == "GrimReduce" }
-    private val GrimMinHurtTime by int("MinHurtTime", 5, 0..10) { mode == "GrimReduce" }
-    private val GrimMaxHurtTime by int("MaxHurtTime", 10, 0..20) { mode == "GrimReduce" }
-    private val GrimOnGround by boolean("OnlyGround",false) { mode == "GrimReduce" }
-    private val horizontal by float("Horizontal", 0F, -1F..1F) { mode in arrayOf("Simple", "AAC", "Legit") }
-    private val vertical by float("Vertical", 0F, -1F..1F) { mode in arrayOf("Simple", "Legit") }
-    private val horizontalGround by int("HorizontalOnGround", 0, 0..100) { mode == "Advanced" }
-    private val verticalGround by int("VerticalOnGround", 0, 0..100) { mode == "Advanced" }
-    private val horizontalInAir by int("HorizontalInAir", 0, 0..100) { mode == "Advanced" }
-    private val verticalInAir by int("VerticalInAir", 0, 0..100) { mode == "Advanced" }
+    private val GrimReduceFactor by floatValue("Factor", 0.6f, 0.0f..1.0f) { mode == "GrimReduce" }
+    private val GrimMinHurtTime by intValue("MinHurtTime", 5, 0..10) { mode == "GrimReduce" }
+    private val GrimMaxHurtTime by intValue("MaxHurtTime", 10, 0..20) { mode == "GrimReduce" }
+    private val GrimOnGround by _boolean("OnlyGround",false) { mode == "GrimReduce" }
+    private val horizontal by floatValue("Horizontal", 0F, -1F..1F) { mode in arrayOf("Simple", "AAC", "Legit") }
+    private val vertical by floatValue("Vertical", 0F, -1F..1F) { mode in arrayOf("Simple", "Legit") }
+    private val horizontalGround by intValue("HorizontalOnGround", 0, 0..100) { mode == "Advanced" }
+    private val verticalGround by intValue("VerticalOnGround", 0, 0..100) { mode == "Advanced" }
+    private val horizontalInAir by intValue("HorizontalInAir", 0, 0..100) { mode == "Advanced" }
+    private val verticalInAir by intValue("VerticalInAir", 0, 0..100) { mode == "Advanced" }
     // Reverse
-    private val reverseStrength by float("ReverseStrength", 1F, 0.1F..1F) { mode == "Reverse" }
-    private val reverse2Strength by float("SmoothReverseStrength", 0.05F, 0.02F..0.1F) { mode == "SmoothReverse" }
+    private val reverseStrength by floatValue("ReverseStrength", 1F, 0.1F..1F) { mode == "Reverse" }
+    private val reverse2Strength by floatValue("SmoothReverseStrength", 0.05F, 0.02F..0.1F) { mode == "SmoothReverse" }
 
-    private val onLook by boolean("onLook", false) { mode in arrayOf("Reverse", "SmoothReverse") }
-    private val range by float("Range", 3.0F, 1F..5.0F) {
+    private val onLook by _boolean("onLook", false) { mode in arrayOf("Reverse", "SmoothReverse") }
+    private val range by floatValue("Range", 3.0F, 1F..5.0F) {
         onLook && mode in arrayOf("Reverse", "SmoothReverse")
     }
-    private val maxAngleDifference by float("MaxAngleDifference", 45.0f, 5.0f..90f) {
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 45.0f, 5.0f..90f) {
         onLook && mode in arrayOf("Reverse", "SmoothReverse")
     }
 
     // AAC Push
-    private val aacPushXZReducer by float("AACPushXZReducer", 2F, 1F..3F) { mode == "AACPush" }
-    private val aacPushYReducer by boolean("AACPushYReducer", true) { mode == "AACPush" }
+    private val aacPushXZReducer by floatValue("AACPushXZReducer", 2F, 1F..3F) { mode == "AACPush" }
+    private val aacPushYReducer by _boolean("AACPushYReducer", true) { mode == "AACPush" }
 
     // AAC v4
-    private val aacv4MotionReducer by float("AACv4MotionReducer", 0.62F, 0F..1F) { mode == "AACv4" }
+    private val aacv4MotionReducer by floatValue("AACv4MotionReducer", 0.62F, 0F..1F) { mode == "AACv4" }
 
     // Legit
-    private val legitDisableInAir by boolean("DisableInAir", true) { mode == "Legit" }
+    private val legitDisableInAir by _boolean("DisableInAir", true) { mode == "Legit" }
 
     // Chance
-    private val chance by int("Chance", 100, 0..100) { mode == "Jump" || mode == "Legit" }
+    private val chance by intValue("Chance", 100, 0..100) { mode == "Jump" || mode == "Legit" }
 
     // Jump
     private val jumpCooldownMode by choices("JumpCooldownMode", arrayOf("Ticks", "ReceivedHits"), "Ticks")
     { mode == "Jump" }
-    private val ticksUntilJump by int("TicksUntilJump", 4, 0..20)
+    private val ticksUntilJump by intValue("TicksUntilJump", 4, 0..20)
     { jumpCooldownMode == "Ticks" && mode == "Jump" }
-    private val hitsUntilJump by int("ReceivedHitsUntilJump", 2, 0..5)
+    private val hitsUntilJump by intValue("ReceivedHitsUntilJump", 2, 0..5)
     { jumpCooldownMode == "ReceivedHits" && mode == "Jump" }
 
     // Ghost Block
@@ -119,21 +118,21 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     }
     var polarHurtTime = Random.nextInt(8, 10)
     // Delay
-    private val spoofDelay by int("SpoofDelay", 500, 0..5000) { mode == "Delay" }
+    private val spoofDelay by intValue("SpoofDelay", 500, 0..5000) { mode == "Delay" }
     var delayMode = false
 
     // IntaveReduce
-    private val reduceFactor by float("Factor", 0.6f, 0.6f..1f) { mode == "IntaveReduce" || mode == "IntaveA" }
-    private val hurtTime by int("HurtTime", 9, 1..10) { mode == "IntaveReduce" }
+    private val reduceFactor by floatValue("Factor", 0.6f, 0.6f..1f) { mode == "IntaveReduce" || mode == "IntaveA" }
+    private val hurtTime by intValue("HurtTime", 9, 1..10) { mode == "IntaveReduce" }
 
-    private val pauseOnExplosion by boolean("PauseOnExplosion", true)
-    private val ticksToPause by int("TicksToPause", 20, 1..50) { pauseOnExplosion }
+    private val pauseOnExplosion by _boolean("PauseOnExplosion", true)
+    private val ticksToPause by intValue("TicksToPause", 20, 1..50) { pauseOnExplosion }
 
     // TODO: Could this be useful in other modes? (Jump?)
     // Limits
-    private val limitMaxMotionValue = boolean("LimitMaxMotion", false) { mode == "Simple" }
-    private val maxXZMotion by float("MaxXZMotion", 0.4f, 0f..1.9f) { limitMaxMotionValue.isActive() }
-    private val maxYMotion by float("MaxYMotion", 0.36f, 0f..0.46f) { limitMaxMotionValue.isActive() }
+    private val limitMaxMotionValue = _boolean("LimitMaxMotion", false) { mode == "Simple" }
+    private val maxXZMotion by floatValue("MaxXZMotion", 0.4f, 0f..1.9f) { limitMaxMotionValue.isActive() }
+    private val maxYMotion by floatValue("MaxYMotion", 0.36f, 0f..0.46f) { limitMaxMotionValue.isActive() }
     //0.00075 is added silently
 
     // Vanilla XZ limits
@@ -144,22 +143,22 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     // 0.36075 (no sprint), 0.46075 (sprint)
 
     private val clicks by intRange("Clicks", 3..5, 1..20) { mode == "Click" }
-    private val hurtTimeToClick by int("HurtTimeToClick", 10, 0..10) { mode == "Click" }
-    private val whenFacingEnemyOnly by boolean("WhenFacingEnemyOnly", true) { mode == "Click" }
-    private val ignoreBlocking by boolean("IgnoreBlocking", false) { mode == "Click" }
-    private val clickRange by float("ClickRange", 3f, 1f..6f) { mode == "Click" }
+    private val hurtTimeToClick by intValue("HurtTimeToClick", 10, 0..10) { mode == "Click" }
+    private val whenFacingEnemyOnly by _boolean("WhenFacingEnemyOnly", true) { mode == "Click" }
+    private val ignoreBlocking by _boolean("IgnoreBlocking", false) { mode == "Click" }
+    private val clickRange by floatValue("ClickRange", 3f, 1f..6f) { mode == "Click" }
     private val swingMode by choices("SwingMode", arrayOf("Off", "Normal", "Packet"), "Normal") { mode == "Click" }
 
-    private val grimrange by float("Range", 3.5f, 0f..6f) { mode == "GrimCombat" }
-    private val attackCountValue by int("Attack Counts", 5, 1..16) { mode == "GrimCombat" }
+    private val grimrange by floatValue("Range", 3.5f, 0f..6f) { mode == "GrimCombat" }
+    private val attackCountValue by intValue("Attack Counts", 5, 1..16) { mode == "GrimCombat" }
 
     // pit 调成攻击发包调成6
 
-    private val fireCheckValue by boolean("FireCheck", false) { mode == "GrimCombat" }
-    private val waterCheckValue by boolean("WaterCheck", false) { mode == "GrimCombat" }
-    private val fallCheckValue by boolean("FallCheck", false) { mode == "GrimCombat" }
-    private val consumecheck by boolean("ConsumableCheck", false) { mode == "GrimCombat" }
-    private val raycastValue by boolean("Ray cast", false) { mode == "GrimCombat" }
+    private val fireCheckValue by _boolean("FireCheck", false) { mode == "GrimCombat" }
+    private val waterCheckValue by _boolean("WaterCheck", false) { mode == "GrimCombat" }
+    private val fallCheckValue by _boolean("FallCheck", false) { mode == "GrimCombat" }
+    private val consumecheck by _boolean("ConsumableCheck", false) { mode == "GrimCombat" }
+    private val raycastValue by _boolean("Ray cast", false) { mode == "GrimCombat" }
 
     /**
      * VALUES

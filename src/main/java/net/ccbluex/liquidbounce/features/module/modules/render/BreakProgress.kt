@@ -7,8 +7,8 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.Minecraft
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.util.BlockPos
@@ -17,10 +17,10 @@ import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 
 object BreakProgress : Module("BreakProgress", Category.RENDER, hideModule = false) {
-    val colorRainbow by boolean("Rainbow", false)
-    val colorRed by int("R", 255, 0..255) { !colorRainbow }
-    val colorGreen by int("G", 179, 0..255) { !colorRainbow }
-    val colorBlue by int("B", 72, 0..255) { !colorRainbow }
+    val colorRainbow by _boolean("Rainbow", false)
+    val colorRed by intValue("R", 255, 0..255) { !colorRainbow }
+    val colorGreen by intValue("G", 179, 0..255) { !colorRainbow }
+    val colorBlue by intValue("B", 72, 0..255) { !colorRainbow }
 
     private var breakProgress: Float = 0f
     private var targetBlockPos: BlockPos? = null

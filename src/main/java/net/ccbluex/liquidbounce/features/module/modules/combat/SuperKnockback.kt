@@ -25,9 +25,9 @@ import kotlin.math.abs
 
 object SuperKnockback : Module("SuperKnockback", Category.COMBAT, hideModule = false) {
 
-    private val chance by int("Chance", 100, 0..100)
-    private val delay by int("Delay", 0, 0..500)
-    private val hurtTime by int("HurtTime", 10, 0..10)
+    private val chance by intValue("Chance", 100, 0..100)
+    private val delay by intValue("Delay", 0, 0..500)
+    private val hurtTime by intValue("HurtTime", 10, 0..10)
 
     private val mode by choices(
         "Mode",
@@ -56,7 +56,7 @@ object SuperKnockback : Module("SuperKnockback", Category.COMBAT, hideModule = f
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtMost(reSprintMaxTicks.get())
     }
 
-    private val targetDistance by int("TargetDistance", 3, 1..5) { mode == "WTap" }
+    private val targetDistance by intValue("TargetDistance", 3, 1..5) { mode == "WTap" }
 
     private val stopTicks: IntegerValue = object : IntegerValue("PressBackTicks", 1, 1..5) {
         override fun isSupported() = mode == "SprintTap2"
@@ -69,11 +69,11 @@ object SuperKnockback : Module("SuperKnockback", Category.COMBAT, hideModule = f
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtLeast(stopTicks.get())
     }
 
-    private val minEnemyRotDiffToIgnore by float("MinRotationDiffFromEnemyToIgnore", 180f, 0f..180f)
+    private val minEnemyRotDiffToIgnore by floatValue("MinRotationDiffFromEnemyToIgnore", 180f, 0f..180f)
 
-    private val onlyGround by boolean("OnlyGround", false)
-    val onlyMove by boolean("OnlyMove", true)
-    val onlyMoveForward by boolean("OnlyMoveForward", true) { onlyMove }
+    private val onlyGround by _boolean("OnlyGround", false)
+    val onlyMove by _boolean("OnlyMove", true)
+    val onlyMoveForward by _boolean("OnlyMoveForward", true) { onlyMove }
 
     private var ticks = 0
     private var forceSprintState = 0

@@ -45,11 +45,11 @@ object Nuker : Module("Nuker", Category.WORLD, gameDetecting = false, hideModule
      * OPTIONS
      */
 
-    private val allBlocks by boolean("AllBlocks", true)
+    private val allBlocks by _boolean("AllBlocks", true)
     private val blocks by block("Block", 1) { !allBlocks }
 
-    private val radius by float("Radius", 5.2F, 1F..6F)
-    private val throughWalls by boolean("ThroughWalls", false)
+    private val radius by floatValue("Radius", 5.2F, 1F..6F)
+    private val throughWalls by _boolean("ThroughWalls", false)
     private val priority by choices("Priority", arrayOf("Distance", "Hardness", "LightOpacity"), "Distance")
 
     private val options = RotationSettings(this).apply {
@@ -59,20 +59,20 @@ object Nuker : Module("Nuker", Category.WORLD, gameDetecting = false, hideModule
         withoutKeepRotation()
     }
 
-    private val layer by boolean("Layer", false)
-    private val hitDelay by int("HitDelay", 4, 0..20)
-    private val nuke by int("Nuke", 1, 1..20)
-    private val nukeDelay by int("NukeDelay", 1, 1..20)
+    private val layer by _boolean("Layer", false)
+    private val hitDelay by intValue("HitDelay", 4, 0..20)
+    private val nuke by intValue("Nuke", 1, 1..20)
+    private val nukeDelay by intValue("NukeDelay", 1, 1..20)
 
-    private val blockProgress by boolean("BlockProgress", true)
+    private val blockProgress by _boolean("BlockProgress", true)
 
-    private val scale by float("Scale", 2F, 1F..6F) { blockProgress }
+    private val scale by floatValue("Scale", 2F, 1F..6F) { blockProgress }
     private val font by font("Font", Fonts.font40) { blockProgress }
-    private val fontShadow by boolean("Shadow", true) { blockProgress }
+    private val fontShadow by _boolean("Shadow", true) { blockProgress }
 
-    private val colorRed by int("R", 200, 0..255) { blockProgress }
-    private val colorGreen by int("G", 100, 0..255) { blockProgress }
-    private val colorBlue by int("B", 0, 0..255) { blockProgress }
+    private val colorRed by intValue("R", 200, 0..255) { blockProgress }
+    private val colorGreen by intValue("G", 100, 0..255) { blockProgress }
+    private val colorBlue by intValue("B", 0, 0..255) { blockProgress }
 
     /**
      * VALUES

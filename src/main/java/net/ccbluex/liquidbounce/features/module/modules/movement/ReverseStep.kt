@@ -11,13 +11,13 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.collideBlock
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.block.BlockLiquid
 import net.minecraft.util.AxisAlignedBB
 
 object ReverseStep : Module("ReverseStep", Category.MOVEMENT) {
 
-    private val motion by float("Motion", 1f, 0.21f..1f)
+    private val motion by floatValue("Motion", 1f, 0.21f..1f)
     private var jumped = false
 
     @EventTarget(ignoreCondition = true)

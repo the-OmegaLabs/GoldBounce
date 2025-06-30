@@ -29,11 +29,11 @@ import kotlin.math.pow
 object Tracers : Module("Tracers", Category.RENDER, hideModule = false) {
 
     private val colorMode by choices("Color", arrayOf("Custom", "DistanceColor", "Rainbow"), "Custom")
-    private val colorRed by int("R", 0, 0..255) { colorMode == "Custom" }
-    private val colorGreen by int("G", 160, 0..255) { colorMode == "Custom" }
-    private val colorBlue by int("B", 255, 0..255) { colorMode == "Custom" }
+    private val colorRed by intValue("R", 0, 0..255) { colorMode == "Custom" }
+    private val colorGreen by intValue("G", 160, 0..255) { colorMode == "Custom" }
+    private val colorBlue by intValue("B", 255, 0..255) { colorMode == "Custom" }
 
-    private val thickness by float("Thickness", 2F, 1F..5F)
+    private val thickness by floatValue("Thickness", 2F, 1F..5F)
 
     private val maxRenderDistance by object : IntegerValue("MaxRenderDistance", 100, 1..200) {
         override fun onUpdate(value: Int) {
@@ -46,13 +46,13 @@ object Tracers : Module("Tracers", Category.RENDER, hideModule = false) {
             field = if (value <= 0.0) maxRenderDistance.toDouble().pow(2.0) else value
         }
 
-    private val bot by boolean("Bots", true)
-    private val teams by boolean("Teams", false)
+    private val bot by _boolean("Bots", true)
+    private val teams by _boolean("Teams", false)
 
-    private val onLook by boolean("OnLook", false)
-    private val maxAngleDifference by float("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
+    private val onLook by _boolean("OnLook", false)
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
 
-    private val thruBlocks by boolean("ThruBlocks", true)
+    private val thruBlocks by _boolean("ThruBlocks", true)
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {

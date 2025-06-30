@@ -19,10 +19,10 @@ import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBorderedRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawFilledBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawSelectionBoundingBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.Block
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager.resetColor
@@ -32,15 +32,15 @@ import java.awt.Color
 
 object BlockOverlay : Module("BlockOverlay", Category.RENDER, gameDetecting = false, hideModule = false) {
     private val mode by choices("Mode", arrayOf("Box", "OtherBox", "Outline"), "Box")
-    private val depth3D by boolean("Depth3D", false)
-    private val thickness by float("Thickness", 2F, 1F..5F)
+    private val depth3D by _boolean("Depth3D", false)
+    private val thickness by floatValue("Thickness", 2F, 1F..5F)
 
-    val info by boolean("Info", false)
+    val info by _boolean("Info", false)
 
-    private val colorRainbow by boolean("Rainbow", false)
-    private val colorRed by int("R", 68, 0..255) { !colorRainbow }
-    private val colorGreen by int("G", 117, 0..255) { !colorRainbow }
-    private val colorBlue by int("B", 255, 0..255) { !colorRainbow }
+    private val colorRainbow by _boolean("Rainbow", false)
+    private val colorRed by intValue("R", 68, 0..255) { !colorRainbow }
+    private val colorGreen by intValue("G", 117, 0..255) { !colorRainbow }
+    private val colorBlue by intValue("B", 255, 0..255) { !colorRainbow }
 
     val currentBlock: BlockPos?
         get() {

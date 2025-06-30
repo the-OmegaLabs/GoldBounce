@@ -18,16 +18,15 @@ import net.ccbluex.liquidbounce.utils.EntityUtils
 import net.ccbluex.liquidbounce.utils.EntityUtils.getHealth
 import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
-import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawScaledCustomSizeModalRect
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtil
 import net.ccbluex.liquidbounce.utils.skid.slack.RenderUtil
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.EntityLivingBase
@@ -63,20 +62,20 @@ class Target : Element() {
 
     private var delayCounter = 0
     private val mode by choices("Mode", arrayOf("New", "Classic", "Classic2", "Legacy", "Hide"), "New")
-    private val targetHudXPos by float("X-Offset", 0f, -200f..200f) {mode=="Legacy"}
-    private val targetHudYPos by float("Y-Offset", 0f, -200f..200f) {mode=="Legacy"}
+    private val targetHudXPos by floatValue("X-Offset", 0f, -200f..200f) {mode=="Legacy"}
+    private val targetHudYPos by floatValue("Y-Offset", 0f, -200f..200f) {mode=="Legacy"}
     private val healthColorMode by choices("HealthColor", arrayOf("Dynamic", "Static"), "Dynamic")  {mode=="Legacy"}
 
-    private val roundedValue by boolean("Rounded", false)
-    private val followTarget by boolean("Follow Target", false)
-    private var resetPos by boolean("Reset Position", false)
-    private val textRed by int("Text-R", 255, 0..255)
-    private val textGreen by int("Text-G", 255, 0..255)
-    private val textBlue by int("Text-B", 255, 0..255)
-    private val textAlpha by int("Text-Alpha", 255, 0..255)
-    private val absorption by boolean("Absorption", true)
-    private val healthFromScoreboard by boolean("HealthFromScoreboard", true)
-    private val vanishDelay by int("VanishDelay", 300, 0..500)
+    private val roundedValue by _boolean("Rounded", false)
+    private val followTarget by _boolean("Follow Target", false)
+    private var resetPos by _boolean("Reset Position", false)
+    private val textRed by intValue("Text-R", 255, 0..255)
+    private val textGreen by intValue("Text-G", 255, 0..255)
+    private val textBlue by intValue("Text-B", 255, 0..255)
+    private val textAlpha by intValue("Text-Alpha", 255, 0..255)
+    private val absorption by _boolean("Absorption", true)
+    private val healthFromScoreboard by _boolean("HealthFromScoreboard", true)
+    private val vanishDelay by intValue("VanishDelay", 300, 0..500)
     private var posX = -1.0
     private var posY = -1.0
     private var ticksSinceAttack = 0

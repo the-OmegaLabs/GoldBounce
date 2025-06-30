@@ -20,9 +20,9 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.inventorySlot
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.BlockBush
 import net.minecraft.client.settings.GameSettings
 import net.minecraft.init.Blocks
@@ -40,8 +40,8 @@ import java.awt.Color
 object BedDefender : Module("BedDefender", Category.WORLD, hideModule = false) {
 
     private val autoBlock by choices("AutoBlock", arrayOf("Off", "Pick", "Spoof", "Switch"), "Spoof")
-    private val swing by boolean("Swing", true)
-    private val placeDelay by int("PlaceDelay", 500, 0..1000)
+    private val swing by _boolean("Swing", true)
+    private val placeDelay by intValue("PlaceDelay", 500, 0..1000)
     private val raycastMode by choices(
         "Raycast",
         arrayOf("None", "Normal", "Around"),
@@ -53,10 +53,10 @@ object BedDefender : Module("BedDefender", Category.WORLD, hideModule = false) {
         resetTicksValue.setSupport { { it && keepRotationValue.isActive() } }
     }
 
-    private val onSneakOnly by boolean("OnSneakOnly", true)
+    private val onSneakOnly by _boolean("OnSneakOnly", true)
     private val autoSneak by choices("AutoSneak", arrayOf("Off", "Normal", "Packet"), "Off") { !onSneakOnly }
-    private val trackCPS by boolean("TrackCPS", false)
-    private val mark by boolean("Mark", false)
+    private val trackCPS by _boolean("TrackCPS", false)
+    private val mark by _boolean("Mark", false)
 
     private val defenceBlocks = mutableListOf<BlockPos>()
     private val bedTopPositions = mutableListOf<BlockPos>()

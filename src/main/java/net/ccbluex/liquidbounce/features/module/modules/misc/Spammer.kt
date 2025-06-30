@@ -16,7 +16,7 @@ import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.IntegerValue
 import net.ccbluex.liquidbounce.value.TextValue
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 
 object Spammer : Module("Spammer", Category.MISC, subjective = true, hideModule = false) {
     private val maxDelayValue: IntegerValue = object : IntegerValue("MaxDelay", 1000, 0..5000) {
@@ -41,7 +41,7 @@ object Spammer : Module("Spammer", Category.MISC, subjective = true, hideModule 
     private val message by
     TextValue("Message", "GET GOOD GET GOLDBOUNCE | gb.bzym.fun | bzym2 on bilibili")
 
-    private val custom by boolean("Custom", false)
+    private val custom by _boolean("Custom", false)
 
     private val msTimer = MSTimer()
     private var delay = randomDelay(minDelay, maxDelay)

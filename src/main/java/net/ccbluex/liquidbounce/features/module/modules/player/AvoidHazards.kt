@@ -4,18 +4,18 @@ import net.ccbluex.liquidbounce.event.BlockBBEvent
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.init.Blocks
 import net.minecraft.util.AxisAlignedBB
 
 object AvoidHazards : Module("AvoidHazards", Category.WORLD) {
-    private val fire by boolean("Fire", true)
-    private val cobweb by boolean("Cobweb", true)
-    private val cactus by boolean("Cactus", true)
-    private val lava by boolean("Lava", true)
-    private val water by boolean("Water", true)
-    private val plate by boolean("PressurePlate", true)
-    private val snow by boolean("Snow", true)
+    private val fire by _boolean("Fire", true)
+    private val cobweb by _boolean("Cobweb", true)
+    private val cactus by _boolean("Cactus", true)
+    private val lava by _boolean("Lava", true)
+    private val water by _boolean("Water", true)
+    private val plate by _boolean("PressurePlate", true)
+    private val snow by _boolean("Snow", true)
 
     @EventTarget
     fun onBlockBB(e: BlockBBEvent) {

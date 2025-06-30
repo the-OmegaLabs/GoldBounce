@@ -17,10 +17,10 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.isRotationFaced
 import net.ccbluex.liquidbounce.utils.RotationUtils.setTargetRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.toRotation
 import net.ccbluex.liquidbounce.utils.extensions.*
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.entity.Entity
 import net.minecraft.entity.projectile.EntityFireball
 import net.minecraft.network.play.client.C02PacketUseEntity
@@ -28,13 +28,13 @@ import net.minecraft.network.play.client.C0APacketAnimation
 import net.minecraft.world.WorldSettings
 
 object AntiFireball : Module("AntiFireball", Category.PLAYER, hideModule = false) {
-    private val range by float("Range", 4.5f, 3f..8f)
+    private val range by floatValue("Range", 4.5f, 3f..8f)
     private val swing by choices("Swing", arrayOf("Normal", "Packet", "None"), "Normal")
 
     private val options = RotationSettings(this).withoutKeepRotation()
 
-    private val fireballTickCheck by boolean("FireballTickCheck", true)
-    private val minFireballTick by int("MinFireballTick", 10, 1..20) { fireballTickCheck }
+    private val fireballTickCheck by _boolean("FireballTickCheck", true)
+    private val minFireballTick by intValue("MinFireballTick", 10, 1..20) { fireballTickCheck }
 
     private var target: Entity? = null
 

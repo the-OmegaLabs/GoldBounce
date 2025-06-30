@@ -5,8 +5,8 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.effect.EntityLightningBolt
@@ -21,12 +21,12 @@ object AttackEffects : Module("AttackEffects", Category.RENDER, hideModule = fal
         arrayOf("None", "Blood", "Lighting", "Fire", "Heart", "Water", "Smoke", "Magic", "Crits"), "Blood"
     )
 
-    private val amount by int("ParticleAmount", 5, 1..20) { particle != "None" }
+    private val amount by intValue("ParticleAmount", 5, 1..20) { particle != "None" }
 
     private val sound by choices("Sound", arrayOf("None", "Hit", "Orb", "Pop", "Splash", "Lightning"), "BowHit")
 
-    private val volume by float("Volume", 1f, 0.1f..5f) { sound != "None" }
-    private val pitch by float("Pitch", 1f, 0.1f..5f) { sound != "None" }
+    private val volume by floatValue("Volume", 1f, 0.1f..5f) { sound != "None" }
+    private val pitch by floatValue("Pitch", 1f, 0.1f..5f) { sound != "None" }
 
 
     @EventTarget

@@ -56,10 +56,10 @@ object TimerRange : Module("TimerRange", Category.COMBAT, hideModule = false) {
 
     private val timerBoostMode by choices("TimerMode", arrayOf("Normal", "Smart", "Modern"), "Modern")
 
-    private val ticksValue by int("Ticks", 10, 1..20)
+    private val ticksValue by intValue("Ticks", 10, 1..20)
 
     // Min & Max Boost Delay Settings
-    private val timerBoostValue by float("TimerBoost", 1.5f, 0.01f..35f)
+    private val timerBoostValue by floatValue("TimerBoost", 1.5f, 0.01f..35f)
 
     private val minBoostDelay: FloatValue = object : FloatValue("MinBoostDelay", 0.5f, 0.1f..1.0f) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtMost(maxBoostDelay.get())
@@ -70,7 +70,7 @@ object TimerRange : Module("TimerRange", Category.COMBAT, hideModule = false) {
     }
 
     // Min & Max Charged Delay Settings
-    private val timerChargedValue by float("TimerCharged", 0.45f, 0.05f..5f)
+    private val timerChargedValue by floatValue("TimerCharged", 0.45f, 0.05f..5f)
 
     private val minChargedDelay: FloatValue = object : FloatValue("MinChargedDelay", 0.75f, 0.1f..1.0f) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtMost(maxChargedDelay.get())
@@ -81,8 +81,8 @@ object TimerRange : Module("TimerRange", Category.COMBAT, hideModule = false) {
     }
 
     // Normal Mode Settings
-    private val rangeValue by float("Range", 3.5f, 1f..5f) { timerBoostMode == "Normal" }
-    private val cooldownTickValue by int("CooldownTick", 10, 1..50) { timerBoostMode == "Normal" }
+    private val rangeValue by floatValue("Range", 3.5f, 1f..5f) { timerBoostMode == "Normal" }
+    private val cooldownTickValue by intValue("CooldownTick", 10, 1..50) { timerBoostMode == "Normal" }
 
     // Smart & Modern Mode Range
     private val minRange: FloatValue = object : FloatValue("MinRange", 2.5f, 0f..8f) {
@@ -111,25 +111,25 @@ object TimerRange : Module("TimerRange", Category.COMBAT, hideModule = false) {
     }
 
     // Blink Option
-    private val blink by boolean("Blink", false)
+    private val blink by _boolean("Blink", false)
 
     // Prediction Settings
-    private val predictClientMovement by int("PredictClientMovement", 2, 0..5)
-    private val predictEnemyPosition by float("PredictEnemyPosition", 1.5f, -1f..2f)
+    private val predictClientMovement by intValue("PredictClientMovement", 2, 0..5)
+    private val predictEnemyPosition by floatValue("PredictEnemyPosition", 1.5f, -1f..2f)
 
-    private val maxAngleDifference by float("MaxAngleDifference", 5f, 5f..90f) { timerBoostMode == "Modern" }
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 5f, 5f..90f) { timerBoostMode == "Modern" }
 
     // Mark Option
     private val markMode by choices("Mark", arrayOf("Off", "Box", "Platform"), "Off") { timerBoostMode == "Modern" }
-    private val outline by boolean("Outline", false) { timerBoostMode == "Modern" && markMode == "Box" }
+    private val outline by _boolean("Outline", false) { timerBoostMode == "Modern" && markMode == "Box" }
 
     // Optional
-    private val onWeb by boolean("OnWeb", false)
-    private val onWater by boolean("OnWater", false)
-    private val resetOnlagBack by boolean("ResetOnLagback", false)
-    private val resetOnKnockback by boolean("ResetOnKnockback", false)
-    private val chatDebug by boolean("ChatDebug", true) { resetOnlagBack || resetOnKnockback }
-    private val notificationDebug by boolean("NotificationDebug", false) { resetOnlagBack || resetOnKnockback }
+    private val onWeb by _boolean("OnWeb", false)
+    private val onWater by _boolean("OnWater", false)
+    private val resetOnlagBack by _boolean("ResetOnLagback", false)
+    private val resetOnKnockback by _boolean("ResetOnKnockback", false)
+    private val chatDebug by _boolean("ChatDebug", true) { resetOnlagBack || resetOnKnockback }
+    private val notificationDebug by _boolean("NotificationDebug", false) { resetOnlagBack || resetOnKnockback }
 
     override fun onDisable() {
         shouldResetTimer()

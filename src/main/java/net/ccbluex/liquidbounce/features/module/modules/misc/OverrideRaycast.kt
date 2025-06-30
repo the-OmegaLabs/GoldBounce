@@ -7,10 +7,10 @@ package net.ccbluex.liquidbounce.features.module.modules.misc
 
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 
 object OverrideRaycast : Module("OverrideRaycast", Category.MISC, gameDetecting = false, hideModule = false) {
-    private val alwaysActive by boolean("AlwaysActive", true)
+    private val alwaysActive by _boolean("AlwaysActive", true)
 
     fun shouldOverride() = handleEvents() || alwaysActive
 }

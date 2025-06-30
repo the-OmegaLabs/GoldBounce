@@ -17,17 +17,16 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Side
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification.Companion.maxTextLength
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.ClientUtils
-import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.extensions.lerpWith
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.withAlpha
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorder
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
 
@@ -40,10 +39,10 @@ class Notifications(
 ) : Element(x, y, scale, side) {
 
     val horizontalFade by choices("HorizontalFade", arrayOf("InOnly", "OutOnly", "Both", "None"), "OutOnly")
-    val padding by int("Padding", 5, 1..20)
-    val roundRadius by float("RoundRadius", 8f, 0f..10f)
-    val renderBorder by boolean("RenderBorder", false)
-    val borderWidth by float("BorderWidth", 2f, 0.5F..5F) { renderBorder }
+    val padding by intValue("Padding", 5, 1..20)
+    val roundRadius by floatValue("RoundRadius", 8f, 0f..10f)
+    val renderBorder by _boolean("RenderBorder", false)
+    val borderWidth by floatValue("BorderWidth", 2f, 0.5F..5F) { renderBorder }
 
     private val exampleNotification = Notification("Example Description",2000F)
 

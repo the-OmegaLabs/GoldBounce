@@ -8,7 +8,6 @@ package net.ccbluex.liquidbounce.features.module.modules.movement
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.exploit.Phase
 import net.ccbluex.liquidbounce.utils.MovementUtils.direction
 import net.ccbluex.liquidbounce.utils.MovementUtils.strafe
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
@@ -19,8 +18,8 @@ import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.init.Blocks.*
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
@@ -42,12 +41,12 @@ object Step : Module("Step", Category.MOVEMENT, gameDetecting = false, hideModul
         "NCP"
     )
 
-    private val height by float("Height", 1F, 0.6F..10F)
+    private val height by floatValue("Height", 1F, 0.6F..10F)
     { mode !in arrayOf("Jump", "MotionNCP", "LAAC", "AAC3.3.4", "BlocksMCTimer") }
-    private val jumpHeight by float("JumpHeight", 0.42F, 0.37F..0.42F)
+    private val jumpHeight by floatValue("JumpHeight", 0.42F, 0.37F..0.42F)
     { mode == "Jump" }
 
-    private val delay by int("Delay", 0, 0..500)
+    private val delay by intValue("Delay", 0, 0..500)
 
     /**
      * VALUES

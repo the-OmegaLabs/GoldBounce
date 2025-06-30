@@ -5,13 +5,11 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.combat
 
-import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds.playKillSound
-import net.ccbluex.liquidbounce.features.module.modules.world.ChestAura
 import net.ccbluex.liquidbounce.features.module.modules.world.Fucker
 import net.ccbluex.liquidbounce.features.module.modules.world.Nuker
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
@@ -37,7 +35,6 @@ import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
-import net.ccbluex.liquidbounce.utils.misc.RandomUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -58,19 +55,14 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
 import net.minecraft.network.Packet
-import net.minecraft.network.handshake.client.C00Handshake
-import net.minecraft.network.login.client.C00PacketLoginStart
-import net.minecraft.network.login.client.C01PacketEncryptionResponse
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.INTERACT
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
 import net.minecraft.network.play.server.S45PacketTitle
-import net.minecraft.network.status.client.C00PacketServerQuery
 import net.minecraft.potion.Potion
 import net.minecraft.util.*
 import org.lwjgl.opengl.GL11
 import java.awt.Color
-import javax.vecmath.Vector2f
 import kotlin.math.*
 
 object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
@@ -79,8 +71,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
 
     // Cooldown
-    private val simulateCooldown by boolean("SimulateCooldown", false)
-    private val simulateDoubleClicking by boolean("SimulateDoubleClicking", false) { !simulateCooldown }
+    private val simulateCooldown by _boolean("SimulateCooldown", false)
+    private val simulateDoubleClicking by _boolean("SimulateDoubleClicking", false) { !simulateCooldown }
 
     // CPS - Attack speed
     private val maxCPSValue = object : IntegerValue("MaxCPS", 8, 1..20) {
@@ -100,8 +92,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         override fun isSupported() = !maxCPSValue.isMinimal() && !simulateCooldown
     }
 
-    private val hurtTime by int("HurtTime", 10, 0..10) { !simulateCooldown }
-    private val clickOnly by boolean("ClickOnly", false)
+    private val hurtTime by intValue("HurtTime", 10, 0..10) { !simulateCooldown }
+    private val clickOnly by _boolean("ClickOnly", false)
 
     // Range
     val range: Float by object : FloatValue("Range", 3.7f, 1f..8f) {
@@ -109,9 +101,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             blockRange = blockRange.coerceAtMost(newValue)
         }
     }
-    private val scanRange by float("ScanRange", 2f, 0f..10f)
-    private val throughWallsRange by float("ThroughWallsRange", 3f, 0f..8f)
-    private val rangeSprintReduction by float("RangeSprintReduction", 0f, 0f..0.4f)
+    private val scanRange by floatValue("ScanRange", 2f, 0f..10f)
+    private val throughWallsRange by floatValue("ThroughWallsRange", 3f, 0f..8f)
+    private val rangeSprintReduction by floatValue("RangeSprintReduction", 0f, 0f..0.4f)
 
     // Modes
     val priority by choices(
@@ -122,21 +114,21 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         ), "Distance"
     )
     private val targetMode by choices("TargetMode", arrayOf("Single", "Switch", "Multi"), "Switch")
-    private val limitedMultiTargets by int("LimitedMultiTargets", 0, 0..50) { targetMode == "Multi" }
-    private val maxSwitchFOV by float("MaxSwitchFOV", 90f, 30f..180f) { targetMode == "Switch" }
-    private val viewingCheck by boolean("ViewingCheck", true)
+    private val limitedMultiTargets by intValue("LimitedMultiTargets", 0, 0..50) { targetMode == "Multi" }
+    private val maxSwitchFOV by floatValue("MaxSwitchFOV", 90f, 30f..180f) { targetMode == "Switch" }
+    private val viewingCheck by _boolean("ViewingCheck", true)
 
     // Delay
-    private val switchDelay by int("SwitchDelay", 15, 1..1000) { targetMode == "Switch" }
+    private val switchDelay by intValue("SwitchDelay", 15, 1..1000) { targetMode == "Switch" }
 
     // Bypass
-    private val swing by boolean("Swing", true)
-    private val keepSprint by boolean("KeepSprint", true)
+    private val swing by _boolean("Swing", true)
+    private val keepSprint by _boolean("KeepSprint", true)
 
     // Settings
-    private val autoF5 by boolean("AutoF5", false, subjective = true)
-    private val onScaffold by boolean("OnScaffold", false)
-    private val onDestroyBlock by boolean("OnDestroyBlock", false)
+    private val autoF5 by _boolean("AutoF5", false, subjective = true)
+    private val onScaffold by _boolean("OnScaffold", false)
+    private val onDestroyBlock by _boolean("OnDestroyBlock", false)
 
     // AutoBlock
     val autoBlock by choices(
@@ -145,15 +137,15 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         "Packet"
     )
 
-    private val maxBlinkPackets by int("MaxBlinkPackets", 20, 5..100) { autoBlock == "HypixelFull" }
-    private val blockMaxRange by float("BlockMaxRange", 3f, 0f..8f) { autoBlock in listOf("Packet", "QuickMarco") }
+    private val maxBlinkPackets by intValue("MaxBlinkPackets", 20, 5..100) { autoBlock == "HypixelFull" }
+    private val blockMaxRange by floatValue("BlockMaxRange", 3f, 0f..8f) { autoBlock in listOf("Packet", "QuickMarco") }
     private val unblockMode by choices("UnblockMode", arrayOf("Stop", "Switch", "Empty"), "Stop") {
         autoBlock in listOf(
             "Packet",
             "QuickMarco"
         )
     }
-    private val releaseAutoBlock by boolean("ReleaseAutoBlock", true) {
+    private val releaseAutoBlock by _boolean("ReleaseAutoBlock", true) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -162,7 +154,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         )
     }
-    val forceBlockRender by boolean("ForceBlockRender", true) {
+    val forceBlockRender by _boolean("ForceBlockRender", true) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -171,7 +163,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         ) && releaseAutoBlock
     }
-    private val ignoreTickRule by boolean("IgnoreTickRule", false) {
+    private val ignoreTickRule by _boolean("IgnoreTickRule", false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -180,7 +172,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         ) && releaseAutoBlock
     }
-    private val blockRate by int("BlockRate", 100, 1..100) {
+    private val blockRate by intValue("BlockRate", 100, 1..100) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -189,7 +181,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         ) && releaseAutoBlock
     }
-    private val switchStartBlock by boolean("SwitchStartBlock", false) {
+    private val switchStartBlock by _boolean("SwitchStartBlock", false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -198,7 +190,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         )
     }
-    private val interactAutoBlock by boolean("InteractAutoBlock", true) {
+    private val interactAutoBlock by _boolean("InteractAutoBlock", true) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -207,7 +199,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "HypixelFull"
         )
     }
-    val blinkAutoBlock by boolean("BlinkAutoBlock", false) {
+    val blinkAutoBlock by _boolean("BlinkAutoBlock", false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -217,7 +209,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         )
     }
 
-    private val blinkBlockTicks by int("BlinkBlockTicks", 3, 2..5) {
+    private val blinkBlockTicks by intValue("BlinkBlockTicks", 3, 2..5) {
         autoBlock !in listOf(
             "Off",
             "Fake",
@@ -228,35 +220,35 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     // AutoBlock conditions
-    private val smartAutoBlock by boolean("SmartAutoBlock", false) { autoBlock == "Packet" }
-    private val forceBlock by boolean("ForceBlockWhenStill", true) { smartAutoBlock }
-    private val checkWeapon by boolean("CheckEnemyWeapon", true) { smartAutoBlock }
+    private val smartAutoBlock by _boolean("SmartAutoBlock", false) { autoBlock == "Packet" }
+    private val forceBlock by _boolean("ForceBlockWhenStill", true) { smartAutoBlock }
+    private val checkWeapon by _boolean("CheckEnemyWeapon", true) { smartAutoBlock }
     private var blockRange by object : FloatValue("BlockRange", range, 1f..8f) {
         override fun isSupported() = smartAutoBlock
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtMost(this@KillAura.range)
     }
-    private val maxOwnHurtTime by int("MaxOwnHurtTime", 3, 0..10) { smartAutoBlock }
-    private val maxDirectionDiff by float("MaxOpponentDirectionDiff", 60f, 30f..180f) { smartAutoBlock }
-    private val maxSwingProgress by int("MaxOpponentSwingProgress", 1, 0..5) { smartAutoBlock }
+    private val maxOwnHurtTime by intValue("MaxOwnHurtTime", 3, 0..10) { smartAutoBlock }
+    private val maxDirectionDiff by floatValue("MaxOpponentDirectionDiff", 60f, 30f..180f) { smartAutoBlock }
+    private val maxSwingProgress by intValue("MaxOpponentSwingProgress", 1, 0..5) { smartAutoBlock }
 
     // Rotations
     val options = RotationSettings(this).withoutKeepRotation()
 
     // Raycast
-    private val raycastValue = boolean("RayCast", true) { options.rotationsActive }
+    private val raycastValue = _boolean("RayCast", true) { options.rotationsActive }
     private val raycast by raycastValue
-    private val raycastIgnored by boolean(
+    private val raycastIgnored by _boolean(
         "RayCastIgnored",
         false
     ) { raycastValue.isActive() && options.rotationsActive }
-    private val livingRaycast by boolean("LivingRayCast", true) { raycastValue.isActive() && options.rotationsActive }
+    private val livingRaycast by _boolean("LivingRayCast", true) { raycastValue.isActive() && options.rotationsActive }
 
     // Hit delay
-    private val useHitDelay by boolean("UseHitDelay", false)
-    private val hitDelayTicks by int("HitDelayTicks", 1, 1..5) { useHitDelay }
+    private val useHitDelay by _boolean("UseHitDelay", false)
+    private val hitDelayTicks by intValue("HitDelayTicks", 1, 1..5) { useHitDelay }
 
     private val randomization = RandomizationSettings(this) { options.rotationsActive }
-    private val outborder by boolean("Outborder", false) { options.rotationsActive }
+    private val outborder by _boolean("Outborder", false) { options.rotationsActive }
 
     private val highestBodyPointToTargetValue: ListValue =
         object : ListValue("HighestBodyPointToTarget", arrayOf("Head", "Body", "Feet"), "Head") {
@@ -287,16 +279,16 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         override fun isSupported() = options.rotationsActive
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtMost(maxHorizontalBodySearch.get())
     }
-    private val fov by float("FOV", 180f, 0f..180f)
+    private val fov by floatValue("FOV", 180f, 0f..180f)
 
     // Prediction
-    private val predictClientMovement by int("PredictClientMovement", 2, 0..5)
-    private val predictOnlyWhenOutOfRange by boolean("PredictOnlyWhenOutOfRange", false) { predictClientMovement != 0 }
-    private val predictEnemyPosition by float("PredictEnemyPosition", 1.5f, -1f..2f)
+    private val predictClientMovement by intValue("PredictClientMovement", 2, 0..5)
+    private val predictOnlyWhenOutOfRange by _boolean("PredictOnlyWhenOutOfRange", false) { predictClientMovement != 0 }
+    private val predictEnemyPosition by floatValue("PredictEnemyPosition", 1.5f, -1f..2f)
 
     // Extra swing
-    private val failSwing by boolean("FailSwing", true) { swing && options.rotationsActive }
-    private val maxRotationDifferenceToSwing by float(
+    private val failSwing by _boolean("FailSwing", true) { swing && options.rotationsActive }
+    private val maxRotationDifferenceToSwing by floatValue(
         "MaxRotationDifferenceToSwing",
         180f,
         0f..180f
@@ -305,14 +297,14 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         override fun isSupported() =
             swing && failSwing && maxRotationDifferenceToSwing != 180f && options.rotationsActive
     }
-    private val renderBoxOnSwingFail by boolean("RenderBoxOnSwingFail", false) { failSwing }
+    private val renderBoxOnSwingFail by _boolean("RenderBoxOnSwingFail", false) { failSwing }
     private val renderBoxColor = ColorSettingsInteger(this, "RenderBoxColor") { renderBoxOnSwingFail }.with(0, 255, 255)
-    private val renderBoxFadeSeconds by float("RenderBoxFadeSeconds", 1f, 0f..5f) { renderBoxOnSwingFail }
+    private val renderBoxFadeSeconds by floatValue("RenderBoxFadeSeconds", 1f, 0f..5f) { renderBoxOnSwingFail }
 
     // Inventory
-    private val simulateClosingInventory by boolean("SimulateClosingInventory", false) { !noInventoryAttack }
-    private val noInventoryAttack by boolean("NoInvAttack", false)
-    private val noInventoryDelay by int("NoInvDelay", 200, 0..500) { noInventoryAttack }
+    private val simulateClosingInventory by _boolean("SimulateClosingInventory", false) { !noInventoryAttack }
+    private val noInventoryAttack by _boolean("NoInvAttack", false)
+    private val noInventoryDelay by intValue("NoInvDelay", 200, 0..500) { noInventoryAttack }
     private val noConsumeAttack by choices(
         "NoConsumeAttack",
         arrayOf("Off", "NoHits", "NoRotation"),
@@ -322,8 +314,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Visuals
     private val mark by choices("Mark", arrayOf("None", "Platform", "Box"), "Platform", subjective = true)
-    private val boxOutline by boolean("Outline", true, subjective = true) { mark == "Box" }
-    private val fakeSharp by boolean("FakeSharp", true, subjective = true)
+    private val boxOutline by _boolean("Outline", true, subjective = true) { mark == "Box" }
+    private val fakeSharp by _boolean("FakeSharp", true, subjective = true)
     private val renderMode by ListValue("RenderEffect", arrayOf("Capsule", "Nursultan"), "Capsule")
     private val fadeSpeed = FloatValue("FadeSpeed", 0.1f, 0.01f..0.2f) { renderMode == "Capsule" }
     private val circle by BoolValue("Circle", false)

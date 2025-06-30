@@ -8,10 +8,10 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notifications
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 
 object HalfLifeWarn : Module("HalfLifeWarn", Category.MISC, gameDetecting = true, hideModule = false) {
-    private val healthValue by int("Health", 7, 1.. 20)
+    private val healthValue by intValue("Health", 7, 1.. 20)
 
     private var canWarn = true
 

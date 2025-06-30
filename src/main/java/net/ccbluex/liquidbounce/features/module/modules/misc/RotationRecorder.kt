@@ -16,7 +16,7 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.angleDifference
 import net.ccbluex.liquidbounce.utils.RotationUtils.lastRotations
 import net.ccbluex.liquidbounce.utils.RotationUtils.serverRotation
 import net.ccbluex.liquidbounce.utils.chat
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import org.knowm.xchart.BitmapEncoder
 import org.knowm.xchart.XYChart
 import org.knowm.xchart.XYSeries
@@ -29,7 +29,7 @@ import kotlin.math.absoluteValue
 
 object RotationRecorder : Module("RotationRecorder", Category.MISC) {
 
-    private val captureNegativeNumbers by boolean("CaptureNegativeNumbers", false)
+    private val captureNegativeNumbers by _boolean("CaptureNegativeNumbers", false)
 
     private val ticks = mutableListOf<Double>()
     private val yawDiffs = mutableListOf<Double>()

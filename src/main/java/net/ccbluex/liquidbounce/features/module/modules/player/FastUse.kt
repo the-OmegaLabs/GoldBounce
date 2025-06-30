@@ -14,21 +14,21 @@ import net.ccbluex.liquidbounce.utils.MovementUtils.serverOnGround
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.network.play.client.C03PacketPlayer
 
 object FastUse : Module("FastUse", Category.PLAYER) {
 
     private val mode by choices("Mode", arrayOf("Instant", "NCP", "AAC", "Custom"), "NCP")
 
-    private val delay by int("CustomDelay", 0, 0..300) { mode == "Custom" }
-    private val customSpeed by int("CustomSpeed", 2, 1..35) { mode == "Custom" }
-    private val customTimer by float("CustomTimer", 1.1f, 0.5f..2f) { mode == "Custom" }
+    private val delay by intValue("CustomDelay", 0, 0..300) { mode == "Custom" }
+    private val customSpeed by intValue("CustomSpeed", 2, 1..35) { mode == "Custom" }
+    private val customTimer by floatValue("CustomTimer", 1.1f, 0.5f..2f) { mode == "Custom" }
 
-    private val noMove by boolean("NoMove", false)
+    private val noMove by _boolean("NoMove", false)
 
     private val msTimer = MSTimer()
     private var usedTimer = false

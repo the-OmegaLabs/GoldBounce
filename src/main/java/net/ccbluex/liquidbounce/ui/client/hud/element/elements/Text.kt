@@ -98,8 +98,8 @@ class Text(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F, side: Side = S
 
     }
 
-    private var onScaffold by boolean("ScaffoldOnly", false)
-    private var showBlock by boolean("ShowBlock", false)
+    private var onScaffold by _boolean("ScaffoldOnly", false)
+    private var showBlock by _boolean("ShowBlock", false)
 
     private var displayString by text("DisplayText", "")
 
@@ -112,42 +112,42 @@ class Text(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F, side: Side = S
         applyMax = true
     ) { textColorMode == "Custom" }
 
-    private val gradientTextSpeed by float("Text-Gradient-Speed", 1f, 0.5f..10f) { textColorMode == "Gradient" }
+    private val gradientTextSpeed by floatValue("Text-Gradient-Speed", 1f, 0.5f..10f) { textColorMode == "Gradient" }
 
-    private val maxTextGradientColors by int("Max-Text-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxTextGradientColors by intValue("Max-Text-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { textColorMode == "Gradient" }
     private val textGradColors = ColorSettingsFloat.create(this, "Text-Gradient")
     { textColorMode == "Gradient" && it <= maxTextGradientColors }
 
-    private val roundedBackgroundRadius by float("RoundedBackGround-Radius", 3F, 0F..5F)
+    private val roundedBackgroundRadius by floatValue("RoundedBackGround-Radius", 3F, 0F..5F)
 
-    private var backgroundScale by float("Background-Scale", 1F, 1F..3F)
+    private var backgroundScale by floatValue("Background-Scale", 1F, 1F..3F)
 
     private val backgroundMode by choices("Background-Color", arrayOf("Custom", "Rainbow", "Gradient"), "Custom")
 
     private val bgColors = ColorSettingsInteger(this, "Background", zeroAlphaCheck = true)
     { backgroundMode == "Custom" }.with(a = 0)
 
-    private val gradientBackgroundSpeed by float("Background-Gradient-Speed", 1f, 0.5f..10f)
+    private val gradientBackgroundSpeed by floatValue("Background-Gradient-Speed", 1f, 0.5f..10f)
     { backgroundMode == "Gradient" }
 
-    private val maxBackgroundGradientColors by int("Max-Background-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxBackgroundGradientColors by intValue("Max-Background-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { backgroundMode == "Gradient" }
     private val bgGradColors = ColorSettingsFloat.create(this, "Background-Gradient")
     { backgroundMode == "Gradient" && it <= maxBackgroundGradientColors }
 
-    private val backgroundBorder by float("BackgroundBorder-Width", 0.5F, 0.5F..5F)
+    private val backgroundBorder by floatValue("BackgroundBorder-Width", 0.5F, 0.5F..5F)
 
     private val bgBorderColors = ColorSettingsInteger(this, "BackgroundBorder", zeroAlphaCheck = true).with(a = 0)
 
     private fun isColorModeUsed(value: String) = textColorMode == value || backgroundMode == value
 
-    private val rainbowX by float("Rainbow-X", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
-    private val rainbowY by float("Rainbow-Y", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
-    private val gradientX by float("Gradient-X", -500F, -2000F..2000F) { isColorModeUsed("Gradient") }
-    private val gradientY by float("Gradient-Y", -1500F, -2000F..2000F) { isColorModeUsed("Gradient") }
+    private val rainbowX by floatValue("Rainbow-X", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
+    private val rainbowY by floatValue("Rainbow-Y", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
+    private val gradientX by floatValue("Gradient-X", -500F, -2000F..2000F) { isColorModeUsed("Gradient") }
+    private val gradientY by floatValue("Gradient-Y", -1500F, -2000F..2000F) { isColorModeUsed("Gradient") }
 
-    private var shadow by boolean("Shadow", true)
+    private var shadow by _boolean("Shadow", true)
     private val font by font("Font", Fonts.font40)
 
     private var editMode = false

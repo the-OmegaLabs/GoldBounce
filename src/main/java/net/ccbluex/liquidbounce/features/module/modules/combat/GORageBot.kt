@@ -32,16 +32,16 @@ import kotlin.math.atan
 
 object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
 
-    private val visibilityCheck by boolean("VisibilityCheck", false)
-    private val infiniteRange by boolean("InfiniteRange", false)
-    private val range by float("Range", 16F, 1F..32767F)
-    private val horizontalAim by boolean("HorizontalAim", true)
-    private val verticalAim by boolean("VerticalAim", true)
-    private val legitimize by boolean("Legitimize", true) { horizontalAim || verticalAim }
-    private val maxAngleChange by float("MaxAngleChange", 10f, 1F..180F) { horizontalAim || verticalAim }
-    private val inViewMaxAngleChange by float("InViewMaxAngleChange", 35f, 1f..180f) { horizontalAim || verticalAim }
-    private val predictClientMovement by int("PredictClientMovement", 2, 0..5)
-    private val predictEnemyPosition by float("PredictEnemyPosition", 1.5f, -1f..2f)
+    private val visibilityCheck by _boolean("VisibilityCheck", false)
+    private val infiniteRange by _boolean("InfiniteRange", false)
+    private val range by floatValue("Range", 16F, 1F..32767F)
+    private val horizontalAim by _boolean("HorizontalAim", true)
+    private val verticalAim by _boolean("VerticalAim", true)
+    private val legitimize by _boolean("Legitimize", true) { horizontalAim || verticalAim }
+    private val maxAngleChange by floatValue("MaxAngleChange", 10f, 1F..180F) { horizontalAim || verticalAim }
+    private val inViewMaxAngleChange by floatValue("InViewMaxAngleChange", 35f, 1f..180f) { horizontalAim || verticalAim }
+    private val predictClientMovement by intValue("PredictClientMovement", 2, 0..5)
+    private val predictEnemyPosition by floatValue("PredictEnemyPosition", 1.5f, -1f..2f)
     private val highestBodyPointToTargetValue: ListValue = object : ListValue(
         "HighestBodyPointToTarget",
         arrayOf("Head", "Body", "Feet"),
@@ -87,23 +87,23 @@ object GORageBot : Module("GORageBot", Category.COMBAT, hideModule = false) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtMost(maxHorizontalBodySearch.get())
     }
 
-    private val minRotationDifference by float(
+    private val minRotationDifference by floatValue(
         "MinRotationDifference",
         0f,
         0f..2f
     ) { verticalAim || horizontalAim }
 
-    private val fov by float("FOV", 180F, 1F..180F)
-    private val lock by boolean("Lock", true) { horizontalAim || verticalAim }
-    private val onClick by boolean("OnClick", false) { horizontalAim || verticalAim }
-    private val jitter by boolean("Jitter", false)
-    private val yawJitterMultiplier by float("JitterYawMultiplier", 1f, 0.1f..2.5f)
-    private val pitchJitterMultiplier by float("JitterPitchMultiplier", 1f, 0.1f..2.5f)
-    private val center by boolean("Center", false)
-    private val headLock by boolean("Headlock", false) { center && lock }
-    private val headLockBlockHeight by float("HeadBlockHeight", -1f, -2f..0f) { headLock && center && lock }
-    private val breakBlocks by boolean("BreakBlocks", true)
-    private val silent by boolean("Silent", false) { horizontalAim || verticalAim }
+    private val fov by floatValue("FOV", 180F, 1F..180F)
+    private val lock by _boolean("Lock", true) { horizontalAim || verticalAim }
+    private val onClick by _boolean("OnClick", false) { horizontalAim || verticalAim }
+    private val jitter by _boolean("Jitter", false)
+    private val yawJitterMultiplier by floatValue("JitterYawMultiplier", 1f, 0.1f..2.5f)
+    private val pitchJitterMultiplier by floatValue("JitterPitchMultiplier", 1f, 0.1f..2.5f)
+    private val center by _boolean("Center", false)
+    private val headLock by _boolean("Headlock", false) { center && lock }
+    private val headLockBlockHeight by floatValue("HeadBlockHeight", -1f, -2f..0f) { headLock && center && lock }
+    private val breakBlocks by _boolean("BreakBlocks", true)
+    private val silent by _boolean("Silent", false) { horizontalAim || verticalAim }
     private val settings = RotationSettings(this)
     private val clickTimer = MSTimer()
     private val clickCount = AtomicInteger(0)

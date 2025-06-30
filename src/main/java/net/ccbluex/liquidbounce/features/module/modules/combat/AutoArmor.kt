@@ -25,8 +25,8 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.toHotbarIndex
 import net.ccbluex.liquidbounce.utils.inventory.hasItemAgePassed
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraft.entity.EntityLiving.getArmorPosition
 import net.minecraft.item.ItemStack
@@ -41,7 +41,7 @@ object AutoArmor : Module("AutoArmor", Category.COMBAT, hideModule = false) {
 
         override fun isSupported() = maxDelay > 0
     }
-    private val minItemAge by int("MinItemAge", 0, 0..2000)
+    private val minItemAge by intValue("MinItemAge", 0, 0..2000)
 
     private val invOpen by InventoryManager.invOpenValue
     private val simulateInventory by InventoryManager.simulateInventoryValue
@@ -53,19 +53,19 @@ object AutoArmor : Module("AutoArmor", Category.COMBAT, hideModule = false) {
 
     // When swapping armor pieces, it grabs the better one, drags and swaps it with equipped one and drops the equipped one (no time of having no armor piece equipped)
     // Has to make more clicks, works slower
-    val smartSwap by boolean("SmartSwap", true)
+    val smartSwap by _boolean("SmartSwap", true)
 
     private val noMove by InventoryManager.noMoveValue
     private val noMoveAir by InventoryManager.noMoveAirValue
     private val noMoveGround by InventoryManager.noMoveGroundValue
 
-    private val hotbar by boolean("Hotbar", true)
+    private val hotbar by _boolean("Hotbar", true)
 
     // Sacrifices 1 tick speed for complete undetectability, needed to bypass Vulcan
-    private val delayedSlotSwitch by boolean("DelayedSlotSwitch", true) { hotbar }
+    private val delayedSlotSwitch by _boolean("DelayedSlotSwitch", true) { hotbar }
 
     // Prevents AutoArmor from hotbar equipping while any screen is open
-    private val notInContainers by boolean("NotInContainers", false) { hotbar }
+    private val notInContainers by _boolean("NotInContainers", false) { hotbar }
 
     val highlightSlot by InventoryManager.highlightSlotValue
 

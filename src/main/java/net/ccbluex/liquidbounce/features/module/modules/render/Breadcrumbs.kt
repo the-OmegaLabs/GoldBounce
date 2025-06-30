@@ -12,16 +12,16 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 
 object Breadcrumbs : Module("Breadcrumbs", Category.RENDER, hideModule = false) {
-    val colorRainbow by boolean("Rainbow", false)
-    val colorRed by int("R", 255, 0..255) { !colorRainbow }
-    val colorGreen by int("G", 179, 0..255) { !colorRainbow }
-    val colorBlue by int("B", 72, 0..255) { !colorRainbow }
+    val colorRainbow by _boolean("Rainbow", false)
+    val colorRed by intValue("R", 255, 0..255) { !colorRainbow }
+    val colorGreen by intValue("G", 179, 0..255) { !colorRainbow }
+    val colorBlue by intValue("B", 72, 0..255) { !colorRainbow }
 
     private val positions = mutableListOf<DoubleArray>()
 

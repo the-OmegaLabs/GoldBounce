@@ -10,7 +10,7 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.item.ItemBow
 import net.minecraft.network.play.client.C07PacketPlayerDigging
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
@@ -19,7 +19,7 @@ import net.minecraft.util.EnumFacing
 
 object AutoBow : Module("AutoBow", Category.COMBAT, subjective = true, hideModule = false) {
 
-    private val waitForBowAimbot by boolean("WaitForBowAimbot", true)
+    private val waitForBowAimbot by _boolean("WaitForBowAimbot", true)
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {

@@ -16,7 +16,7 @@ import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBacktrackBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.client.entity.EntityPlayerSP
 import net.minecraft.client.renderer.GlStateManager.color
 import net.minecraft.entity.Entity
@@ -27,7 +27,7 @@ import java.awt.Color
 
 object ForwardTrack : Module("ForwardTrack", Category.COMBAT) {
     private val espMode by choices("ESP-Mode", arrayOf("Box", "Model", "Wireframe"), "Model", subjective = true)
-    private val wireframeWidth by float("WireFrame-Width", 1f, 0.5f..5f) { espMode == "WireFrame" }
+    private val wireframeWidth by floatValue("WireFrame-Width", 1f, 0.5f..5f) { espMode == "WireFrame" }
 
     private val espColorMode by choices("ESP-Color", arrayOf("Custom", "Rainbow"), "Custom") { espMode != "Model" }
     private val espColor = ColorSettingsInteger(this, "ESP", withAlpha = false)

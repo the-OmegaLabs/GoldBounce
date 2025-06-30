@@ -50,34 +50,34 @@ object Fucker : Module("Fucker", Category.WORLD, hideModule = false) {
      * SETTINGS
      */
 
-    private val hypixel by boolean("Hypixel", false)
+    private val hypixel by _boolean("Hypixel", false)
 
     private val block by block("Block", 26)
     private val throughWalls by choices("ThroughWalls", arrayOf("None", "Raycast", "Around"), "None") { !hypixel }
-    private val range by float("Range", 5F, 1F..7F)
+    private val range by floatValue("Range", 5F, 1F..7F)
 
     private val action by choices("Action", arrayOf("Destroy", "Use"), "Destroy")
-    private val surroundings by boolean("Surroundings", true) { !hypixel }
-    private val instant by boolean("Instant", false) { (action == "Destroy" || surroundings) && !hypixel }
+    private val surroundings by _boolean("Surroundings", true) { !hypixel }
+    private val instant by _boolean("Instant", false) { (action == "Destroy" || surroundings) && !hypixel }
 
-    private val switch by int("SwitchDelay", 250, 0..1000)
-    private val swing by boolean("Swing", true)
-    val noHit by boolean("NoHit", false)
+    private val switch by intValue("SwitchDelay", 250, 0..1000)
+    private val swing by _boolean("Swing", true)
+    val noHit by _boolean("NoHit", false)
 
     private val options = RotationSettings(this).withoutKeepRotation()
 
-    private val blockProgress by boolean("BlockProgress", true)
+    private val blockProgress by _boolean("BlockProgress", true)
 
-    private val scale by float("Scale", 2F, 1F..6F) { blockProgress }
+    private val scale by floatValue("Scale", 2F, 1F..6F) { blockProgress }
     private val font by font("Font", Fonts.font40) { blockProgress }
-    private val fontShadow by boolean("Shadow", true) { blockProgress }
+    private val fontShadow by _boolean("Shadow", true) { blockProgress }
 
-    private val colorRed by int("R", 200, 0..255) { blockProgress }
-    private val colorGreen by int("G", 100, 0..255) { blockProgress }
-    private val colorBlue by int("B", 0, 0..255) { blockProgress }
+    private val colorRed by intValue("R", 200, 0..255) { blockProgress }
+    private val colorGreen by intValue("G", 100, 0..255) { blockProgress }
+    private val colorBlue by intValue("B", 0, 0..255) { blockProgress }
 
-    private val ignoreOwnBed by boolean("IgnoreOwnBed", true)
-    private val ownBedDist by int("MaxBedDistance", 32, 1..32) { ignoreOwnBed }
+    private val ignoreOwnBed by _boolean("IgnoreOwnBed", true)
+    private val ownBedDist by intValue("MaxBedDistance", 32, 1..32) { ignoreOwnBed }
 
     /**
      * VALUES

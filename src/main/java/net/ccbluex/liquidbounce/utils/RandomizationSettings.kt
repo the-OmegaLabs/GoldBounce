@@ -6,12 +6,12 @@
 package net.ccbluex.liquidbounce.utils
 
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.floatRange
 
 class RandomizationSettings(owner: Module, generalApply: () -> Boolean = { true }) {
 
-    val randomize by boolean("RandomizeRotations", false) { generalApply() }
+    val randomize by _boolean("RandomizeRotations", false) { generalApply() }
     val yawRandomizationChance by floatRange("YawRandomizationChance", 0.8f..1.0f, 0f..1f) { randomize }
     val yawRandomizationRange by floatRange("YawRandomizationRange", 5f..10f, 0f..30f)
     { randomize && yawRandomizationChance.endInclusive != 0f }

@@ -16,10 +16,10 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.isFirstInventoryClick
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraft.init.Items
 import net.minecraft.network.play.client.C07PacketPlayerDigging
@@ -29,16 +29,16 @@ import net.minecraft.util.EnumFacing
 
 object AutoSoup : Module("AutoSoup", Category.COMBAT, hideModule = false) {
 
-    private val health by float("Health", 15f, 0f..20f)
-    private val delay by int("Delay", 150, 0..500)
+    private val health by floatValue("Health", 15f, 0f..20f)
+    private val delay by intValue("Delay", 150, 0..500)
 
-    private val openInventory by boolean("OpenInv", true)
-    private val startDelay by int("StartDelay", 100, 0..1000) { openInventory }
-    private val autoClose by boolean("AutoClose", false) { openInventory }
-    private val autoCloseNoSoup by boolean("AutoCloseNoSoup", true) { autoClose }
-    private val autoCloseDelay by int("CloseDelay", 500, 0..1000) { openInventory && autoClose }
+    private val openInventory by _boolean("OpenInv", true)
+    private val startDelay by intValue("StartDelay", 100, 0..1000) { openInventory }
+    private val autoClose by _boolean("AutoClose", false) { openInventory }
+    private val autoCloseNoSoup by _boolean("AutoCloseNoSoup", true) { autoClose }
+    private val autoCloseDelay by intValue("CloseDelay", 500, 0..1000) { openInventory && autoClose }
 
-    private val simulateInventory by boolean("SimulateInventory", false) { !openInventory }
+    private val simulateInventory by _boolean("SimulateInventory", false) { !openInventory }
 
     private val bowl by choices("Bowl", arrayOf("Drop", "Move", "Stay"), "Drop")
 

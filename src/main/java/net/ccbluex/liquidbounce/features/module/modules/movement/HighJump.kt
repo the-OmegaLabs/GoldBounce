@@ -13,17 +13,17 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.MovementUtils.strafe
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.block.BlockPane
 import net.minecraft.util.BlockPos
 
 object HighJump : Module("HighJump", Category.MOVEMENT) {
     private val mode by choices("Mode", arrayOf("Vanilla", "Damage", "AACv3", "DAC", "Mineplex"), "Vanilla")
-    private val height by float("Height", 2f, 1.1f..5f) { mode in arrayOf("Vanilla", "Damage") }
+    private val height by floatValue("Height", 2f, 1.1f..5f) { mode in arrayOf("Vanilla", "Damage") }
 
-    private val glass by boolean("OnlyGlassPane", false)
+    private val glass by _boolean("OnlyGlassPane", false)
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {

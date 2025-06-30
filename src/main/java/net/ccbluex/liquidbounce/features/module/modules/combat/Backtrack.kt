@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
 
-    private val nextBacktrackDelay by int("NextBacktrackDelay", 0, 0..2000) { mode == "Modern" }
+    private val nextBacktrackDelay by intValue("NextBacktrackDelay", 0, 0..2000) { mode == "Modern" }
     private val maxDelay: IntegerValue = object : IntegerValue("MaxDelay", 80, 0..700) {
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtLeast(minDelay.get())
     }
@@ -75,7 +75,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceIn(minimum, maxDistance)
         override fun isSupported() = mode == "Modern"
     }
-    private val smart by boolean("Smart", true) { mode == "Modern" }
+    private val smart by _boolean("Smart", true) { mode == "Modern" }
 
     // ESP
     private val espMode by choices(
@@ -84,7 +84,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
         "Box",
         subjective = true
     ) { mode == "Modern" }
-    private val wireframeWidth by float("WireFrame-Width", 1f, 0.5f..5f) { espMode == "WireFrame" }
+    private val wireframeWidth by floatValue("WireFrame-Width", 1f, 0.5f..5f) { espMode == "WireFrame" }
 
     private val espColorMode by choices("ESP-Color", arrayOf("Custom", "Rainbow"), "Custom")
     { espMode != "Model" && mode == "Modern" }
@@ -110,7 +110,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
         get() = if (mode == "Modern") modernDelay.first else maxDelay.get()
 
     // Legacy
-    private val maximumCachedPositions by int("MaxCachedPositions", 10, 1..20) { mode == "Legacy" }
+    private val maximumCachedPositions by intValue("MaxCachedPositions", 10, 1..20) { mode == "Legacy" }
 
     private val backtrackedPlayer = ConcurrentHashMap<UUID, MutableList<BacktrackData>>()
 

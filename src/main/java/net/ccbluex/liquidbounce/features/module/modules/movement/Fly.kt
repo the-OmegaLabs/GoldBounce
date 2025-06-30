@@ -111,7 +111,7 @@ object Fly : Module("Fly", Category.MOVEMENT, Keyboard.KEY_F, hideModule = false
     val modeValue = choices("Mode", modesList.map { it.modeName }.toTypedArray(), "Vanilla")
     val mode by modeValue
 
-    val vanillaSpeed by float("VanillaSpeed", 2f, 0f..10f, subjective = true) {
+    val vanillaSpeed by floatValue("VanillaSpeed", 2f, 0f..10f, subjective = true) {
         mode in arrayOf(
             "Vanilla",
             "KeepAlive",
@@ -119,57 +119,57 @@ object Fly : Module("Fly", Category.MOVEMENT, Keyboard.KEY_F, hideModule = false
             "BugSpartan"
         )
     }
-    private val vanillaKickBypass by boolean(
+    private val vanillaKickBypass by _boolean(
         "VanillaKickBypass",
         false,
         subjective = true
     ) { mode in arrayOf("Vanilla", "SmoothVanilla") }
-    val ncpMotion by float("NCPMotion", 0f, 0f..1f) { mode == "NCP" }
+    val ncpMotion by floatValue("NCPMotion", 0f, 0f..1f) { mode == "NCP" }
 
     // AAC
-    val aacSpeed by float("AAC1.9.10-Speed", 0.3f, 0f..1f) { mode == "AAC1.9.10" }
-    val aacFast by boolean("AAC3.0.5-Fast", true) { mode == "AAC3.0.5" }
-    val aacMotion by float("AAC3.3.12-Motion", 10f, 0.1f..10f) { mode == "AAC3.3.12" }
-    val aacMotion2 by float("AAC3.3.13-Motion", 10f, 0.1f..10f) { mode == "AAC3.3.13" }
+    val aacSpeed by floatValue("AAC1.9.10-Speed", 0.3f, 0f..1f) { mode == "AAC1.9.10" }
+    val aacFast by _boolean("AAC3.0.5-Fast", true) { mode == "AAC3.0.5" }
+    val aacMotion by floatValue("AAC3.3.12-Motion", 10f, 0.1f..10f) { mode == "AAC3.3.12" }
+    val aacMotion2 by floatValue("AAC3.3.13-Motion", 10f, 0.1f..10f) { mode == "AAC3.3.13" }
 
     // Hypixel
-    val hypixelBoost by boolean("Hypixel-Boost", true) { mode == "Hypixel" }
-    val hypixelBoostDelay by int("Hypixel-BoostDelay", 1200, 50..2000) { mode == "Hypixel" && hypixelBoost }
-    val hypixelBoostTimer by float("Hypixel-BoostTimer", 1f, 0.1f..5f) { mode == "Hypixel" && hypixelBoost }
+    val hypixelBoost by _boolean("Hypixel-Boost", true) { mode == "Hypixel" }
+    val hypixelBoostDelay by intValue("Hypixel-BoostDelay", 1200, 50..2000) { mode == "Hypixel" && hypixelBoost }
+    val hypixelBoostTimer by floatValue("Hypixel-BoostTimer", 1f, 0.1f..5f) { mode == "Hypixel" && hypixelBoost }
 
     // Other
-    val neruxVaceTicks by int("NeruxVace-Ticks", 6, 2..20) { mode == "NeruxVace" }
+    val neruxVaceTicks by intValue("NeruxVace-Ticks", 6, 2..20) { mode == "NeruxVace" }
 
     // Verus
-    val damage by boolean("Damage", false) { mode == "Verus" }
-    val timerSlow by boolean("TimerSlow", true) { mode == "Verus" }
-    val boostTicksValue by int("BoostTicks", 20, 1..30) { mode == "Verus" }
-    val boostMotion by float("BoostMotion", 6.5f, 1f..9.85f) { mode == "Verus" }
-    val yBoost by float("YBoost", 0.42f, 0f..10f) { mode == "Verus" }
+    val damage by _boolean("Damage", false) { mode == "Verus" }
+    val timerSlow by _boolean("TimerSlow", true) { mode == "Verus" }
+    val boostTicksValue by intValue("BoostTicks", 20, 1..30) { mode == "Verus" }
+    val boostMotion by floatValue("BoostMotion", 6.5f, 1f..9.85f) { mode == "Verus" }
+    val yBoost by floatValue("YBoost", 0.42f, 0f..10f) { mode == "Verus" }
 
     // BlocksMC
-    val stable by boolean("Stable", false) { mode == "BlocksMC" || mode == "BlocksMC2" }
-    val timerSlowed by boolean("TimerSlowed", true) { mode == "BlocksMC" || mode == "BlocksMC2" }
-    val boostSpeed by float("BoostSpeed", 6f, 1f..15f) { mode == "BlocksMC" || mode == "BlocksMC2" }
-    val extraBoost by float("ExtraSpeed", 1f, 0.0F..2f) { mode == "BlocksMC" || mode == "BlocksMC2" }
-    val stopOnLanding by boolean("StopOnLanding", true) { mode == "BlocksMC" || mode == "BlocksMC2" }
-    val stopOnNoMove by boolean("StopOnNoMove", false) { mode == "BlocksMC" || mode == "BlocksMC2" }
-    val debugFly by boolean("Debug", false) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val stable by _boolean("Stable", false) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val timerSlowed by _boolean("TimerSlowed", true) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val boostSpeed by floatValue("BoostSpeed", 6f, 1f..15f) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val extraBoost by floatValue("ExtraSpeed", 1f, 0.0F..2f) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val stopOnLanding by _boolean("StopOnLanding", true) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val stopOnNoMove by _boolean("StopOnNoMove", false) { mode == "BlocksMC" || mode == "BlocksMC2" }
+    val debugFly by _boolean("Debug", false) { mode == "BlocksMC" || mode == "BlocksMC2" }
 
     // Fireball
     val pitchMode by choices("PitchMode", arrayOf("Custom", "Smart"), "Custom") { mode == "Fireball" }
-    val rotationPitch by float("Pitch", 90f, 0f..90f) { pitchMode != "Smart" && mode == "Fireball" }
-    val invertYaw by boolean("InvertYaw", true) { pitchMode != "Smart" && mode == "Fireball" }
+    val rotationPitch by floatValue("Pitch", 90f, 0f..90f) { pitchMode != "Smart" && mode == "Fireball" }
+    val invertYaw by _boolean("InvertYaw", true) { pitchMode != "Smart" && mode == "Fireball" }
 
     val autoFireball by choices(
         "AutoFireball",
         arrayOf("Off", "Pick", "Spoof", "Switch"),
         "Spoof"
     ) { mode == "Fireball" }
-    val swing by boolean("Swing", true) { mode == "Fireball" }
-    val fireballTry by int("MaxFireballTry", 1, 0..2) { mode == "Fireball" }
+    val swing by _boolean("Swing", true) { mode == "Fireball" }
+    val fireballTry by intValue("MaxFireballTry", 1, 0..2) { mode == "Fireball" }
     val fireBallThrowMode by choices("FireballThrow", arrayOf("Normal", "Edge"), "Normal") { mode == "Fireball" }
-    val edgeThreshold by float(
+    val edgeThreshold by floatValue(
         "EdgeThreshold",
         1.05f,
         1f..2f
@@ -179,10 +179,10 @@ object Fly : Module("Fly", Category.MOVEMENT, Keyboard.KEY_F, hideModule = false
         resetTicksValue.setSupport { { it && keepRotation } }
     }
 
-    val autoJump by boolean("AutoJump", true) { mode == "Fireball" }
+    val autoJump by _boolean("AutoJump", true) { mode == "Fireball" }
 
     // Visuals
-    private val mark by boolean("Mark", true, subjective = true)
+    private val mark by _boolean("Mark", true, subjective = true)
 
     var wasFired = false
     var firePosition: BlockPos? = null

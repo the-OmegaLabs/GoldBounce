@@ -22,13 +22,13 @@ import kotlin.math.pow
 
 object TNTTimer : Module("TNTTimer", Category.RENDER, spacedName = "TNT Timer", hideModule = false) {
 
-    private val scale by float("Scale", 3F, 1F..4F)
+    private val scale by floatValue("Scale", 3F, 1F..4F)
     private val font by font("Font", Fonts.font40)
-    private val fontShadow by boolean("Shadow", true)
+    private val fontShadow by _boolean("Shadow", true)
 
-    private val colorRed by int("R", 255, 0..255)
-    private val colorGreen by int("G", 255, 0..255)
-    private val colorBlue by int("B", 255, 0..255)
+    private val colorRed by intValue("R", 255, 0..255)
+    private val colorGreen by intValue("G", 255, 0..255)
+    private val colorBlue by intValue("B", 255, 0..255)
 
     private val maxRenderDistance by object : IntegerValue("MaxRenderDistance", 100, 1..200) {
         override fun onUpdate(value: Int) {
@@ -36,8 +36,8 @@ object TNTTimer : Module("TNTTimer", Category.RENDER, spacedName = "TNT Timer", 
         }
     }
 
-    private val onLook by boolean("OnLook", false)
-    private val maxAngleDifference by float("MaxAngleDifference", 5.0f, 5.0f..90f) { onLook }
+    private val onLook by _boolean("OnLook", false)
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 5.0f, 5.0f..90f) { onLook }
 
     private var maxRenderDistanceSq = 0.0
         set(value) {

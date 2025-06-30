@@ -11,15 +11,13 @@ import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.ServerUtils
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.extensions.getPing
-import net.ccbluex.liquidbounce.utils.render.AnimationUtils
 import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
 import net.ccbluex.liquidbounce.value.ListValue
 import net.ccbluex.liquidbounce.value.TextValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.RenderHelper
@@ -30,8 +28,6 @@ import java.awt.Color
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sin
 
 object WaterMark : Module("WaterMark", Category.HUD) {
 
@@ -44,27 +40,27 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     private enum class State { NONE, Normal, Scaffolding, Notifying }
     private var currentState = State.NONE
 
-    private val ANIM_DURATION = int("AnimationDuration", 300, 0..1000)
+    private val ANIM_DURATION = intValue("AnimationDuration", 300, 0..1000)
     val normalMode = ListValue("RenderMode", arrayOf("Opai", "Opal"), "Opai")
     private val clientName = TextValue("ClientName", "Obai")
     // endregion
 
     // region Normal Mode: Opai
-    val textColorR = int("TextColorR", 255, 0..255) { normalMode.get() == "Opai" }
-    private val textColorG = int("TextColorG", 255, 0..255) { normalMode.get() == "Opai" }
-    private val textColorB = int("TextColorB", 255, 0..255) { normalMode.get() == "Opai" }
-    val showMemory = boolean("ShowMemory", false) { normalMode.get() == "Opai" }
-    val showLatency = boolean("ShowLatency", true) { normalMode.get() == "Opai" }
-    private val shadowEnabled = boolean("Shadow", false) { normalMode.get() == "Opai"}
-    val shadowStrengh = int("ShadowStrength", 20, 1..20) { normalMode.get() == "Opai"}
+    val textColorR = intValue("TextColorR", 255, 0..255) { normalMode.get() == "Opai" }
+    private val textColorG = intValue("TextColorG", 255, 0..255) { normalMode.get() == "Opai" }
+    private val textColorB = intValue("TextColorB", 255, 0..255) { normalMode.get() == "Opai" }
+    val showMemory = _boolean("ShowMemory", false) { normalMode.get() == "Opai" }
+    val showLatency = _boolean("ShowLatency", true) { normalMode.get() == "Opai" }
+    private val shadowEnabled = _boolean("Shadow", false) { normalMode.get() == "Opai"}
+    val shadowStrengh = intValue("ShadowStrength", 20, 1..20) { normalMode.get() == "Opai"}
     // endregion
 
     // region Normal Mode: Opal
-    private val opaiColorR = int("Opal-R", 255, 0..255) { normalMode.get() == "Opal" }
-    private val opaiColorG = int("Opal-G", 255, 0..255) { normalMode.get() == "Opal" }
-    private val opaiColorB = int("Opal-B", 255, 0..255) { normalMode.get() == "Opal" }
-    private val opaiShadow = boolean("Opal-Shadow", false) { normalMode.get() == "Opal" }
-    private val opaiShadowStrength = int("Opal-ShadowStrength", 1, 1..2) { normalMode.get() == "Opal" }
+    private val opaiColorR = intValue("Opal-R", 255, 0..255) { normalMode.get() == "Opal" }
+    private val opaiColorG = intValue("Opal-G", 255, 0..255) { normalMode.get() == "Opal" }
+    private val opaiColorB = intValue("Opal-B", 255, 0..255) { normalMode.get() == "Opal" }
+    private val opaiShadow = _boolean("Opal-Shadow", false) { normalMode.get() == "Opal" }
+    private val opaiShadowStrength = intValue("Opal-ShadowStrength", 1, 1..2) { normalMode.get() == "Opal" }
     private val versionNameUp = LiquidBounce.clientVersionText
     private val versionNameDown = LiquidBounce.clientBigVersionText
     // endregion

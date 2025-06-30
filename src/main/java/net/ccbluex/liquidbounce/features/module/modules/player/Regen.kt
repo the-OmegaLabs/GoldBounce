@@ -13,23 +13,23 @@ import net.ccbluex.liquidbounce.utils.MovementUtils.serverOnGround
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.potion.Potion
 
 object Regen : Module("Regen", Category.PLAYER) {
 
     private val mode by choices("Mode", arrayOf("Vanilla", "Spartan"), "Vanilla")
-    private val speed by int("Speed", 100, 1..100) { mode == "Vanilla" }
+    private val speed by intValue("Speed", 100, 1..100) { mode == "Vanilla" }
 
-    private val delay by int("Delay", 0, 0..10000)
-    private val health by int("Health", 18, 0..20)
-    private val food by int("Food", 18, 0..20)
+    private val delay by intValue("Delay", 0, 0..10000)
+    private val health by intValue("Health", 18, 0..20)
+    private val food by intValue("Food", 18, 0..20)
 
-    private val noAir by boolean("NoAir", false)
-    private val potionEffect by boolean("PotionEffect", false)
+    private val noAir by _boolean("NoAir", false)
+    private val potionEffect by _boolean("PotionEffect", false)
 
     private val timer = MSTimer()
 

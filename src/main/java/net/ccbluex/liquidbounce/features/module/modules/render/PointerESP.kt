@@ -27,7 +27,7 @@ import kotlin.math.*
 object PointerESP : Module("PointerESP", Category.RENDER, hideModule = false) {
     private val dimension by choices("Dimension", arrayOf("2d", "3d"), "2d")
     private val mode by choices("Mode", arrayOf("Solid", "Line", "LoopLine"), "Solid")
-    private val thickness by float("Thickness", 3f, 1f..5f) { mode.contains("Line") }
+    private val thickness by floatValue("Thickness", 3f, 1f..5f) { mode.contains("Line") }
 
     private val colorMode by choices("Color-Mode", arrayOf("Custom", "Rainbow"), "Custom")
     { healthMode == "None" }
@@ -38,12 +38,12 @@ object PointerESP : Module("PointerESP", Category.RENDER, hideModule = false) {
     private val healthColors = ColorSettingsInteger(this, "Health", withAlpha = false)
     { healthMode == "Custom" }.with(255, 255, 0)
 
-    private val absorption by boolean("Absorption", true) { healthMode == "Custom" }
-    private val healthFromScoreboard by boolean("HealthFromScoreboard", true) { healthMode == "Custom" }
+    private val absorption by _boolean("Absorption", true) { healthMode == "Custom" }
+    private val healthFromScoreboard by _boolean("HealthFromScoreboard", true) { healthMode == "Custom" }
 
-    private val alpha by int("Alpha", 255, 0..255)
-    private val distanceAlpha by boolean("DistanceAlpha", true)
-    private val alphaMin by int("AlphaMin", 100, -50..255) { distanceAlpha }
+    private val alpha by intValue("Alpha", 255, 0..255)
+    private val distanceAlpha by _boolean("DistanceAlpha", true)
+    private val alphaMin by intValue("AlphaMin", 100, -50..255) { distanceAlpha }
 
     private val maxRenderDistance by object : IntegerValue("MaxRenderDistance", 100, 1..200) {
         override fun onUpdate(value: Int) {
@@ -56,13 +56,13 @@ object PointerESP : Module("PointerESP", Category.RENDER, hideModule = false) {
             field = if (value <= 0.0) maxRenderDistance.toDouble().pow(2.0) else value
         }
 
-    private val arrowSize by int("ArrowSize", 10, 1..30)
-    private val arrowAngle by int("ArrowAngle", 50, 10..90)
-    private val arrowRadius by float("ArrowRadius", 50f, 10f..100f)
+    private val arrowSize by intValue("ArrowSize", 10, 1..30)
+    private val arrowAngle by intValue("ArrowAngle", 50, 10..90)
+    private val arrowRadius by floatValue("ArrowRadius", 50f, 10f..100f)
 
-    private val team by boolean("Team", true)
-    private val colorTeam by boolean("TeamColor", false)
-    private val bot by boolean("Bots", true)
+    private val team by _boolean("Team", true)
+    private val colorTeam by _boolean("TeamColor", false)
+    private val bot by _boolean("Bots", true)
 
     @EventTarget
     fun onRender2D(event: Render2DEvent) {

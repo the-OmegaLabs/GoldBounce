@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.misc
 
-import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
@@ -44,14 +43,14 @@ object FlagCheck : Module("FlagCheck", Category.MISC, gameDetecting = true, hide
         subjective = true
     )
 
-    private val resetFlagCounterTicks by int("ResetCounterTicks", 5000, 1000..10000)
+    private val resetFlagCounterTicks by intValue("ResetCounterTicks", 5000, 1000..10000)
 
-    private val ghostBlockCheck by boolean("GhostBlock-Check", true)
-    private val ghostBlockDelay by int("GhostBlockDelay", 750, 500..1000)
+    private val ghostBlockCheck by _boolean("GhostBlock-Check", true)
+    private val ghostBlockDelay by intValue("GhostBlockDelay", 750, 500..1000)
     { ghostBlockCheck }
 
-    private val rubberbandCheck by boolean("Rubberband-Check", false)
-    private val rubberbandThreshold by float("RubberBandThreshold", 5.0f, 0.05f..10.0f)
+    private val rubberbandCheck by _boolean("Rubberband-Check", false)
+    private val rubberbandThreshold by floatValue("RubberBandThreshold", 5.0f, 0.05f..10.0f)
     { rubberbandCheck }
 
     private val colors = ColorSettingsInteger(
@@ -70,9 +69,9 @@ object FlagCheck : Module("FlagCheck", Category.MISC, gameDetecting = true, hide
         withAlpha = false
     ) { renderServerPos == "Box" }.with(r = 255, g = 255)
 
-    private val scale by float("Scale", 1F, 1F..6F) { renderServerPos == "Box" }
+    private val scale by floatValue("Scale", 1F, 1F..6F) { renderServerPos == "Box" }
     private val font by font("Font", Fonts.font40) { renderServerPos == "Box" }
-    private val fontShadow by boolean("Shadow", true) { renderServerPos == "Box" }
+    private val fontShadow by _boolean("Shadow", true) { renderServerPos == "Box" }
 
     private var lastCheckTime = 0L
 

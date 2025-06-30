@@ -13,8 +13,8 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot.isBot
 import net.ccbluex.liquidbounce.utils.chat
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.BlockTNT
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemFireball
@@ -27,13 +27,13 @@ import kotlin.math.roundToInt
 
 object Notifier : Module("Notifier", Category.MISC, hideModule = false) {
 
-    private val onPlayerJoin by boolean("Join", true)
-    private val onPlayerLeft by boolean("Left", true)
-    private val onPlayerDeath by boolean("Death", true)
-    private val onHeldExplosive by boolean("HeldExplosive", true)
-    private val onPlayerTool by boolean("HeldTools", false)
+    private val onPlayerJoin by _boolean("Join", true)
+    private val onPlayerLeft by _boolean("Left", true)
+    private val onPlayerDeath by _boolean("Death", true)
+    private val onHeldExplosive by _boolean("HeldExplosive", true)
+    private val onPlayerTool by _boolean("HeldTools", false)
     
-    private val warnDelay by int("WarnDelay", 5000, 1000..50000)
+    private val warnDelay by intValue("WarnDelay", 5000, 1000..50000)
     { onPlayerDeath || onHeldExplosive || onPlayerTool }
 
     private val recentlyWarned = ConcurrentHashMap<String, Long>()

@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.hotBarSlot
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.init.Items
 import net.minecraft.item.ItemStack
 import net.minecraft.world.WorldSettings
@@ -33,7 +33,7 @@ object AutoPlay : Module("AutoPlay", Category.PLAYER, gameDetecting = false, hid
         hypixelMode == "Bedwars" && mode == "Hypixel"
     }
 
-    private val delay by int("Delay", 50, 0..200)
+    private val delay by intValue("Delay", 50, 0..200)
 
     private var delayTick = 0
     private var lastPosX = 0.0

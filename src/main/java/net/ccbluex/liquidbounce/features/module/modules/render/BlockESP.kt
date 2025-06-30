@@ -21,9 +21,9 @@ import net.ccbluex.liquidbounce.utils.render.RenderUtils.draw2D
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBlockBox
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.block
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.Block
 import net.minecraft.init.Blocks.air
 import net.minecraft.util.BlockPos
@@ -33,13 +33,13 @@ import java.util.concurrent.ConcurrentHashMap
 object BlockESP : Module("BlockESP", Category.RENDER, hideModule = false) {
     private val mode by choices("Mode", arrayOf("Box", "2D"), "Box")
     private val block by block("Block", 168)
-    private val radius by int("Radius", 40, 5..120)
-    private val blockLimit by int("BlockLimit", 256, 0..2056)
+    private val radius by intValue("Radius", 40, 5..120)
+    private val blockLimit by intValue("BlockLimit", 256, 0..2056)
 
-    private val colorRainbow by boolean("Rainbow", false)
-    private val colorRed by int("R", 255, 0..255) { !colorRainbow }
-    private val colorGreen by int("G", 179, 0..255) { !colorRainbow }
-    private val colorBlue by int("B", 72, 0..255) { !colorRainbow }
+    private val colorRainbow by _boolean("Rainbow", false)
+    private val colorRed by intValue("R", 255, 0..255) { !colorRainbow }
+    private val colorGreen by intValue("G", 179, 0..255) { !colorRainbow }
+    private val colorBlue by intValue("B", 72, 0..255) { !colorRainbow }
 
     private val searchTimer = MSTimer()
     private val posList = ConcurrentHashMap.newKeySet<BlockPos>()

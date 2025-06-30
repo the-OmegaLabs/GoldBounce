@@ -13,22 +13,22 @@ import net.ccbluex.liquidbounce.ui.font.GameFontRenderer
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
 import net.ccbluex.liquidbounce.value.font
 import java.awt.Color
 
 @ElementInfo(name = "Keystrokes")
 class Keystrokes : Element(2.0, 123.0) {
-    private val radius by float("RectangleRound-Radius", 3F, 0F..10F)
-    private val textRainbow by boolean("Text-Rainbow", false)
+    private val radius by floatValue("RectangleRound-Radius", 3F, 0F..10F)
+    private val textRainbow by _boolean("Text-Rainbow", false)
     private val textColors = ColorSettingsInteger(this, "Text", zeroAlphaCheck = true, applyMax = true)
-    private val rectRainbow by boolean("Rectangle-Rainbow", false)
+    private val rectRainbow by _boolean("Rectangle-Rainbow", false)
     private val rectColors = ColorSettingsInteger(this, "Rectangle", zeroAlphaCheck = true).with(a = 150)
-    private val pressRainbow by boolean("Press-Rainbow", false)
+    private val pressRainbow by _boolean("Press-Rainbow", false)
     private val pressColors = ColorSettingsInteger(this, "Press", zeroAlphaCheck = true).with(Color.YELLOW)
 
-    private var shadow by boolean("Text-Shadow", true)
+    private var shadow by _boolean("Text-Shadow", true)
     private val font by font("Font", Fonts.font40)
 
     // row -> column -> key

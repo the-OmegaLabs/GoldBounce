@@ -10,10 +10,10 @@ import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.EntityUtils
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.EntityLivingBase
 import org.lwjgl.opengl.GL11.*
@@ -23,20 +23,20 @@ import kotlin.math.sin
 
 object Hat : Module("Hat", Category.RENDER, hideModule = false, subjective = true) {
 
-    private val heightValue by float("Height", 0.3f, 0.1f.. 0.7f)
-    private val radiusValue by float("Radius", 0.7f, 0.3f.. 1.5f)
-    private val yPosValue by float("YPos", 0f, -1f.. 1f)
-    private val rotateSpeedValue by float("RotateSpeed", 2f, 0f.. 5f)
-    private val drawThePlayerValue by boolean("DrawThePlayer", true)
-    private val onlyThirdPersonValue by boolean("OnlyThirdPerson", true) { drawThePlayerValue }
-    private val drawTargetsValue by boolean("DrawTargets", true)
+    private val heightValue by floatValue("Height", 0.3f, 0.1f.. 0.7f)
+    private val radiusValue by floatValue("Radius", 0.7f, 0.3f.. 1.5f)
+    private val yPosValue by floatValue("YPos", 0f, -1f.. 1f)
+    private val rotateSpeedValue by floatValue("RotateSpeed", 2f, 0f.. 5f)
+    private val drawThePlayerValue by _boolean("DrawThePlayer", true)
+    private val onlyThirdPersonValue by _boolean("OnlyThirdPerson", true) { drawThePlayerValue }
+    private val drawTargetsValue by _boolean("DrawTargets", true)
 
     private val colorMode by choices("Color Mode", arrayOf("Custom", "Theme", "Rainbow"), "Theme")
-    private val colorRedValue by int("Red", 255, 0..255) { colorMode == "Custom" }
-    private val colorGreenValue by int("Green", 179, 0..255) { colorMode == "Custom" }
-    private val colorBlueValue by int("Blue", 72, 0..255) { colorMode == "Custom" }
-    private val rainbowSpeed by float("Rainbow Speed", 1.0f, 0.5f..5.0f) { colorMode == "Rainbow" }
-    private val colorAlphaValue by int("Alpha", 255, 0..255)
+    private val colorRedValue by intValue("Red", 255, 0..255) { colorMode == "Custom" }
+    private val colorGreenValue by intValue("Green", 179, 0..255) { colorMode == "Custom" }
+    private val colorBlueValue by intValue("Blue", 72, 0..255) { colorMode == "Custom" }
+    private val rainbowSpeed by floatValue("Rainbow Speed", 1.0f, 0.5f..5.0f) { colorMode == "Rainbow" }
+    private val colorAlphaValue by intValue("Alpha", 255, 0..255)
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {

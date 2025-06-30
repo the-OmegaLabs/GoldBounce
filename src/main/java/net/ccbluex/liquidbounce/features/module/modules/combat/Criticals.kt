@@ -18,8 +18,8 @@ import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemAppleGold
 import net.minecraft.network.play.client.C02PacketUseEntity
@@ -53,9 +53,9 @@ object Criticals : Module("Criticals", Category.COMBAT, hideModule = false) {
     )
     private var attacks = 0
     private var attacking = false
-    val delay by int("Delay", 0, 0..500)
-    private val hurtTime by int("HurtTime", 10, 0..10)
-    private val customMotionY by float("Custom-Y", 0.2f, 0.01f..0.42f) { mode == "CustomMotion" }
+    val delay by intValue("Delay", 0, 0..500)
+    private val hurtTime by intValue("HurtTime", 10, 0..10)
+    private val customMotionY by floatValue("Custom-Y", 0.2f, 0.01f..0.42f) { mode == "CustomMotion" }
     private val lookValue = BoolValue("UseC06Packet", false) { mode == "BMCPacket" }
     var stuckEnabled = false
     val msTimer = MSTimer()

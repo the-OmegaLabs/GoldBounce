@@ -21,9 +21,9 @@ import net.ccbluex.liquidbounce.utils.misc.RandomUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomClickDelay
 import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.settings.KeyBinding
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -33,7 +33,7 @@ import kotlin.random.Random.Default.nextBoolean
 
 object AutoClicker : Module("AutoClicker", Category.COMBAT, hideModule = false) {
 
-    private val simulateDoubleClicking by boolean("SimulateDoubleClicking", false)
+    private val simulateDoubleClicking by _boolean("SimulateDoubleClicking", false)
 
     private val maxCPSValue: IntegerValue = object : IntegerValue("MaxCPS", 8, 1..20) {
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtLeast(minCPS)
@@ -46,19 +46,19 @@ object AutoClicker : Module("AutoClicker", Category.COMBAT, hideModule = false) 
         override fun isSupported() = !maxCPSValue.isMinimal()
     }
 
-    private val hurtTime by int("HurtTime", 10, 0..10) { left }
+    private val hurtTime by intValue("HurtTime", 10, 0..10) { left }
 
-    private val right by boolean("Right", true)
-    private val left by boolean("Left", true)
-    private val jitter by boolean("Jitter", false)
-    private val block by boolean("AutoBlock", false) { left }
-    private val blockDelay by int("BlockDelay", 50, 0..100) { block }
+    private val right by _boolean("Right", true)
+    private val left by _boolean("Left", true)
+    private val jitter by _boolean("Jitter", false)
+    private val block by _boolean("AutoBlock", false) { left }
+    private val blockDelay by intValue("BlockDelay", 50, 0..100) { block }
 
-    private val requiresNoInput by boolean("RequiresNoInput", false) { left }
-    private val maxAngleDifference by float("MaxAngleDifference", 30f, 10f..180f) { left && requiresNoInput }
-    private val range by float("Range", 3f, 0.1f..5f) { left && requiresNoInput }
+    private val requiresNoInput by _boolean("RequiresNoInput", false) { left }
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 30f, 10f..180f) { left && requiresNoInput }
+    private val range by floatValue("Range", 3f, 0.1f..5f) { left && requiresNoInput }
 
-    private val onlyBlocks by boolean("OnlyBlocks", true) { right }
+    private val onlyBlocks by _boolean("OnlyBlocks", true) { right }
 
     private var rightDelay = randomClickDelay(minCPS, maxCPS)
     private var rightLastSwing = 0L

@@ -14,7 +14,7 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
 import net.minecraft.client.settings.GameSettings
 import net.minecraft.network.play.client.C0BPacketEntityAction
@@ -24,7 +24,7 @@ import net.minecraft.network.play.client.C0BPacketEntityAction.Action.STOP_SNEAK
 object Sneak : Module("Sneak", Category.MOVEMENT, hideModule = false) {
 
     val mode by choices("Mode", arrayOf("Legit", "Vanilla", "Switch", "MineSecure"), "MineSecure")
-    val stopMove by boolean("StopMove", false)
+    val stopMove by _boolean("StopMove", false)
 
     private var sneaking = false
 

@@ -26,8 +26,8 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.toHotbarIndex
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.IntegerValue
 import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.BlockContainer
 import net.minecraft.block.BlockFalling
 import net.minecraft.block.BlockWorkbench
@@ -40,8 +40,8 @@ import net.minecraft.item.*
 import net.minecraft.potion.Potion
 
 object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule = false) {
-    private val drop by boolean("Drop", true, subjective = true)
-    val sort by boolean("Sort", true, subjective = true)
+    private val drop by _boolean("Drop", true, subjective = true)
+    val sort by _boolean("Sort", true, subjective = true)
 
     private val maxDelay: Int by object : IntegerValue("MaxDelay", 50, 0..500) {
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtLeast(minDelay)
@@ -51,12 +51,12 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
 
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtMost(maxDelay)
     }
-    private val minItemAge by int("MinItemAge", 0, 0..2000)
+    private val minItemAge by intValue("MinItemAge", 0, 0..2000)
 
-    private val limitStackCounts by boolean("LimitStackCounts", true, subjective = true)
-    private val maxBlockStacks by int("MaxBlockStacks", 5, 0..36, subjective = true) { limitStackCounts }
-    private val maxFoodStacks by int("MaxFoodStacks", 5, 0..36, subjective = true) { limitStackCounts }
-    private val maxThrowableStacks by int(
+    private val limitStackCounts by _boolean("LimitStackCounts", true, subjective = true)
+    private val maxBlockStacks by intValue("MaxBlockStacks", 5, 0..36, subjective = true) { limitStackCounts }
+    private val maxFoodStacks by intValue("MaxFoodStacks", 5, 0..36, subjective = true) { limitStackCounts }
+    private val maxThrowableStacks by intValue(
         "MaxThrowableStacks",
         5,
         0..36,
@@ -64,11 +64,11 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
     ) { limitStackCounts }
     // TODO: max potion, vehicle, ..., stacks?
 
-    private val maxFishingRodStacks by int("MaxFishingRodStacks", 1, 1..10, subjective = true)
+    private val maxFishingRodStacks by intValue("MaxFishingRodStacks", 1, 1..10, subjective = true)
 
-    private val mergeStacks by boolean("MergeStacks", true, subjective = true)
+    private val mergeStacks by _boolean("MergeStacks", true, subjective = true)
 
-    private val repairEquipment by boolean("RepairEquipment", true, subjective = true)
+    private val repairEquipment by _boolean("RepairEquipment", true, subjective = true)
 
     private val invOpen by InventoryManager.invOpenValue
     private val simulateInventory by InventoryManager.simulateInventoryValue
@@ -82,10 +82,10 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
     private val noMoveAir by InventoryManager.noMoveAirValue
     private val noMoveGround by InventoryManager.noMoveGroundValue
 
-    private val randomSlot by boolean("RandomSlot", false)
-    private val ignoreVehicles by boolean("IgnoreVehicles", false, subjective = true)
+    private val randomSlot by _boolean("RandomSlot", false)
+    private val ignoreVehicles by _boolean("IgnoreVehicles", false, subjective = true)
 
-    private val onlyGoodPotions by boolean("OnlyGoodPotions", false, subjective = true)
+    private val onlyGoodPotions by _boolean("OnlyGoodPotions", false, subjective = true)
 
     val highlightSlot by InventoryManager.highlightSlotValue
 
@@ -100,7 +100,7 @@ object InventoryCleaner : Module("InventoryCleaner", Category.PLAYER, hideModule
     val borderBlue by InventoryManager.borderBlue
     val borderAlpha by InventoryManager.borderAlpha
 
-    val highlightUseful by boolean("HighlightUseful", true, subjective = true)
+    val highlightUseful by _boolean("HighlightUseful", true, subjective = true)
 
     private val slot1Value = SortValue("Slot1", "Sword")
     private val slot2Value = SortValue("Slot2", "Bow")

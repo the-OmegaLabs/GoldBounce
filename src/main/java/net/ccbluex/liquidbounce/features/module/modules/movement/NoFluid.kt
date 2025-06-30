@@ -6,7 +6,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.block.BlockUtils
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.init.Blocks.lava
 import net.minecraft.init.Blocks.water
 import net.minecraft.network.play.client.C07PacketPlayerDigging
@@ -15,9 +15,9 @@ import net.minecraft.util.EnumFacing
 
 object NoFluid : Module("NoFluid", Category.MOVEMENT) {
 
-    val waterValue by boolean("Water", true)
-    val lavaValue by boolean("Lava", true)
-    private val oldGrim by boolean("OldGrim",false)
+    val waterValue by _boolean("Water", true)
+    val lavaValue by _boolean("Lava", true)
+    private val oldGrim by _boolean("OldGrim",false)
 
     @EventTarget
     fun onUpdate(event: UpdateEvent){

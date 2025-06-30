@@ -9,7 +9,6 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
-import net.ccbluex.liquidbounce.features.module.modules.player.Blink
 import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
@@ -25,9 +24,9 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenContain
 import net.ccbluex.liquidbounce.utils.misc.StringUtils.contains
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.block.BlockChest
 import net.minecraft.block.BlockEnderChest
 import net.minecraft.entity.player.EntityPlayer
@@ -49,8 +48,8 @@ import kotlin.math.sqrt
 
 object ChestAura : Module("ChestAura", Category.WORLD) {
 
-    private val chest by boolean("Chest", true)
-    private val enderChest by boolean("EnderChest", false)
+    private val chest by _boolean("Chest", true)
+    private val enderChest by _boolean("EnderChest", false)
 
     private val range: Float by object : FloatValue("Range", 5F, 1F..5F) {
         override fun onUpdate(value: Float) {
@@ -58,9 +57,9 @@ object ChestAura : Module("ChestAura", Category.WORLD) {
             searchRadiusSq = (value + 1).pow(2)
         }
     }
-    private val delay by int("Delay", 200, 50..500)
+    private val delay by intValue("Delay", 200, 50..500)
 
-    private val throughWalls by boolean("ThroughWalls", true)
+    private val throughWalls by _boolean("ThroughWalls", true)
     private val wallsRange: Float by object : FloatValue("ThroughWallsRange", 3F, 1F..5F) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtMost(this@ChestAura.range)
 
@@ -77,10 +76,10 @@ object ChestAura : Module("ChestAura", Category.WORLD) {
         }
     }
 
-    private val visualSwing by boolean("VisualSwing", true, subjective = true)
+    private val visualSwing by _boolean("VisualSwing", true, subjective = true)
 
-    private val ignoreLooted by boolean("IgnoreLootedChests", true)
-    private val detectRefill by boolean("DetectChestRefill", true)
+    private val ignoreLooted by _boolean("IgnoreLootedChests", true)
+    private val detectRefill by _boolean("DetectChestRefill", true)
 
     private val options = RotationSettings(this).withoutKeepRotation()
 

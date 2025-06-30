@@ -41,7 +41,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 
 object BedPlates : Module("BedPlates", Category.RENDER, hideModule = false) {
-    private val renderYOffset by int("RenderYOffset", 1, 0..5)
+    private val renderYOffset by intValue("RenderYOffset", 1, 0..5)
 
     private val maxRenderDistance by object : IntegerValue("MaxRenderDistance", 100, 1..200) {
         override fun onUpdate(value: Int) {
@@ -53,40 +53,40 @@ object BedPlates : Module("BedPlates", Category.RENDER, hideModule = false) {
             field = if (value <= 0.0) maxRenderDistance.toDouble().pow(2.0) else value
         }
 
-    private val maxLayers by int("MaxLayers", 5, 1..10)
-    private val scale by float("Scale", 3F, 1F..5F)
+    private val maxLayers by intValue("MaxLayers", 5, 1..10)
+    private val scale by floatValue("Scale", 3F, 1F..5F)
 
     private val textMode by choices("Text-Color", arrayOf("Custom", "Rainbow", "Gradient"), "Custom")
     private val textColors =
         ColorSettingsInteger(this, "Text", withAlpha = false, applyMax = true) { textMode == "Custom" }
 
-    private val gradientTextSpeed by float("Text-Gradient-Speed", 1f, 0.5f..10f) { textMode == "Gradient" }
+    private val gradientTextSpeed by floatValue("Text-Gradient-Speed", 1f, 0.5f..10f) { textMode == "Gradient" }
 
-    private val maxTextGradientColors by int("Max-Text-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxTextGradientColors by intValue("Max-Text-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { textMode == "Gradient" }
     private val textGradColors = ColorSettingsFloat.create(this, "Text-Gradient")
     { textMode == "Gradient" && it <= maxTextGradientColors }
 
-    private val roundedRectRadius by float("Rounded-Radius", 3F, 0F..5F)
+    private val roundedRectRadius by floatValue("Rounded-Radius", 3F, 0F..5F)
 
     private val backgroundMode by choices("Background-Color", arrayOf("Custom", "Rainbow", "Gradient"), "Custom")
     private val bgColors = ColorSettingsInteger(this, "Background") { backgroundMode == "Custom" }.with(a = 100)
 
-    private val gradientBackgroundSpeed by float("Background-Gradient-Speed", 1f, 0.5f..10f)
+    private val gradientBackgroundSpeed by floatValue("Background-Gradient-Speed", 1f, 0.5f..10f)
     { backgroundMode == "Gradient" }
 
-    private val maxBackgroundGradientColors by int("Max-Background-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxBackgroundGradientColors by intValue("Max-Background-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { backgroundMode == "Gradient" }
     private val bgGradColors = ColorSettingsFloat.create(this, "Background-Gradient")
     { backgroundMode == "Gradient" && it <= maxBackgroundGradientColors }
 
     private val textFont by font("Font", Fonts.font35)
-    private val textShadow by boolean("ShadowText", true)
+    private val textShadow by _boolean("ShadowText", true)
 
-    private val rainbowX by float("Rainbow-X", -1000F, -2000F..2000F) { backgroundMode == "Rainbow" }
-    private val rainbowY by float("Rainbow-Y", -1000F, -2000F..2000F) { backgroundMode == "Rainbow" }
-    private val gradientX by float("Gradient-X", -1000F, -2000F..2000F) { backgroundMode == "Gradient" }
-    private val gradientY by float("Gradient-Y", -1000F, -2000F..2000F) { backgroundMode == "Gradient" }
+    private val rainbowX by floatValue("Rainbow-X", -1000F, -2000F..2000F) { backgroundMode == "Rainbow" }
+    private val rainbowY by floatValue("Rainbow-Y", -1000F, -2000F..2000F) { backgroundMode == "Rainbow" }
+    private val gradientX by floatValue("Gradient-X", -1000F, -2000F..2000F) { backgroundMode == "Gradient" }
+    private val gradientY by floatValue("Gradient-Y", -1000F, -2000F..2000F) { backgroundMode == "Gradient" }
 
     private var bed: Array<BlockPos>? = null
     private val beds: MutableList<BlockPos?> = mutableListOf()

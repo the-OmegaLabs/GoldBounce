@@ -11,10 +11,10 @@ import net.ccbluex.liquidbounce.features.module.modules.render.Animations.animat
 import net.ccbluex.liquidbounce.features.module.modules.render.Animations.defaultAnimation
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.entity.AbstractClientPlayer
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.util.MathHelper
@@ -58,21 +58,21 @@ object Animations : Module("Animations", Category.RENDER, gameDetecting = false,
     )
 
     private val animationMode by choices("Mode", animations.map { it.name }.toTypedArray(), "Pushdown")
-    val oddSwing by boolean("OddSwing", false)
-    val swingSpeed by int("SwingSpeed", 15, 0..20)
-    val cancelEquip by boolean("CancelEquip", false) {animationMode == "Spin" }
-    val scale by float("Scale", 0f, -5f..5f) {animationMode == "Spin" }
-    val spinSpeed by int("SpinSpeed", 72, 1..360) {animationMode == "ModelSpin" }
-    val autoCenter by boolean("AutoCenter", true) { animationMode == "ModelSpin" }
-    val modelCenterX by float("CenterX", 0f, -2f..2f) {animationMode == "ModelSpin" }
-    val modelCenterY by float("CenterY", -0.4f, -2f..2f) {animationMode == "ModelSpin" }
-    val modelCenterZ by float("CenterZ", 0f, -2f..2f) {animationMode == "ModelSpin" }
-    val handItemScale by float("ItemScale", 0f, -5f..5f)
-    val handX by float("X", 0f, -5f..5f)
-    val handY by float("Y", 0f, -5f..5f)
-    val handPosX by float("PositionRotationX", 0f, -50f..50f)
-    val handPosY by float("PositionRotationY", 0f, -50f..50f)
-    val handPosZ by float("PositionRotationZ", 0f, -50f..50f)
+    val oddSwing by _boolean("OddSwing", false)
+    val swingSpeed by intValue("SwingSpeed", 15, 0..20)
+    val cancelEquip by _boolean("CancelEquip", false) {animationMode == "Spin" }
+    val scale by floatValue("Scale", 0f, -5f..5f) {animationMode == "Spin" }
+    val spinSpeed by intValue("SpinSpeed", 72, 1..360) {animationMode == "ModelSpin" }
+    val autoCenter by _boolean("AutoCenter", true) { animationMode == "ModelSpin" }
+    val modelCenterX by floatValue("CenterX", 0f, -2f..2f) {animationMode == "ModelSpin" }
+    val modelCenterY by floatValue("CenterY", -0.4f, -2f..2f) {animationMode == "ModelSpin" }
+    val modelCenterZ by floatValue("CenterZ", 0f, -2f..2f) {animationMode == "ModelSpin" }
+    val handItemScale by floatValue("ItemScale", 0f, -5f..5f)
+    val handX by floatValue("X", 0f, -5f..5f)
+    val handY by floatValue("Y", 0f, -5f..5f)
+    val handPosX by floatValue("PositionRotationX", 0f, -50f..50f)
+    val handPosY by floatValue("PositionRotationY", 0f, -50f..50f)
+    val handPosZ by floatValue("PositionRotationZ", 0f, -50f..50f)
 
     fun getAnimation() = animations.firstOrNull { it.name == animationMode }
 }

@@ -4,11 +4,11 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import org.lwjgl.input.Keyboard
 
 object Zoom : Module("SmoothZoom", Category.RENDER) {
-    private var smoothMouse by boolean("SmoothMouse", false)
+    private var smoothMouse by _boolean("SmoothMouse", false)
 
     override fun onEnable() {
         super.onEnable()

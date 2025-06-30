@@ -7,11 +7,11 @@ package net.ccbluex.liquidbounce.features.module.modules.render
 
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 
 object SilentHotbarModule : Module("SilentHotbar", Category.RENDER) {
-    val keepHighlightedName by boolean("KeepHighlightedName", false)
-    val keepHotbarSlot by boolean("KeepHotbarSlot", false)
-    val keepItemInHandInFirstPerson by boolean("KeepItemInHandInFirstPerson", false)
-    val keepItemInHandInThirdPerson by boolean("KeepItemInHandInThirdPerson", false)
+    val keepHighlightedName by _boolean("KeepHighlightedName", false)
+    val keepHotbarSlot by _boolean("KeepHotbarSlot", false)
+    val keepItemInHandInFirstPerson by _boolean("KeepItemInHandInFirstPerson", false)
+    val keepItemInHandInThirdPerson by _boolean("KeepItemInHandInThirdPerson", false)
 }

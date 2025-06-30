@@ -10,7 +10,7 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.potion.Potion.*
 import net.minecraft.potion.PotionEffect
 
@@ -20,23 +20,23 @@ object PotionSpoof : Module("PotionSpoof", Category.PLAYER, hideModule = false) 
         override fun onChanged(oldValue: Int, newValue: Int) = onDisable()
     }
 
-    private val speedValue = boolean("Speed", false)
-    private val moveSlowDownValue = boolean("Slowness", false)
-    private val hasteValue = boolean("Haste", false)
-    private val digSlowDownValue = boolean("MiningFatigue", false)
-    private val blindnessValue = boolean("Blindness", false)
-    private val strengthValue = boolean("Strength", false)
-    private val jumpBoostValue = boolean("JumpBoost", false)
-    private val weaknessValue = boolean("Weakness", false)
-    private val regenerationValue = boolean("Regeneration", false)
-    private val witherValue = boolean("Wither", false)
-    private val resistanceValue = boolean("Resistance", false)
-    private val fireResistanceValue = boolean("FireResistance", false)
-    private val absorptionValue = boolean("Absorption", false)
-    private val healthBoostValue = boolean("HealthBoost", false)
-    private val poisonValue = boolean("Poison", false)
-    private val saturationValue = boolean("Saturation", false)
-    private val waterBreathingValue = boolean("WaterBreathing", false)
+    private val speedValue = _boolean("Speed", false)
+    private val moveSlowDownValue = _boolean("Slowness", false)
+    private val hasteValue = _boolean("Haste", false)
+    private val digSlowDownValue = _boolean("MiningFatigue", false)
+    private val blindnessValue = _boolean("Blindness", false)
+    private val strengthValue = _boolean("Strength", false)
+    private val jumpBoostValue = _boolean("JumpBoost", false)
+    private val weaknessValue = _boolean("Weakness", false)
+    private val regenerationValue = _boolean("Regeneration", false)
+    private val witherValue = _boolean("Wither", false)
+    private val resistanceValue = _boolean("Resistance", false)
+    private val fireResistanceValue = _boolean("FireResistance", false)
+    private val absorptionValue = _boolean("Absorption", false)
+    private val healthBoostValue = _boolean("HealthBoost", false)
+    private val poisonValue = _boolean("Poison", false)
+    private val saturationValue = _boolean("Saturation", false)
+    private val waterBreathingValue = _boolean("WaterBreathing", false)
 
     private val potionMap = mapOf(
         moveSpeed.id to speedValue,

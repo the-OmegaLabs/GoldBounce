@@ -17,9 +17,9 @@ import net.ccbluex.liquidbounce.ui.client.clickgui.style.styles.NullStyle
 import net.ccbluex.liquidbounce.ui.client.clickgui.style.styles.SlowlyStyle
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.network.play.server.S2EPacketCloseWindow
 import java.awt.Color
 
@@ -28,17 +28,17 @@ object ClickGUI : Module("OldClickGUI", Category.RENDER) {
     object : ListValue("Style", arrayOf("LiquidBounce", "Null", "Slowly", "Black"), "LiquidBounce") {
         override fun onChanged(oldValue: String, newValue: String) = updateStyle()
     }
-    var scale by float("Scale", 0.8f, 0.5f..1.5f)
-    val maxElements by int("MaxElements", 15, 1..30)
-    val fadeSpeed by float("FadeSpeed", 1f, 0.5f..4f)
-    val scrolls by boolean("Scrolls", true)
-    val spacedModules by boolean("SpacedModules", false)
-    val panelsForcedInBoundaries by boolean("PanelsForcedInBoundaries", false)
+    var scale by floatValue("Scale", 0.8f, 0.5f..1.5f)
+    val maxElements by intValue("MaxElements", 15, 1..30)
+    val fadeSpeed by floatValue("FadeSpeed", 1f, 0.5f..4f)
+    val scrolls by _boolean("Scrolls", true)
+    val spacedModules by _boolean("SpacedModules", false)
+    val panelsForcedInBoundaries by _boolean("PanelsForcedInBoundaries", false)
 
-    private val colorRainbowValue = boolean("Rainbow", false) { style !in arrayOf("Slowly", "Black") }
-    private val colorRed by int("R", 0, 0..255) { colorRainbowValue.isSupported() && !colorRainbowValue.get() }
-    private val colorGreen by int("G", 160, 0..255) { colorRainbowValue.isSupported() && !colorRainbowValue.get() }
-    private val colorBlue by int("B", 255, 0..255) { colorRainbowValue.isSupported() && !colorRainbowValue.get() }
+    private val colorRainbowValue = _boolean("Rainbow", false) { style !in arrayOf("Slowly", "Black") }
+    private val colorRed by intValue("R", 0, 0..255) { colorRainbowValue.isSupported() && !colorRainbowValue.get() }
+    private val colorGreen by intValue("G", 160, 0..255) { colorRainbowValue.isSupported() && !colorRainbowValue.get() }
+    private val colorBlue by intValue("B", 255, 0..255) { colorRainbowValue.isSupported() && !colorRainbowValue.get() }
 
     val guiColor
         get() = if (colorRainbowValue.get()) ColorUtils.rainbow().rgb

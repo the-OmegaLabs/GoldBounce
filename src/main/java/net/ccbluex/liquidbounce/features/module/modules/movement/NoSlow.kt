@@ -19,10 +19,10 @@ import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.timing.TickTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.settings.KeyBinding
 import net.minecraft.item.*
 import net.minecraft.network.PacketBuffer
@@ -61,12 +61,12 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         ),
         "None"
     )
-    private val bmcTicks by int("BMC Ticks", 1, 1..20) { swordMode == "BlocksMC" }
-    private val bmcOldOffset by boolean("BMC OldOffset", false) { swordMode == "BlocksMC" }
-    private val reblinkTicks by int("ReblinkTicks", 10, 1..20) { swordMode == "Blink" }
+    private val bmcTicks by intValue("BMC Ticks", 1, 1..20) { swordMode == "BlocksMC" }
+    private val bmcOldOffset by _boolean("BMC OldOffset", false) { swordMode == "BlocksMC" }
+    private val reblinkTicks by intValue("ReblinkTicks", 10, 1..20) { swordMode == "Blink" }
 
-    private val blockForwardMultiplier by float("BlockForwardMultiplier", 1f, 0.2F..1f)
-    private val blockStrafeMultiplier by float("BlockStrafeMultiplier", 1f, 0.2F..1f)
+    private val blockForwardMultiplier by floatValue("BlockForwardMultiplier", 1f, 0.2F..1f)
+    private val blockStrafeMultiplier by floatValue("BlockStrafeMultiplier", 1f, 0.2F..1f)
 
     private val consumeMode by choices(
         "ConsumeMode",
@@ -74,13 +74,13 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         "None"
     )
 
-    private val consumeForwardMultiplier by float("ConsumeForwardMultiplier", 1f, 0.2F..1f)
-    private val consumeStrafeMultiplier by float("ConsumeStrafeMultiplier", 1f, 0.2F..1f)
-    private val consumeFoodOnly by boolean(
+    private val consumeForwardMultiplier by floatValue("ConsumeForwardMultiplier", 1f, 0.2F..1f)
+    private val consumeStrafeMultiplier by floatValue("ConsumeStrafeMultiplier", 1f, 0.2F..1f)
+    private val consumeFoodOnly by _boolean(
         "ConsumeFood",
         true
     ) { consumeForwardMultiplier > 0.2F || consumeStrafeMultiplier > 0.2F }
-    private val consumeDrinkOnly by boolean(
+    private val consumeDrinkOnly by _boolean(
         "ConsumeDrink",
         true
     ) { consumeForwardMultiplier > 0.2F || consumeStrafeMultiplier > 0.2F }
@@ -91,12 +91,12 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         "None"
     )
 
-    private val bowForwardMultiplier by float("BowForwardMultiplier", 1f, 0.2F..1f)
-    private val bowStrafeMultiplier by float("BowStrafeMultiplier", 1f, 0.2F..1f)
+    private val bowForwardMultiplier by floatValue("BowForwardMultiplier", 1f, 0.2F..1f)
+    private val bowStrafeMultiplier by floatValue("BowStrafeMultiplier", 1f, 0.2F..1f)
 
     // Blocks
-    val soulSand by boolean("SoulSand", true)
-    val liquidPush by boolean("LiquidPush", true)
+    val soulSand by _boolean("SoulSand", true)
+    val liquidPush by _boolean("LiquidPush", true)
 
     private var shouldSwap = false
     private var shouldBlink = true
