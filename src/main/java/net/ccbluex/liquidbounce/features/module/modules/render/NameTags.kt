@@ -60,7 +60,6 @@ object NameTags : Module("NameTags", Category.RENDER) {
 
     private fun renderModernTag(entity: EntityLivingBase, name: String, health: Float) {
         pushMatrix()
-        disableDepth()
         enableBlend()
         disableLighting()
         val timer = mc.timer
@@ -147,12 +146,9 @@ object NameTags : Module("NameTags", Category.RENDER) {
         )
 
         enableLighting()
-        enableDepth()
         popMatrix()
     }
 
     private fun disableDepth() {
-        glDisable(GL_DEPTH_TEST)
-        glDepthMask(false)
     }
 }
