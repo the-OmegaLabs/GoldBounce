@@ -15,36 +15,36 @@ import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.timeSinceClosedInventory
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.inventory.GuiInventory
 
 object InventoryManager : MinecraftInstance() {
 
     // Shared no move click values
-    val noMoveValue = boolean("NoMoveClicks", false)
-    val noMoveAirValue = boolean("NoClicksInAir", false) { noMoveValue.get() }
-    val noMoveGroundValue = boolean("NoClicksOnGround", true) { noMoveValue.get() }
+    val noMoveValue = _boolean("NoMoveClicks", false)
+    val noMoveAirValue = _boolean("NoClicksInAir", false) { noMoveValue.get() }
+    val noMoveGroundValue = _boolean("NoClicksOnGround", true) { noMoveValue.get() }
 
     // Shared values between AutoArmor and InventoryCleaner
-    val invOpenValue = boolean("InvOpen", false)
-    val simulateInventoryValue = boolean("SimulateInventory", true) { !invOpenValue.get() }
-    val autoCloseValue = boolean("AutoClose", false) { invOpenValue.get() }
+    val invOpenValue = _boolean("InvOpen", false)
+    val simulateInventoryValue = _boolean("SimulateInventory", true) { !invOpenValue.get() }
+    val autoCloseValue = _boolean("AutoClose", false) { invOpenValue.get() }
 
-    val postInventoryCloseDelayValue = int("PostInventoryCloseDelay", 0, 0..500)
-    val startDelayValue = int("StartDelay", 0, 0..500)
+    val postInventoryCloseDelayValue = intValue("PostInventoryCloseDelay", 0, 0..500)
+    val startDelayValue = intValue("StartDelay", 0, 0..500)
     { invOpenValue.get() || simulateInventoryValue.get() }
-    val closeDelayValue = int("CloseDelay", 0, 0..500)
+    val closeDelayValue = intValue("CloseDelay", 0, 0..500)
     { if (invOpenValue.get()) autoCloseValue.get() else simulateInventoryValue.get() }
 
     // Shared highlight slot values between AutoArmor and InventoryCleaner
-    val highlightSlotValue = boolean("Highlight-Slot", false, subjective = true)
+    val highlightSlotValue = _boolean("Highlight-Slot", false, subjective = true)
 
     // Shared highlight slot background values between AutoArmor and InventoryCleaner
-    val backgroundRedValue = int("Background-R", 128, 0..255, subjective = true) { highlightSlotValue.get() }
-    val backgroundGreenValue = int("Background-G", 128, 0..255, subjective = true) { highlightSlotValue.get() }
-    val backgroundBlueValue = int("Background-B", 128, 0..255, subjective = true) { highlightSlotValue.get() }
-    val backgroundAlphaValue = int(
+    val backgroundRedValue = intValue("Background-R", 128, 0..255, subjective = true) { highlightSlotValue.get() }
+    val backgroundGreenValue = intValue("Background-G", 128, 0..255, subjective = true) { highlightSlotValue.get() }
+    val backgroundBlueValue = intValue("Background-B", 128, 0..255, subjective = true) { highlightSlotValue.get() }
+    val backgroundAlphaValue = intValue(
         "Background-Alpha",
         128,
         0..255,
@@ -52,14 +52,14 @@ object InventoryManager : MinecraftInstance() {
     ) { highlightSlotValue.get() }
 
     // Shared highlight slot border values between AutoArmor and InventoryCleaner
-    val borderStrength = int("Border-Strength", 3, 1..5, subjective = true) { highlightSlotValue.get() }
-    val borderRed = int("Border-R", 128, 0..255, subjective = true) { highlightSlotValue.get() }
-    val borderGreen = int("Border-G", 128, 0..255, subjective = true) { highlightSlotValue.get() }
-    val borderBlue = int("Border-B", 128, 0..255, subjective = true) { highlightSlotValue.get() }
-    val borderAlpha = int("Border-Alpha", 255, 0..255, subjective = true) { highlightSlotValue.get() }
+    val borderStrength = intValue("Border-Strength", 3, 1..5, subjective = true) { highlightSlotValue.get() }
+    val borderRed = intValue("Border-R", 128, 0..255, subjective = true) { highlightSlotValue.get() }
+    val borderGreen = intValue("Border-G", 128, 0..255, subjective = true) { highlightSlotValue.get() }
+    val borderBlue = intValue("Border-B", 128, 0..255, subjective = true) { highlightSlotValue.get() }
+    val borderAlpha = intValue("Border-Alpha", 255, 0..255, subjective = true) { highlightSlotValue.get() }
 
     // Undetectable
-    val undetectableValue = boolean("Undetectable", false)
+    val undetectableValue = _boolean("Undetectable", false)
 
     private val inventoryWorker = CoroutineScope(Dispatchers.Default + SupervisorJob())
 

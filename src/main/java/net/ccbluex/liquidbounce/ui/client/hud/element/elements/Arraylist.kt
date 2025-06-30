@@ -50,31 +50,31 @@ class Arraylist(
     private val textColors = ColorSettingsInteger(this, "Text", withAlpha = false)
     { textColorMode == "Custom" }.with(255, 255, 0)
 
-    private val gradientTextSpeed by float("Text-Gradient-Speed", 1f, 0.5f..10f)
+    private val gradientTextSpeed by floatValue("Text-Gradient-Speed", 1f, 0.5f..10f)
     { textColorMode == "Gradient" }
 
-    private val maxTextGradientColors by int("Max-Text-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxTextGradientColors by intValue("Max-Text-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { textColorMode == "Gradient" }
     private val textGradColors = ColorSettingsFloat.create(this, "Text-Gradient")
     { textColorMode == "Gradient" && it <= maxTextGradientColors }
 
     private val rectMode by choices("Rect", arrayOf("None", "Left", "Right", "Outline"), "None")
-    private val roundedRectRadius by float("RoundedRect-Radius", 0F, 0F..2F)
+    private val roundedRectRadius by floatValue("RoundedRect-Radius", 0F, 0F..2F)
     { rectMode !in setOf("None", "Outline") }
     private val rectColorMode by choices("Rect-Color", arrayOf("Custom", "Random", "Rainbow", "Gradient"), "Rainbow")
     { rectMode != "None" }
     private val rectColors = ColorSettingsInteger(this, "Rect", zeroAlphaCheck = true, applyMax = true)
     { isCustomRectSupported }
 
-    private val gradientRectSpeed by float("Rect-Gradient-Speed", 1f, 0.5f..10f)
+    private val gradientRectSpeed by floatValue("Rect-Gradient-Speed", 1f, 0.5f..10f)
     { isCustomRectGradientSupported }
 
-    private val maxRectGradientColors by int("Max-Rect-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxRectGradientColors by intValue("Max-Rect-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { isCustomRectGradientSupported }
     private val rectGradColors = ColorSettingsFloat.create(this, "Rect-Gradient")
     { isCustomRectGradientSupported && it <= maxRectGradientColors }
 
-    private val roundedBackgroundRadius by float("RoundedBackGround-Radius", 0F, 0F..5F)
+    private val roundedBackgroundRadius by floatValue("RoundedBackGround-Radius", 0F, 0F..5F)
     { bgColors.color().alpha > 0 }
 
     private val backgroundMode by choices(
@@ -84,25 +84,25 @@ class Arraylist(
     private val bgColors = ColorSettingsInteger(this, "Background", zeroAlphaCheck = true)
     { backgroundMode == "Custom" }.with(a = 0)
 
-    private val gradientBackgroundSpeed by float("Background-Gradient-Speed", 1f, 0.5f..10f)
+    private val gradientBackgroundSpeed by floatValue("Background-Gradient-Speed", 1f, 0.5f..10f)
     { backgroundMode == "Gradient" }
 
-    private val maxBackgroundGradientColors by int("Max-Background-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
+    private val maxBackgroundGradientColors by intValue("Max-Background-Gradient-Colors", 4, 1..MAX_GRADIENT_COLORS)
     { backgroundMode == "Gradient" }
     private val bgGradColors = ColorSettingsFloat.create(this, "Background-Gradient")
     { backgroundMode == "Gradient" && it <= maxBackgroundGradientColors }
 
     private fun isColorModeUsed(value: String) = textColorMode == value || rectMode == value || backgroundMode == value
 
-    private val saturation by float("Random-Saturation", 0.9f, 0f..1f) { isColorModeUsed("Random") }
-    private val brightness by float("Random-Brightness", 1f, 0f..1f) { isColorModeUsed("Random") }
-    private val rainbowX by float("Rainbow-X", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
-    private val rainbowY by float("Rainbow-Y", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
-    private val gradientX by float("Gradient-X", -1000F, -2000F..2000F) { isColorModeUsed("Gradient") }
-    private val gradientY by float("Gradient-Y", -1000F, -2000F..2000F) { isColorModeUsed("Gradient") }
-    private val shadow by boolean("Shadow", true)
-    private val shadowRadius by int("ShadowRadius", 10, 0..20)
-    private val tags by boolean("Tags", true)
+    private val saturation by floatValue("Random-Saturation", 0.9f, 0f..1f) { isColorModeUsed("Random") }
+    private val brightness by floatValue("Random-Brightness", 1f, 0f..1f) { isColorModeUsed("Random") }
+    private val rainbowX by floatValue("Rainbow-X", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
+    private val rainbowY by floatValue("Rainbow-Y", -1000F, -2000F..2000F) { isColorModeUsed("Rainbow") }
+    private val gradientX by floatValue("Gradient-X", -1000F, -2000F..2000F) { isColorModeUsed("Gradient") }
+    private val gradientY by floatValue("Gradient-Y", -1000F, -2000F..2000F) { isColorModeUsed("Gradient") }
+    private val shadow by _boolean("Shadow", true)
+    private val shadowRadius by intValue("ShadowRadius", 10, 0..20)
+    private val tags by _boolean("Tags", true)
     private val tagsStyle by object : ListValue("TagsStyle", arrayOf("[]", "()", "<>", "-", "|", "Space"), "Space") {
         override fun isSupported() = tags
 
@@ -116,17 +116,17 @@ class Arraylist(
     }
 
     private val font by font("Font", Fonts.font40)
-    private val textShadow by boolean("ShadowText", true)
+    private val textShadow by _boolean("ShadowText", true)
     private val moduleCase by choices("ModuleCase", arrayOf("Normal", "Uppercase", "Lowercase"), "Normal")
-    private val space by float("Space", 0F, 0F..5F)
-    private val textHeight by float("TextHeight", 11F, 1F..20F)
-    private val textY by float("TextY", 1.5F, 0F..20F)
+    private val space by floatValue("Space", 0F, 0F..5F)
+    private val textHeight by floatValue("TextHeight", 11F, 1F..20F)
+    private val textY by floatValue("TextY", 1.5F, 0F..20F)
 
     private val animation by choices("Animation", arrayOf("Slide", "Smooth"), "Smooth") { tags }
-    private val animationSpeed by float("AnimationSpeed", 0.2F, 0.01F..1F) { animation == "Smooth" }
+    private val animationSpeed by floatValue("AnimationSpeed", 0.2F, 0.01F..1F) { animation == "Smooth" }
 
     companion object {
-        val spacedModules by boolean("SpacedModules", false)
+        val spacedModules by _boolean("SpacedModules", false)
         val inactiveStyle by choices("InactiveModulesStyle", arrayOf("Normal", "Color", "Hide"), "Color")
         { GameDetector.state }
     }

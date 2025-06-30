@@ -12,13 +12,13 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.network.play.client.C02PacketUseEntity
 import net.minecraft.network.play.client.C02PacketUseEntity.Action.ATTACK
 import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition
 
 object AutoLeave : Module("AutoLeave", Category.COMBAT, subjective = true, hideModule = false) {
-    private val health by float("Health", 8f, 0f..20f)
+    private val health by floatValue("Health", 8f, 0f..20f)
     private val mode by choices("Mode", arrayOf("Quit", "InvalidPacket", "SelfHurt", "IllegalChat"), "Quit")
 
     @EventTarget

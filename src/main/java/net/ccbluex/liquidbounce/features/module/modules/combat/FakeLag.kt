@@ -19,8 +19,8 @@ import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.FloatValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.inventory.GuiContainer
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.handshake.client.C00Handshake
@@ -37,8 +37,8 @@ import java.awt.Color
 
 object FakeLag : Module("FakeLag", Category.COMBAT, gameDetecting = false, hideModule = false) {
 
-    private val delay by int("Delay", 550, 0..1000)
-    private val recoilTime by int("RecoilTime", 750, 0..2000)
+    private val delay by intValue("Delay", 550, 0..1000)
+    private val recoilTime by intValue("RecoilTime", 750, 0..2000)
 
     private val maxAllowedDistToEnemy: FloatValue = object : FloatValue("MaxAllowedDistToEnemy", 3.5f, 0f..6f) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtLeast(minAllowedDistToEnemy.get())
@@ -48,26 +48,26 @@ object FakeLag : Module("FakeLag", Category.COMBAT, gameDetecting = false, hideM
         override fun isSupported(): Boolean = !maxAllowedDistToEnemy.isMinimal()
     }
 
-    private val blinkOnAction by boolean("BlinkOnAction", true)
+    private val blinkOnAction by _boolean("BlinkOnAction", true)
 
-    private val pauseOnNoMove by boolean("PauseOnNoMove", true)
-    private val pauseOnChest by boolean("PauseOnChest", false)
+    private val pauseOnNoMove by _boolean("PauseOnNoMove", true)
+    private val pauseOnChest by _boolean("PauseOnChest", false)
 
-    private val line by boolean("Line", true, subjective = true)
-    private val rainbow by boolean("Rainbow", false, subjective = true) { line }
-    private val red by int(
+    private val line by _boolean("Line", true, subjective = true)
+    private val rainbow by _boolean("Rainbow", false, subjective = true) { line }
+    private val red by intValue(
         "R",
         0,
         0..255,
         subjective = true
     ) { !rainbow && line }
-    private val green by int(
+    private val green by intValue(
         "G",
         255,
         0..255,
         subjective = true
     ) { !rainbow && line }
-    private val blue by int(
+    private val blue by intValue(
         "B",
         0,
         0..255,

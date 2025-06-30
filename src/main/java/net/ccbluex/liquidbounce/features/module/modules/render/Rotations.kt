@@ -10,22 +10,21 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.MotionEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.`fun`.Derp
 import net.ccbluex.liquidbounce.utils.Rotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.serverRotation
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
 
 object Rotations : Module("Rotations", Category.RENDER, gameDetecting = false, hideModule = false) {
 
-    private val realistic by boolean("Realistic", true)
-    private val body by boolean("Body", true) { !realistic }
+    private val realistic by _boolean("Realistic", true)
+    private val body by _boolean("Body", true) { !realistic }
 
-    private val smoothRotations by boolean("SmoothRotations", false)
-    private val smoothingFactor by float("SmoothFactor", 0.15f, 0.1f..0.9f) { smoothRotations }
+    private val smoothRotations by _boolean("SmoothRotations", false)
+    private val smoothingFactor by floatValue("SmoothFactor", 0.15f, 0.1f..0.9f) { smoothRotations }
 
-    val debugRotations by boolean("DebugRotations", false)
+    val debugRotations by _boolean("DebugRotations", false)
 
     var prevHeadPitch = 0f
     var headPitch = 0f

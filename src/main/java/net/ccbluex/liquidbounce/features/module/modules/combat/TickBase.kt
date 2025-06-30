@@ -18,7 +18,6 @@ package net.ccbluex.liquidbounce.features.module.modules.combat
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.ModuleManager.getModule
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink
 import net.ccbluex.liquidbounce.utils.EntityUtils
 import net.ccbluex.liquidbounce.utils.SimulatedPlayer
@@ -39,24 +38,24 @@ object TickBase : Module("TickBase", Category.COMBAT) {
     private val minRangeToAttack: FloatValue = FloatValue("MinRangeToAttack", 3.5f, 3f..8f)
 
     // --- Tick Credit System ---
-    private val chargeMode by boolean("ChargeMode", true)
-    private val chargeSpeed by int("ChargeSpeed", 2, 1..10, ) { chargeMode }
-    private val maxCredit by int("MaxCredit", 20, 5..100)
-    private val chargeInCombat by boolean("ChargeInCombat", false, ) { chargeMode }
+    private val chargeMode by _boolean("ChargeMode", true)
+    private val chargeSpeed by intValue("ChargeSpeed", 2, 1..10, ) { chargeMode }
+    private val maxCredit by intValue("MaxCredit", 20, 5..100)
+    private val chargeInCombat by _boolean("ChargeInCombat", false, ) { chargeMode }
 
     // --- Shift Mechanics ---
-    private val shiftOnAttack by boolean("ShiftOnAttack", true)
-    private val blinkOnShift by boolean("BlinkOnShift", true)
-    private val shiftCooldown by int("ShiftCooldown", 500, 0..2000)
-    private val forceGround by boolean("ForceGround", true)
-    private val pauseOnFlag by boolean("PauseOnFlag", true)
+    private val shiftOnAttack by _boolean("ShiftOnAttack", true)
+    private val blinkOnShift by _boolean("BlinkOnShift", true)
+    private val shiftCooldown by intValue("ShiftCooldown", 500, 0..2000)
+    private val forceGround by _boolean("ForceGround", true)
+    private val pauseOnFlag by _boolean("PauseOnFlag", true)
 
     // --- Visuals ---
-    private val line by boolean("Line", true)
-    private val rainbow by boolean("Rainbow", false, ) { line }
-    private val red by int("R", 0, 0..255,  ) { !rainbow && line }
-    private val green by int("G", 255, 0..255, ) { !rainbow && line }
-    private val blue by int("B", 0, 0..255,  ){ !rainbow && line }
+    private val line by _boolean("Line", true)
+    private val rainbow by _boolean("Rainbow", false, ) { line }
+    private val red by intValue("R", 0, 0..255,  ) { !rainbow && line }
+    private val green by intValue("G", 255, 0..255, ) { !rainbow && line }
+    private val blue by intValue("B", 0, 0..255,  ){ !rainbow && line }
 
     // --- Internal State ---
     private var tickCredit = 0

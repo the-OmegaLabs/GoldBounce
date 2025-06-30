@@ -15,8 +15,8 @@ import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.extensions.isAnimal
 import net.ccbluex.liquidbounce.utils.extensions.isMob
 import net.ccbluex.liquidbounce.value.block
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.Entity
@@ -37,17 +37,17 @@ import net.minecraft.util.BlockPos
  */
 object NoRender : Module("NoRender", Category.RENDER, gameDetecting = false, hideModule = false) {
 
-	private val allEntitiesValue by boolean("AllEntities", true)
-	private val itemsValue by boolean("Items", true) { !allEntitiesValue }
-	private val playersValue by boolean("Players", true)
-	private val mobsValue by boolean("Mobs", true)
-	private val animalsValue by boolean("Animals", true) { !allEntitiesValue }
-	private val armorStandValue by boolean("ArmorStand", true) { !allEntitiesValue }
-	private val autoResetValue by boolean("AutoReset", true)
-	private val maxRenderRange by float("MaxRenderRange", 4F, 0F..16F)
+	private val allEntitiesValue by _boolean("AllEntities", true)
+	private val itemsValue by _boolean("Items", true) { !allEntitiesValue }
+	private val playersValue by _boolean("Players", true)
+	private val mobsValue by _boolean("Mobs", true)
+	private val animalsValue by _boolean("Animals", true) { !allEntitiesValue }
+	private val armorStandValue by _boolean("ArmorStand", true) { !allEntitiesValue }
+	private val autoResetValue by _boolean("AutoReset", true)
+	private val maxRenderRange by floatValue("MaxRenderRange", 4F, 0F..16F)
 
 	// Option to enable or disable specific block rendering
-	private val useSpecificBlock by boolean("Block", true)
+	private val useSpecificBlock by _boolean("Block", true)
 
 	// The specific block selected by its ID
 	private val specificBlockValue by block("SpecificBlock", 1)

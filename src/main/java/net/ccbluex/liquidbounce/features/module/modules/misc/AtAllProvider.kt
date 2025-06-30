@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.IntegerValue
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.network.play.client.C01PacketChatMessage
 import java.util.concurrent.LinkedBlockingQueue
 
@@ -31,7 +31,7 @@ object AtAllProvider :
         override fun isSupported() = !maxDelayValue.isMinimal()
     }
 
-    private val retry by boolean("Retry", false)
+    private val retry by _boolean("Retry", false)
     private val sendQueue = LinkedBlockingQueue<String>()
     private val retryQueue = mutableListOf<String>()
     private val msTimer = MSTimer()

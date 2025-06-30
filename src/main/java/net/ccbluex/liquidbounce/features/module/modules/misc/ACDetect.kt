@@ -14,12 +14,12 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
 import net.ccbluex.liquidbounce.utils.chat
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.network.play.server.S01PacketJoinGame
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
 
 object ACDetect : Module("ACDetect", Category.MISC) {
-    private val debug by boolean("Debug", true)
+    private val debug by _boolean("Debug", true)
 
     private val actionNumbers = mutableListOf<Int>()
     private var check = false

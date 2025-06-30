@@ -11,9 +11,9 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.collideBlock
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.block.BlockLiquid
 import net.minecraft.block.material.Material
 import net.minecraft.init.Blocks
@@ -25,9 +25,9 @@ import org.lwjgl.input.Keyboard
 object LiquidWalk : Module("LiquidWalk", Category.MOVEMENT, Keyboard.KEY_J) {
 
     val mode by choices("Mode", arrayOf("Vanilla", "NCP", "AAC", "AAC3.3.11", "AACFly", "Spartan", "Dolphin", "BlocksMC"), "NCP")
-    private val aacFly by float("AACFlyMotion", 0.5f, 0.1f..1f) { mode == "AACFly" }
+    private val aacFly by floatValue("AACFlyMotion", 0.5f, 0.1f..1f) { mode == "AACFly" }
 
-    private val noJump by boolean("NoJump", false)
+    private val noJump by _boolean("NoJump", false)
     var waterTick = 0;
     private var nextTick = false
 

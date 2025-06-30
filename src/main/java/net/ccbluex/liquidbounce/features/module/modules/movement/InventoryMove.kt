@@ -18,8 +18,8 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.canClickInvento
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager.hasScheduledInLastLoop
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenContainer
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.GuiIngameMenu
 import net.minecraft.client.gui.inventory.GuiChest
@@ -32,12 +32,12 @@ import org.lwjgl.input.Mouse
 
 object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting = false, hideModule = false) {
 
-    private val notInChests by boolean("NotInChests", false)
-    val aacAdditionPro by boolean("AACAdditionPro", false)
-    private val intave by boolean("Intave", false)
-    private val saveC0E by boolean("SaveC0E",true)
-    private val ncpJump by boolean("NCPJump", false)
-    private val noSprintWhenClosed by boolean("NoSprintWhenClosed",false) { saveC0E }
+    private val notInChests by _boolean("NotInChests", false)
+    val aacAdditionPro by _boolean("AACAdditionPro", false)
+    private val intave by _boolean("Intave", false)
+    private val saveC0E by _boolean("SaveC0E",true)
+    private val ncpJump by _boolean("NCPJump", false)
+    private val noSprintWhenClosed by _boolean("NoSprintWhenClosed",false) { saveC0E }
     private val isIntave = (mc.currentScreen is GuiInventory || mc.currentScreen is GuiChest) && intave
     private val clickWindowList = mutableListOf<C0EPacketClickWindow>()
 
@@ -47,14 +47,14 @@ object InventoryMove : Module("InventoryMove", Category.MOVEMENT, gameDetecting 
     private val undetectable by InventoryManager.undetectableValue
 
     // If player violates nomove check and inventory is open, close inventory and reopen it when still
-    private val silentlyCloseAndReopen by boolean("SilentlyCloseAndReopen", false)
+    private val silentlyCloseAndReopen by _boolean("SilentlyCloseAndReopen", false)
     { noMove && (noMoveAir || noMoveGround) }
 
     // Reopen closed inventory just before a click (could flag for clicking too fast after opening inventory)
-    private val reopenOnClick by boolean("ReopenOnClick", false)
+    private val reopenOnClick by _boolean("ReopenOnClick", false)
     { silentlyCloseAndReopen && noMove && (noMoveAir || noMoveGround) }
 
-    private val inventoryMotion by float("InventoryMotion", 1F, 0F..2F)
+    private val inventoryMotion by floatValue("InventoryMotion", 1F, 0F..2F)
 
     private val affectedBindings = arrayOf(
         mc.gameSettings.keyBindForward,

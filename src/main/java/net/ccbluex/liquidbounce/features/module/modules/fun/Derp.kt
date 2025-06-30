@@ -7,9 +7,9 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.serverRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.syncSpecialModuleRotations
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.entity.EntityLivingBase
 import kotlin.math.atan2
 
@@ -22,11 +22,11 @@ object Derp : Module("AntiAim", Category.FUN, subjective = true, hideModule = fa
     )
 
     private val headless = mode == "BigAngle" || mode == "Spinny" || mode == "AI"
-    private val angelSwitch by float("AngleSwitch", 30F, -180F..180F) { mode == "BigAngle" }
+    private val angelSwitch by floatValue("AngleSwitch", 30F, -180F..180F) { mode == "BigAngle" }
     private val spinny = mode == "Spinny"
-    private val disableInAir by boolean("DisableInAir",true)
-    private val customPitch by float("CustomPitch", 90F, -180F..180F) { spinny }
-    private val increment by float("SpinStrength", 1F, 0F..100F) { spinny }
+    private val disableInAir by _boolean("DisableInAir",true)
+    private val customPitch by floatValue("CustomPitch", 90F, -180F..180F) { spinny }
+    private val increment by floatValue("SpinStrength", 1F, 0F..100F) { spinny }
 
     private var anglePhase = false
 

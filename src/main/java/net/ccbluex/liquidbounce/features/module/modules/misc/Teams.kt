@@ -7,16 +7,16 @@ package net.ccbluex.liquidbounce.features.module.modules.misc
 
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.item.ItemArmor
 
 object Teams : Module("Teams", Category.MISC, gameDetecting = false, hideModule = false) {
 
-    private val scoreboard by boolean("ScoreboardTeam", true)
-    private val nameColor by boolean("NameColor", true)
-    private val armorColor by boolean("ArmorColor", true)
-    private val gommeSW by boolean("GommeSW", false)
+    private val scoreboard by _boolean("ScoreboardTeam", true)
+    private val nameColor by _boolean("NameColor", true)
+    private val armorColor by _boolean("ArmorColor", true)
+    private val gommeSW by _boolean("GommeSW", false)
 
     /**
      * Check if [entity] is in your own team using scoreboard, name/armor color or team prefix

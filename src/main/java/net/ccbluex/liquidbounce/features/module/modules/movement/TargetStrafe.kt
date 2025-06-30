@@ -189,7 +189,7 @@ object TargetStrafe : Module("TargetStrafe", Category.MOVEMENT) {
     @EventTarget
     fun onMove(event: MoveEvent) {
         val moveFix = LiquidBounce.moduleManager[MoveFix::class.java]
-        if (moveFix.state && MoveFix.INSTANCE.mode.get() == "Bloxd") {
+        if (moveFix.state && MoveFix.mode.get() == "Bloxd") {
             return
         }
 

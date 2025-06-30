@@ -16,22 +16,22 @@ import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.CLICK_TIMER
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.hasItemAgePassed
 import net.ccbluex.liquidbounce.utils.inventory.inventorySlot
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.inventory.GuiInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.network.play.client.C0EPacketClickWindow
 
 object Refill : Module("Refill", Category.PLAYER, hideModule = false) {
-    private val delay by int("Delay", 400, 10..1000)
+    private val delay by intValue("Delay", 400, 10..1000)
 
-    private val minItemAge by int("MinItemAge", 400, 0..1000)
+    private val minItemAge by intValue("MinItemAge", 400, 0..1000)
 
     private val mode by choices("Mode", arrayOf("Swap", "Merge"), "Swap")
 
-    private val invOpen by boolean("InvOpen", false)
-    private val simulateInventory by boolean("SimulateInventory", false) { !invOpen }
+    private val invOpen by _boolean("InvOpen", false)
+    private val simulateInventory by _boolean("SimulateInventory", false) { !invOpen }
 
     private val noMove by InventoryManager.noMoveValue
     private val noMoveAir by InventoryManager.noMoveAirValue

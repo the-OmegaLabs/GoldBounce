@@ -15,25 +15,25 @@ import net.ccbluex.liquidbounce.utils.extensions.tryJump
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.settings.GameSettings
 
 object AntiAFK : Module("AntiAFK", Category.PLAYER, gameDetecting = false, hideModule = false) {
 
     private val mode by choices("Mode", arrayOf("Old", "Random", "Custom"), "Random")
 
-    private val rotateValue = boolean("Rotate", true) { mode == "Custom" }
-    private val rotationDelay by int("RotationDelay", 100, 0..1000) { rotateValue.isActive() }
-    private val rotationAngle by float("RotationAngle", 1f, -180F..180F) { rotateValue.isActive() }
+    private val rotateValue = _boolean("Rotate", true) { mode == "Custom" }
+    private val rotationDelay by intValue("RotationDelay", 100, 0..1000) { rotateValue.isActive() }
+    private val rotationAngle by floatValue("RotationAngle", 1f, -180F..180F) { rotateValue.isActive() }
 
-    private val swingValue = boolean("Swing", true) { mode == "Custom" }
-    private val swingDelay by int("SwingDelay", 100, 0..1000) { swingValue.isActive() }
+    private val swingValue = _boolean("Swing", true) { mode == "Custom" }
+    private val swingDelay by intValue("SwingDelay", 100, 0..1000) { swingValue.isActive() }
 
-    private val jump by boolean("Jump", true) { mode == "Custom" }
-    private val move by boolean("Move", true) { mode == "Custom" }
+    private val jump by _boolean("Jump", true) { mode == "Custom" }
+    private val move by _boolean("Move", true) { mode == "Custom" }
 
     private var shouldMove = false
     private var randomTimerDelay = 500L

@@ -7,7 +7,7 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.network.play.client.C03PacketPlayer
 
 object FastFall : Module("FastFall", category = Category.MOVEMENT, hideModule = false) {
@@ -15,9 +15,9 @@ object FastFall : Module("FastFall", category = Category.MOVEMENT, hideModule = 
     private var freeze = false
 
     private val selected by choices("Mode", arrayOf("Normal", "Polar/Vulcan", "Intave/Vulcan"), "Normal")
-    private val maxFallDistance = float("MaxFallDistance", 3f, 0F.. 10F)
-    private var freezeValue = float("FreezeTick", 10f, 6F.. 50F) {selected == "Polar/Vulcan"}
-    private val timerSpeed = float("TimerSpeed", 1F, 0F..5F) {selected == "Intave/Vulcan"}
+    private val maxFallDistance = floatValue("MaxFallDistance", 3f, 0F.. 10F)
+    private var freezeValue = floatValue("FreezeTick", 10f, 6F.. 50F) {selected == "Polar/Vulcan"}
+    private val timerSpeed = floatValue("TimerSpeed", 1F, 0F..5F) {selected == "Intave/Vulcan"}
     override fun onEnable() {
         donnotclickme = 0
         freeze = false

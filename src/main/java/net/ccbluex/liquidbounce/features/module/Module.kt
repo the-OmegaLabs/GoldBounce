@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module
 
-import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
@@ -26,9 +25,7 @@ import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
 import net.ccbluex.liquidbounce.utils.timing.TickedActions.TickScheduler
 import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.Value
-import net.ccbluex.liquidbounce.value.boolean
-import net.minecraft.client.audio.PositionedSoundRecord
-import net.minecraft.util.ResourceLocation
+import net.ccbluex.liquidbounce.value._boolean
 import org.lwjgl.input.Keyboard
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -49,7 +46,7 @@ open class Module(
     ) : MinecraftInstance(), Listenable {
 
     // Value that determines whether the module should depend on GameDetector
-    private val onlyInGameValue = boolean("OnlyInGame", true, subjective = true) { state }
+    private val onlyInGameValue = _boolean("OnlyInGame", true, subjective = true) { state }
 
     protected val TickScheduler = TickScheduler(this)
 

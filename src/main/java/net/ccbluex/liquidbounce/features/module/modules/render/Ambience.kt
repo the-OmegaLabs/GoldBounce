@@ -11,19 +11,19 @@ import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.network.play.server.S03PacketTimeUpdate
 import net.minecraft.network.play.server.S2BPacketChangeGameState
 
 object Ambience : Module("Atmosphere", Category.RENDER, gameDetecting = false, hideModule = false) {
 
     private val timeMode by choices("Mode", arrayOf("None", "Normal", "Custom"), "Custom")
-    private val customWorldTime by int("Time", 19000, 0..24000) { timeMode == "Custom" }
-    private val changeWorldTimeSpeed by int("TimeSpeed", 150, 10..500) { timeMode == "Normal" }
+    private val customWorldTime by intValue("Time", 19000, 0..24000) { timeMode == "Custom" }
+    private val changeWorldTimeSpeed by intValue("TimeSpeed", 150, 10..500) { timeMode == "Normal" }
 
     private val weatherMode by choices("WeatherMode", arrayOf("None", "Sun", "Rain", "Thunder"), "None")
-    private val weatherStrength by float("WeatherStrength", 1f, 0f..1f)
+    private val weatherStrength by floatValue("WeatherStrength", 1f, 0f..1f)
     { weatherMode == "Rain" || weatherMode == "Thunder" }
 
     private var i = 0L

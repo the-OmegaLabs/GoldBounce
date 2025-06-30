@@ -15,16 +15,14 @@ import net.ccbluex.liquidbounce.utils.extensions.toRadians
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBorder
-import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.makeScissorBox
 import net.ccbluex.liquidbounce.utils.render.SafeVertexBuffer
-import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowShader
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.renderer.GlStateManager.bindTexture
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -41,26 +39,26 @@ class Radar(x: Double = 5.0, y: Double = 130.0) : Element(x, y) {
         private val SQRT_OF_TWO = sqrt(2f)
     }
 
-    private val size by float("Size", 90f, 30f..500f)
-    private val viewDistance by float("View Distance", 4F, 0.5F..32F)
+    private val size by floatValue("Size", 90f, 30f..500f)
+    private val viewDistance by floatValue("View Distance", 4F, 0.5F..32F)
 
     private val playerShape by choices("Player Shape", arrayOf("Triangle", "Rectangle", "Circle", "RoundedRect","CSGO"), "RoundedRect")
-    private val playerSize by float("Player Size", 4f, 0.5f..20F)
-    private val useESPColors by boolean("Use ESP Colors", false)
-    private val colorAlpha by float("Color Alpha", 0.8f, 0f..1f)
-    private val fovAngle by float("FOV Angle", 90f, 0f..180f)
-    private val minimap by boolean("Minimap", true)
-    private val fovSize by float("FOV Size", 0.5f, 0.1f..1f)
-    private val borderStrength by float("Border Strength", 1.5F, 1F..5F)
+    private val playerSize by floatValue("Player Size", 4f, 0.5f..20F)
+    private val useESPColors by _boolean("Use ESP Colors", false)
+    private val colorAlpha by floatValue("Color Alpha", 0.8f, 0f..1f)
+    private val fovAngle by floatValue("FOV Angle", 90f, 0f..180f)
+    private val minimap by _boolean("Minimap", true)
+    private val fovSize by floatValue("FOV Size", 0.5f, 0.1f..1f)
+    private val borderStrength by floatValue("Border Strength", 1.5F, 1F..5F)
 
-    private val borderRainbow by boolean("Border Rainbow", false)
-    private val rainbowX by float("Rainbow-X", -1000F, -2000F..2000F) { borderRainbow }
-    private val rainbowY by float("Rainbow-Y", -1000F, -2000F..2000F) { borderRainbow }
+    private val borderRainbow by _boolean("Border Rainbow", false)
+    private val rainbowX by floatValue("Rainbow-X", -1000F, -2000F..2000F) { borderRainbow }
+    private val rainbowY by floatValue("Rainbow-Y", -1000F, -2000F..2000F) { borderRainbow }
 
-    private val borderRed by int("Border Red", 200, 0..255) { !borderRainbow }
-    private val borderGreen by int("Border Green", 200, 0..255) { !borderRainbow }
-    private val borderBlue by int("Border Blue", 200, 0..255) { !borderRainbow }
-    private val borderAlpha by int("Border Alpha", 100, 0..255) { !borderRainbow }
+    private val borderRed by intValue("Border Red", 200, 0..255) { !borderRainbow }
+    private val borderGreen by intValue("Border Green", 200, 0..255) { !borderRainbow }
+    private val borderBlue by intValue("Border Blue", 200, 0..255) { !borderRainbow }
+    private val borderAlpha by intValue("Border Alpha", 100, 0..255) { !borderRainbow }
 
     private var fovMarkerVertexBuffer: VertexBuffer? = null
     private var lastFov = 0f

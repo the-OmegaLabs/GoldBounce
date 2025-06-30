@@ -43,14 +43,14 @@ object ESP : Module("ESP", Category.RENDER, hideModule = false) {
         arrayOf("Box", "OtherBox", "WireFrame", "2D", "Real2D", "Outline", "Glow"), "Box"
     )
 
-    val outlineWidth by float("Outline-Width", 3f, 0.5f..5f) { mode == "Outline" }
+    val outlineWidth by floatValue("Outline-Width", 3f, 0.5f..5f) { mode == "Outline" }
 
-    val wireframeWidth by float("WireFrame-Width", 2f, 0.5f..5f) { mode == "WireFrame" }
+    val wireframeWidth by floatValue("WireFrame-Width", 2f, 0.5f..5f) { mode == "WireFrame" }
 
-    private val glowRenderScale by float("Glow-Renderscale", 1f, 0.5f..2f) { mode == "Glow" }
-    private val glowRadius by int("Glow-Radius", 4, 1..5) { mode == "Glow" }
-    private val glowFade by int("Glow-Fade", 10, 0..30) { mode == "Glow" }
-    private val glowTargetAlpha by float("Glow-Target-Alpha", 0f, 0f..1f) { mode == "Glow" }
+    private val glowRenderScale by floatValue("Glow-Renderscale", 1f, 0.5f..2f) { mode == "Glow" }
+    private val glowRadius by intValue("Glow-Radius", 4, 1..5) { mode == "Glow" }
+    private val glowFade by intValue("Glow-Fade", 10, 0..30) { mode == "Glow" }
+    private val glowTargetAlpha by floatValue("Glow-Target-Alpha", 0f, 0f..1f) { mode == "Glow" }
 
     private val espColorMode by choices("ESP-Color", arrayOf("Custom", "Rainbow"), "Custom")
     private val espColor = ColorSettingsInteger(this, "ESP", withAlpha = false)
@@ -62,18 +62,18 @@ object ESP : Module("ESP", Category.RENDER, hideModule = false) {
         }
     }
 
-    private val onLook by boolean("OnLook", false)
-    private val maxAngleDifference by float("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
+    private val onLook by _boolean("OnLook", false)
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
 
-    private val thruBlocks by boolean("ThruBlocks", true)
+    private val thruBlocks by _boolean("ThruBlocks", true)
 
     private var maxRenderDistanceSq = 0.0
         set(value) {
             field = if (value <= 0.0) maxRenderDistance.toDouble().pow(2.0) else value
         }
 
-    private val colorTeam by boolean("Team", false)
-    private val bot by boolean("Bots", true)
+    private val colorTeam by _boolean("Team", false)
+    private val bot by _boolean("Bots", true)
 
     var renderNameTags = true
 

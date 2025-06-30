@@ -12,7 +12,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.util.ResourceLocation
 
@@ -22,8 +22,8 @@ import net.minecraft.util.ResourceLocation
 @ElementInfo(name = "Cockroach", priority = 1)
 class Taco(x: Double = 2.0, y: Double = 441.0) : Element(x = x, y = y) {
 
-    private val frameSpeed by float("frameSpeed", 50f, 0f..200f)
-    private val animationSpeed by float("animationSpeed", 0.15f, 0.01f..1.0f)
+    private val frameSpeed by floatValue("frameSpeed", 50f, 0f..200f)
+    private val animationSpeed by floatValue("animationSpeed", 0.15f, 0.01f..1.0f)
 
     private var lastFrameTime = System.currentTimeMillis()
     private var image = 0

@@ -1,13 +1,11 @@
 package net.ccbluex.liquidbounce.features.module.modules.render
 
 import net.ccbluex.liquidbounce.event.EventTarget
-import net.ccbluex.liquidbounce.event.MotionBlurEvent
 import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.wrapper.WrapperBufferBuilder
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
@@ -15,17 +13,13 @@ import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.shader.Framebuffer
-import net.minecraftforge.client.event.RenderGameOverlayEvent
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import op.wawa.opacketfix.features.hytpacket.CustomPacket
 import org.lwjgl.opengl.GL11
-import kotlin.div
 
 // from https://github.com/FPSMasterTeam/FPSMaster
 object MotionBlur : Module("MotionBlur", Category.RENDER) {
     private var blurBufferMain: Framebuffer? = null
     private var blurBufferInto: Framebuffer? = null
-    private var multiplier = int("Multiplier", 2, 0..10)
+    private var multiplier = intValue("Multiplier", 2, 0..10)
 
 
     private fun checkFramebufferSizes(framebuffer: Framebuffer?, width: Int, height: Int): Framebuffer {

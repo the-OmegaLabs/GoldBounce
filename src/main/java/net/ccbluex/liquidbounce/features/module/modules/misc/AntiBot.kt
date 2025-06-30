@@ -13,10 +13,10 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.serverRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.toRotation
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.stripColor
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.network.play.server.S0BPacketAnimation
@@ -30,43 +30,43 @@ import kotlin.math.sqrt
 
 object AntiBot : Module("AntiBot", Category.MISC, hideModule = false) {
 
-    private val tab by boolean("Tab", true)
+    private val tab by _boolean("Tab", true)
     private val tabMode by choices("TabMode", arrayOf("Equals", "Contains"), "Contains") { tab }
 
-    private val entityID by boolean("EntityID", true)
-    private val invalidUUID by boolean("InvalidUUID", true)
-    private val color by boolean("Color", false)
+    private val entityID by _boolean("EntityID", true)
+    private val invalidUUID by _boolean("InvalidUUID", true)
+    private val color by _boolean("Color", false)
 
-    private val livingTime by boolean("LivingTime", false)
-    private val livingTimeTicks by int("LivingTimeTicks", 40, 1..200) { livingTime }
+    private val livingTime by _boolean("LivingTime", false)
+    private val livingTimeTicks by intValue("LivingTimeTicks", 40, 1..200) { livingTime }
 
-    private val capabilities by boolean("Capabilities", true)
-    private val ground by boolean("Ground", true)
-    private val air by boolean("Air", false)
-    private val invalidGround by boolean("InvalidGround", true)
-    private val invalidSpeed by boolean("InvalidSpeed", false)
-    private val swing by boolean("Swing", false)
-    private val health by boolean("Health", false)
-    private val derp by boolean("Derp", true)
-    private val wasInvisible by boolean("WasInvisible", false)
-    private val armor by boolean("Armor", false)
-    private val ping by boolean("Ping", false)
-    private val needHit by boolean("NeedHit", false)
-    private val duplicateInWorld by boolean("DuplicateInWorld", false)
-    private val duplicateInTab by boolean("DuplicateInTab", false)
-    private val duplicateProfile by boolean("DuplicateProfile", false)
-    private val properties by boolean("Properties", false)
+    private val capabilities by _boolean("Capabilities", true)
+    private val ground by _boolean("Ground", true)
+    private val air by _boolean("Air", false)
+    private val invalidGround by _boolean("InvalidGround", true)
+    private val invalidSpeed by _boolean("InvalidSpeed", false)
+    private val swing by _boolean("Swing", false)
+    private val health by _boolean("Health", false)
+    private val derp by _boolean("Derp", true)
+    private val wasInvisible by _boolean("WasInvisible", false)
+    private val armor by _boolean("Armor", false)
+    private val ping by _boolean("Ping", false)
+    private val needHit by _boolean("NeedHit", false)
+    private val duplicateInWorld by _boolean("DuplicateInWorld", false)
+    private val duplicateInTab by _boolean("DuplicateInTab", false)
+    private val duplicateProfile by _boolean("DuplicateProfile", false)
+    private val properties by _boolean("Properties", false)
 
-    private val alwaysInRadius by boolean("AlwaysInRadius", false)
-    private val alwaysRadius by float("AlwaysInRadiusBlocks", 20f, 3f..30f)
+    private val alwaysInRadius by _boolean("AlwaysInRadius", false)
+    private val alwaysRadius by floatValue("AlwaysInRadiusBlocks", 20f, 3f..30f)
     { alwaysInRadius }
-    private val alwaysRadiusTick by int("AlwaysInRadiusTick", 50, 1..100)
+    private val alwaysRadiusTick by intValue("AlwaysInRadiusTick", 50, 1..100)
     { alwaysInRadius }
 
-    private val alwaysBehind by boolean("AlwaysBehind", false)
-    private val alwaysBehindRadius by float("AlwaysBehindInRadiusBlocks", 10f, 3f..30f)
+    private val alwaysBehind by _boolean("AlwaysBehind", false)
+    private val alwaysBehindRadius by floatValue("AlwaysBehindInRadiusBlocks", 10f, 3f..30f)
     { alwaysBehind }
-    private val behindRotDiffToIgnore by float("BehindRotationDiffToIgnore", 90f, 1f..180f)
+    private val behindRotDiffToIgnore by floatValue("BehindRotationDiffToIgnore", 90f, 1f..180f)
     { alwaysBehind }
 
     private val groundList = mutableSetOf<Int>()

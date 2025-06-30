@@ -26,15 +26,15 @@ import kotlin.math.pow
 
 object ProphuntESP : Module("ProphuntESP", Category.RENDER, gameDetecting = false) {
     private val mode by choices("Mode", arrayOf("Box", "OtherBox", "Glow"), "OtherBox")
-    private val glowRenderScale by float("Glow-Renderscale", 1f, 0.5f..2f) { mode == "Glow" }
-    private val glowRadius by int("Glow-Radius", 4, 1..5) { mode == "Glow" }
-    private val glowFade by int("Glow-Fade", 10, 0..30) { mode == "Glow" }
-    private val glowTargetAlpha by float("Glow-Target-Alpha", 0f, 0f..1f) { mode == "Glow" }
+    private val glowRenderScale by floatValue("Glow-Renderscale", 1f, 0.5f..2f) { mode == "Glow" }
+    private val glowRadius by intValue("Glow-Radius", 4, 1..5) { mode == "Glow" }
+    private val glowFade by intValue("Glow-Fade", 10, 0..30) { mode == "Glow" }
+    private val glowTargetAlpha by floatValue("Glow-Target-Alpha", 0f, 0f..1f) { mode == "Glow" }
 
-    private val colorRainbow by boolean("Rainbow", false)
-    private val colorRed by int("R", 0, 0..255) { !colorRainbow }
-    private val colorGreen by int("G", 90, 0..255) { !colorRainbow }
-    private val colorBlue by int("B", 255, 0..255) { !colorRainbow }
+    private val colorRainbow by _boolean("Rainbow", false)
+    private val colorRed by intValue("R", 0, 0..255) { !colorRainbow }
+    private val colorGreen by intValue("G", 90, 0..255) { !colorRainbow }
+    private val colorBlue by intValue("B", 255, 0..255) { !colorRainbow }
 
     private val maxRenderDistance by object : IntegerValue("MaxRenderDistance", 50, 1..200) {
         override fun onUpdate(value: Int) {
@@ -47,10 +47,10 @@ object ProphuntESP : Module("ProphuntESP", Category.RENDER, gameDetecting = fals
             field = if (value <= 0.0) maxRenderDistance.toDouble().pow(2.0) else value
         }
 
-    private val onLook by boolean("OnLook", false)
-    private val maxAngleDifference by float("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
+    private val onLook by _boolean("OnLook", false)
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
 
-    private val thruBlocks by boolean("ThruBlocks", true)
+    private val thruBlocks by _boolean("ThruBlocks", true)
 
     private val color
         get() = if (colorRainbow) rainbow() else Color(colorRed, colorGreen, colorBlue)

@@ -2,13 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/LiquidBounce.iml" filepath="$PROJECT_DIR$/.idea/modules/LiquidBounce.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/LiquidBounce.api.iml" filepath="$PROJECT_DIR$/.idea/modules/LiquidBounce.api.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/LiquidBounce.main.iml" filepath="$PROJECT_DIR$/.idea/modules/LiquidBounce.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/LiquidBounce.test.iml" filepath="$PROJECT_DIR$/.idea/modules/LiquidBounce.test.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/net.ccbluex.LiquidBounce.api.iml" filepath="$PROJECT_DIR$/.idea/modules/net.ccbluex.LiquidBounce.api.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/net.ccbluex.LiquidBounce.main.iml" filepath="$PROJECT_DIR$/.idea/modules/net.ccbluex.LiquidBounce.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/net.ccbluex.LiquidBounce.test.iml" filepath="$PROJECT_DIR$/.idea/modules/net.ccbluex.LiquidBounce.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cn.bzym2.LiquidBounce.api.iml" filepath="$PROJECT_DIR$/.idea/modules/cn.bzym2.LiquidBounce.api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cn.bzym2.LiquidBounce.main.iml" filepath="$PROJECT_DIR$/.idea/modules/cn.bzym2.LiquidBounce.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cn.bzym2.LiquidBounce.test.iml" filepath="$PROJECT_DIR$/.idea/modules/cn.bzym2.LiquidBounce.test.iml" />
     </modules>
   </component>
 </project>

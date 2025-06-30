@@ -1,7 +1,6 @@
 package net.ccbluex.liquidbounce.features.module.modules.render
 
 import net.ccbluex.liquidbounce.event.EventTarget
-import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
@@ -9,62 +8,55 @@ import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.Vec3d
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.value.*
-import net.minecraft.client.renderer.GLAllocation
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.entity.Render
-import net.minecraft.entity.Entity
 import net.minecraft.util.*
 import net.minecraft.util.Vec3
-import org.lwjgl.input.Mouse
 import org.lwjgl.opengl.GL11
-import org.lwjgl.util.glu.GLU
 import java.awt.Color
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
 
 object RotationPathESP : Module("RotationPathESP", Category.RENDER) {
 
     // Basic settings
-    private val showTarget by boolean("ShowTarget", true)
-    private val showLine by boolean("ShowLine", true)
-    private val lineWidth by float("LineWidth", 2f, 0.5f..5f)
-    private val lineColorR by float("LineColorR", 1F,0F..1F)
-    private val lineColorG by float("LineColorG", 0F,0F..1F)
-    private val lineColorB by float("LineColorB", 0F,0F..1F)
-    private val lineColorAlpha by float("LineColorAlpha", 1F,0F..1F)
+    private val showTarget by _boolean("ShowTarget", true)
+    private val showLine by _boolean("ShowLine", true)
+    private val lineWidth by floatValue("LineWidth", 2f, 0.5f..5f)
+    private val lineColorR by floatValue("LineColorR", 1F,0F..1F)
+    private val lineColorG by floatValue("LineColorG", 0F,0F..1F)
+    private val lineColorB by floatValue("LineColorB", 0F,0F..1F)
+    private val lineColorAlpha by floatValue("LineColorAlpha", 1F,0F..1F)
     private val lineColor = Color(lineColorR, lineColorG, lineColorB, lineColorAlpha)
 
     // Dot settings
-    private val drawDots by boolean("DrawDots", true)
-    private val dotSpacing by float("DotSpacing", 1f, 0.1f..5f)
-    private val dotSize by float("DotSize", 0.1f, 0.05f..0.5f)
-    private val dotColorR by float("DotColorR", 1F,0F..1F)
-    private val dotColorG by float("DotColorG", 0F,0F..1F)
-    private val dotColorB by float("DotColorB", 0F,0F..1F)
-    private val dotColorAlpha by float("DotColorAlpha", 1F,0F..1F)
+    private val drawDots by _boolean("DrawDots", true)
+    private val dotSpacing by floatValue("DotSpacing", 1f, 0.1f..5f)
+    private val dotSize by floatValue("DotSize", 0.1f, 0.05f..0.5f)
+    private val dotColorR by floatValue("DotColorR", 1F,0F..1F)
+    private val dotColorG by floatValue("DotColorG", 0F,0F..1F)
+    private val dotColorB by floatValue("DotColorB", 0F,0F..1F)
+    private val dotColorAlpha by floatValue("DotColorAlpha", 1F,0F..1F)
     private val dotColor = Color(dotColorR, dotColorG, dotColorB, dotColorAlpha)
 
     // Indicator settings
-    private val offScreenIndicator by boolean("OffScreenIndicator", true)
-    private val indicatorSize by float("IndicatorSize", 8f, 4f..20f)
-    private val indicatorColorR by float("IndicatorColorR", 1F,0F..1F)
-    private val indicatorColorG by float("IndicatorColorG", 0F,0F..1F)
-    private val indicatorColorB by float("IndicatorColorB", 0F,0F..1F)
-    private val indicatorColorAlpha by float("IndicatorColorAlpha", 1F,0F..1F)
+    private val offScreenIndicator by _boolean("OffScreenIndicator", true)
+    private val indicatorSize by floatValue("IndicatorSize", 8f, 4f..20f)
+    private val indicatorColorR by floatValue("IndicatorColorR", 1F,0F..1F)
+    private val indicatorColorG by floatValue("IndicatorColorG", 0F,0F..1F)
+    private val indicatorColorB by floatValue("IndicatorColorB", 0F,0F..1F)
+    private val indicatorColorAlpha by floatValue("IndicatorColorAlpha", 1F,0F..1F)
 
     private val indicatorColor = Color(indicatorColorR, indicatorColorG, indicatorColorB, indicatorColorAlpha)
 
     // Hit detection
-    private val detectHit by boolean("DetectHit", true)
-    private val hitBoxSize by float("HitBoxSize", 0.2f, 0.1f..1f)
-    private val hitColorR by float("HitColorR", 1F,0F..1F)
-    private val hitColorG by float("HitColorG", 0F,0F..1F)
-    private val hitColorB by float("HitColorB", 0F,0F..1F)
-    private val hitColorAlpha by float("HitColorAlpha", 1F,0F..1F)
+    private val detectHit by _boolean("DetectHit", true)
+    private val hitBoxSize by floatValue("HitBoxSize", 0.2f, 0.1f..1f)
+    private val hitColorR by floatValue("HitColorR", 1F,0F..1F)
+    private val hitColorG by floatValue("HitColorG", 0F,0F..1F)
+    private val hitColorB by floatValue("HitColorB", 0F,0F..1F)
+    private val hitColorAlpha by floatValue("HitColorAlpha", 1F,0F..1F)
     private val hitColor = Color(hitColorR, hitColorG, hitColorB, hitColorAlpha)
 
     // Alpha settings
-    private val alpha by float("Alpha", 0.8f, 0f..1f)
+    private val alpha by floatValue("Alpha", 0.8f, 0f..1f)
 
     private var lastTarget: Vec3d? = null
     private var hitPosition: Vec3d? = null

@@ -13,23 +13,23 @@ import kotlin.math.abs
 @Suppress("MemberVisibilityCanBePrivate")
 open class RotationSettings(owner: Module, generalApply: () -> Boolean = { true }) {
 
-    open val rotationsValue = boolean("Rotations", true) { generalApply() }
-    open val applyServerSideValue = boolean("ApplyServerSide", true) { rotationsActive && generalApply() }
-    open val algorithmSearchSteps = int("AlgorithmSteps", 10, 5..20) { rotateMode.get() == "Algorithm" }
-    open val algorithmPrecision = float("AlgorithmPrecision", 0.5f, 0.1f..2f) { rotateMode.get() == "Algorithm" }
-    open val noiseScale = float("NoiseScale", 2.0f, 0.5f..5f) { rotateMode.get() == "Noise" }
-    open val noiseSpeed = float("NoiseSpeed", 0.5f, 0.1f..2f) { rotateMode.get() == "Noise" }
-    open val noiseAdditionYaw = float("NoiseAdditionYawMS", 0.0f, 0f..1000f) { rotateMode.get() == "Noise" }
-    open val noiseAdditionPitch = float("NoiseAdditionPitchMS", 0.0f, 0f..1000f) { rotateMode.get() == "Noise" }
-    open val maxTurnSpeed = float("MaxTurnSpeed", 180f, 10f..360f) { rotateMode.get() == "Noise" }
+    open val rotationsValue = _boolean("Rotations", true) { generalApply() }
+    open val applyServerSideValue = _boolean("ApplyServerSide", true) { rotationsActive && generalApply() }
+    open val algorithmSearchSteps = intValue("AlgorithmSteps", 10, 5..20) { rotateMode.get() == "Algorithm" }
+    open val algorithmPrecision = floatValue("AlgorithmPrecision", 0.5f, 0.1f..2f) { rotateMode.get() == "Algorithm" }
+    open val noiseScale = floatValue("NoiseScale", 2.0f, 0.5f..5f) { rotateMode.get() == "Noise" }
+    open val noiseSpeed = floatValue("NoiseSpeed", 0.5f, 0.1f..2f) { rotateMode.get() == "Noise" }
+    open val noiseAdditionYaw = floatValue("NoiseAdditionYawMS", 0.0f, 0f..1000f) { rotateMode.get() == "Noise" }
+    open val noiseAdditionPitch = floatValue("NoiseAdditionPitchMS", 0.0f, 0f..1000f) { rotateMode.get() == "Noise" }
+    open val maxTurnSpeed = floatValue("MaxTurnSpeed", 180f, 10f..360f) { rotateMode.get() == "Noise" }
     open val improve = ListValue("NoiseImprovement",arrayOf("XY","XZ","Fallback"),"XY") { rotateMode.get() == "Noise" }
-    open val simulateShortStopValue = boolean("SimulateShortStop", false) { rotationsActive && generalApply() }
-    open val rotationDiffBuildUpToStopValue = float("RotationDiffBuildUpToStop", 180f, 50f..720f) { simulateShortStop }
-    open val maxThresholdAttemptsToStopValue = int("MaxThresholdAttemptsToStop", 1, 0..5) { simulateShortStop }
+    open val simulateShortStopValue = _boolean("SimulateShortStop", false) { rotationsActive && generalApply() }
+    open val rotationDiffBuildUpToStopValue = floatValue("RotationDiffBuildUpToStop", 180f, 50f..720f) { simulateShortStop }
+    open val maxThresholdAttemptsToStopValue = intValue("MaxThresholdAttemptsToStop", 1, 0..5) { simulateShortStop }
     open val shortStopDurationValue = intRange("ShortStopDuration", 1..2, 1..5) { simulateShortStop }
-    open val strafeValue = boolean("Strafe", false) { rotationsActive && applyServerSide && generalApply() }
-    open val strictValue = boolean("Strict", false) { strafeValue.isActive() && generalApply() }
-    open val keepRotationValue = boolean(
+    open val strafeValue = _boolean("Strafe", false) { rotationsActive && applyServerSide && generalApply() }
+    open val strictValue = _boolean("Strict", false) { strafeValue.isActive() && generalApply() }
+    open val keepRotationValue = _boolean(
         "KeepRotation", true
     ) { rotationsActive && applyServerSide && generalApply() }
     open val resetTicksValue = object : IntegerValue("ResetTicks", 1, 1..20) {
@@ -37,7 +37,7 @@ open class RotationSettings(owner: Module, generalApply: () -> Boolean = { true 
         override fun isSupported() = rotationsActive && applyServerSide && generalApply()
     }
 
-    open val legitimizeValue = boolean("Legitimize", false) { rotationsActive && generalApply() }
+    open val legitimizeValue = _boolean("Legitimize", false) { rotationsActive && generalApply() }
     open val rotateMode = ListValue(
         "RotationMode",
         arrayOf(

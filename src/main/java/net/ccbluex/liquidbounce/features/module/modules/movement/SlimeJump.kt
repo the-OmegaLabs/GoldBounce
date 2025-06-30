@@ -11,12 +11,12 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlock
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.block.BlockSlime
 
 object SlimeJump : Module("SlimeJump", Category.MOVEMENT) {
 
-    private val motion by float("Motion", 0.42f, 0.2f..1f)
+    private val motion by floatValue("Motion", 0.42f, 0.2f..1f)
     private val mode by choices("Mode", arrayOf("Set", "Add"), "Add")
 
     @EventTarget

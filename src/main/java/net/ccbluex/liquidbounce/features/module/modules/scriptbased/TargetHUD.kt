@@ -10,7 +10,6 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
-import net.ccbluex.liquidbounce.utils.render.shader.shaders.RainbowShader
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.client.gui.GuiChat
@@ -52,44 +51,44 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         ),
         "Flux"
     )
-    private val posX by int("PosX", 0, -400..400)
-    private val posY by int("PosY", 0, -400..400)
-    private val animSpeed by float("AnimationSpeed", 0.1F, 0.01F..0.5F)
+    private val posX by intValue("PosX", 0, -400..400)
+    private val posY by intValue("PosY", 0, -400..400)
+    private val animSpeed by floatValue("AnimationSpeed", 0.1F, 0.01F..0.5F)
 
     // Flux Settings
     private val fluxColorMode by ListValue("Flux-Color", arrayOf("Custom", "Health", "Rainbow"), "Health") { hudStyle == "Flux" }
-    private val fluxColorRed by int("Flux-Red", 0, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
-    private val fluxColorGreen by int("Flux-Green", 120, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
-    private val fluxColorBlue by int("Flux-Blue", 255, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
+    private val fluxColorRed by intValue("Flux-Red", 0, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
+    private val fluxColorGreen by intValue("Flux-Green", 120, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
+    private val fluxColorBlue by intValue("Flux-Blue", 255, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
 
     // Arc Settings
-    private val arcRainbow by boolean("Arc-Rainbow", true) { hudStyle == "Arc" }
-    private val arcColorRed by int("Arc-Red", 255, 0..255) { hudStyle == "Arc" && !arcRainbow }
-    private val arcColorGreen by int("Arc-Green", 255, 0..255) { hudStyle == "Arc" && !arcRainbow }
-    private val arcColorBlue by int("Arc-Blue", 255, 0..255) { hudStyle == "Arc" && !arcRainbow }
+    private val arcRainbow by _boolean("Arc-Rainbow", true) { hudStyle == "Arc" }
+    private val arcColorRed by intValue("Arc-Red", 255, 0..255) { hudStyle == "Arc" && !arcRainbow }
+    private val arcColorGreen by intValue("Arc-Green", 255, 0..255) { hudStyle == "Arc" && !arcRainbow }
+    private val arcColorBlue by intValue("Arc-Blue", 255, 0..255) { hudStyle == "Arc" && !arcRainbow }
 
     // Myau Settings
-    private val rainbow by boolean("Myau-Rainbow", true) { hudStyle == "Myau" }
-    private val borderRed by int("Myau-Border-Red", 255, 0..255) { hudStyle == "Myau" }
-    private val borderGreen by int("Myau-Border-Green", 255, 0..255) { hudStyle == "Myau" }
-    private val borderBlue by int("Myau-Border-Blue", 255, 0..255) { hudStyle == "Myau" }
-    private val showAvatar by boolean("Myau-Show-Avatar", true) { hudStyle == "Myau" }
+    private val rainbow by _boolean("Myau-Rainbow", true) { hudStyle == "Myau" }
+    private val borderRed by intValue("Myau-Border-Red", 255, 0..255) { hudStyle == "Myau" }
+    private val borderGreen by intValue("Myau-Border-Green", 255, 0..255) { hudStyle == "Myau" }
+    private val borderBlue by intValue("Myau-Border-Blue", 255, 0..255) { hudStyle == "Myau" }
+    private val showAvatar by _boolean("Myau-Show-Avatar", true) { hudStyle == "Myau" }
 
     // RavenB4 Settings
-    val barColorR by int("RavenB4-BarColorR", 255, 0..255) { hudStyle == "RavenB4" }
-    private val barColorG by int("RavenB4-BarColorG", 255, 0..255) { hudStyle == "RavenB4" }
-    private val barColorB by int("RavenB4-BarColorB", 255, 0..255) { hudStyle == "RavenB4" }
-    private val animSpeedRB4 by int("RavenB4-AnimSpeed", 3, 1..10) { hudStyle == "RavenB4" }
+    val barColorR by intValue("RavenB4-BarColorR", 255, 0..255) { hudStyle == "RavenB4" }
+    private val barColorG by intValue("RavenB4-BarColorG", 255, 0..255) { hudStyle == "RavenB4" }
+    private val barColorB by intValue("RavenB4-BarColorB", 255, 0..255) { hudStyle == "RavenB4" }
+    private val animSpeedRB4 by intValue("RavenB4-AnimSpeed", 3, 1..10) { hudStyle == "RavenB4" }
 
     // Moon4 Settings
-    private val moon4BarColorR by int("Moon4-BarR", 70, 0..255) { hudStyle == "Moon4" }
-    private val moon4BarColorG by int("Moon4-BarG", 130, 0..255) { hudStyle == "Moon4" }
-    private val moon4BarColorB by int("Moon4-BarB", 255, 0..255) { hudStyle == "Moon4" }
-    private val moon4BGColorR by int("Moon4-BGR", 30, 0..255) { hudStyle == "Moon4" }
-    private val moon4BGColorG by int("Moon4-BGG", 30, 0..255) { hudStyle == "Moon4" }
-    private val moon4BGColorB by int("Moon4-BGB", 30, 0..255) { hudStyle == "Moon4" }
-    private val moon4BGColorA by int("Moon4-BGA", 180, 0..255) { hudStyle == "Moon4" }
-    private val moon4AnimSpeed by int("Moon4-AnimSpeed", 4, 1..10) { hudStyle == "Moon4" }
+    private val moon4BarColorR by intValue("Moon4-BarR", 70, 0..255) { hudStyle == "Moon4" }
+    private val moon4BarColorG by intValue("Moon4-BarG", 130, 0..255) { hudStyle == "Moon4" }
+    private val moon4BarColorB by intValue("Moon4-BarB", 255, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorR by intValue("Moon4-BGR", 30, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorG by intValue("Moon4-BGG", 30, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorB by intValue("Moon4-BGB", 30, 0..255) { hudStyle == "Moon4" }
+    private val moon4BGColorA by intValue("Moon4-BGA", 180, 0..255) { hudStyle == "Moon4" }
+    private val moon4AnimSpeed by intValue("Moon4-AnimSpeed", 4, 1..10) { hudStyle == "Moon4" }
 
     // State Variables
     private val decimalFormat = DecimalFormat("0.0", DecimalFormatSymbols(Locale.ENGLISH))
@@ -101,11 +100,11 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private val waveCustomColor = Color(0, 150, 255)
 
     // Pulse样式设置项
-    private val pulseSpeed by float("Pulse-Speed", 0.05F, 0.01F..0.2F) { hudStyle == "Pulse" }
-    private val pulseThickness by float("Pulse-Thickness", 4F, 1F..10F) { hudStyle == "Pulse" }
+    private val pulseSpeed by floatValue("Pulse-Speed", 0.05F, 0.01F..0.2F) { hudStyle == "Pulse" }
+    private val pulseThickness by floatValue("Pulse-Thickness", 4F, 1F..10F) { hudStyle == "Pulse" }
 
     // Neon样式设置项
-    private val neonGlow by boolean("Neon-Glow", true) { hudStyle == "Neon" }
+    private val neonGlow by _boolean("Neon-Glow", true) { hudStyle == "Neon" }
     private val neonColor = Color(255, 50, 255)
     // Animation States
     private var easingHealth = 0F

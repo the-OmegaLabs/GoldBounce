@@ -9,7 +9,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
 import net.ccbluex.liquidbounce.ui.font.Fonts.font40
 import net.ccbluex.liquidbounce.ui.font.Fonts.minecraftFont
 import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Items
@@ -20,9 +20,9 @@ import java.awt.Color
 object ItemsDetector : Module("ItemsDetector", Category.MISC, gameDetecting = false, hideModule = false) {
 
     private val mode by ListValue("Mode", arrayOf("Murder", "Skywars"), "Skywars")
-    private val showText by boolean("ShowText", true)
-    private val chatValue by boolean("Chat", true)
-    private val notifyValue by boolean("Notification", true)
+    private val showText by _boolean("ShowText", true)
+    private val chatValue by _boolean("Chat", true)
+    private val notifyValue by _boolean("Notification", true)
 
     private var detectedPlayer: EntityPlayer? = null
 

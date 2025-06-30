@@ -14,15 +14,15 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.RotationUtils.setTargetRotation
 import net.ccbluex.liquidbounce.utils.extensions.rotation
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.intRange
 import net.minecraft.entity.player.EntityPlayer
 
 object NoRotateSet : Module("NoRotateSet", Category.MISC, gameDetecting = false, hideModule = false) {
     var savedRotation = Rotation.ZERO
 
-    private val ignoreOnSpawn by boolean("IgnoreOnSpawn", false)
-    val affectRotation by boolean("AffectRotation", true)
+    private val ignoreOnSpawn by _boolean("IgnoreOnSpawn", false)
+    val affectRotation by _boolean("AffectRotation", true)
 
     private val ticksUntilStart = intRange("TicksUntilStart", 0..0, 0..20) { affectRotation }
     private val options = RotationSettings(this) { affectRotation }.apply {

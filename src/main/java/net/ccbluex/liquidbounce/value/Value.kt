@@ -367,7 +367,7 @@ open class ListValue(
     }
 }
 
-fun int(
+fun intValue(
     name: String,
     value: Int,
     range: IntRange = 0..Int.MAX_VALUE,
@@ -375,7 +375,7 @@ fun int(
     isSupported: (() -> Boolean)? = null
 ) = IntegerValue(name, value, range, subjective, isSupported)
 
-fun float(
+fun floatValue(
     name: String,
     value: Float,
     range: ClosedFloatingPointRange<Float> = 0f..Float.MAX_VALUE,
@@ -412,7 +412,7 @@ fun text(
     isSupported: (() -> Boolean)? = null
 ) = TextValue(name, value, subjective, isSupported)
 
-fun boolean(
+fun _boolean(
     name: String,
     value: Boolean,
     subjective: Boolean = false,

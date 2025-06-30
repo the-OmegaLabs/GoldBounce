@@ -59,18 +59,18 @@ object NoFall : Module("NoFall", Category.PLAYER, hideModule = false) {
 
     val mode by choices("Mode", modes, "MLG")
 
-    val minFallDistance by float("MinMLGHeight", 5f, 2f..50f, subjective = true) { mode == "MLG" }
-    val retrieveDelay by int("RetrieveDelayTicks", 5, 1..10, subjective = true) { mode == "MLG" }
+    val minFallDistance by floatValue("MinMLGHeight", 5f, 2f..50f, subjective = true) { mode == "MLG" }
+    val retrieveDelay by intValue("RetrieveDelayTicks", 5, 1..10, subjective = true) { mode == "MLG" }
 
     val autoMLG by choices("AutoMLG", arrayOf("Off", "Pick", "Spoof", "Switch"), "Spoof") { mode == "MLG" }
-    val swing by boolean("Swing", true) { mode == "MLG" }
+    val swing by _boolean("Swing", true) { mode == "MLG" }
 
     val options = RotationSettings(this) { mode == "MLG" }.apply {
         resetTicksValue.setSupport { { it && keepRotation } }
     }
 
     // Using too many times of simulatePlayer could result timer flag. Hence, why this is disabled by default.
-    val checkFallDist by boolean("CheckFallDistance", false, subjective = true) { mode == "Blink" }
+    val checkFallDist by _boolean("CheckFallDistance", false, subjective = true) { mode == "Blink" }
 
     val minFallDist: FloatValue = object : FloatValue("MinFallDistance", 2.5f, 0f..10f, subjective = true) {
         override fun isSupported() = mode == "Blink" && checkFallDist
@@ -81,9 +81,9 @@ object NoFall : Module("NoFall", Category.PLAYER, hideModule = false) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtLeast(minFallDist.get())
     }
 
-    val autoOff by boolean("AutoOff", true) { mode == "Blink" }
-    val simulateDebug by boolean("SimulationDebug", false, subjective = true) { mode == "Blink" }
-    val fakePlayer by boolean("FakePlayer", true, subjective = true) { mode == "Blink" }
+    val autoOff by _boolean("AutoOff", true) { mode == "Blink" }
+    val simulateDebug by _boolean("SimulationDebug", false, subjective = true) { mode == "Blink" }
+    val fakePlayer by _boolean("FakePlayer", true, subjective = true) { mode == "Blink" }
 
     var currentMlgBlock: BlockPos? = null
     var mlgInProgress = false

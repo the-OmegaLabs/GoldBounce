@@ -35,10 +35,10 @@ object StorageESP : Module("StorageESP", Category.RENDER) {
     private val mode by
     ListValue("Mode", arrayOf("Box", "OtherBox", "Outline", "Glow", "2D", "WireFrame"), "Outline")
 
-    private val glowRenderScale by float("Glow-Renderscale", 1f, 0.5f..2f) { mode == "Glow" }
-    private val glowRadius by int("Glow-Radius", 4, 1..5) { mode == "Glow" }
-    private val glowFade by int("Glow-Fade", 10, 0..30) { mode == "Glow" }
-    private val glowTargetAlpha by float("Glow-Target-Alpha", 0f, 0f..1f) { mode == "Glow" }
+    private val glowRenderScale by floatValue("Glow-Renderscale", 1f, 0.5f..2f) { mode == "Glow" }
+    private val glowRadius by intValue("Glow-Radius", 4, 1..5) { mode == "Glow" }
+    private val glowFade by intValue("Glow-Fade", 10, 0..30) { mode == "Glow" }
+    private val glowTargetAlpha by floatValue("Glow-Target-Alpha", 0f, 0f..1f) { mode == "Glow" }
 
     private val espColorMode by choices("ESP-Color", arrayOf("None", "Custom"), "None")
     private val espColor = ColorSettingsInteger(this, "ESP", withAlpha = false)
@@ -50,24 +50,24 @@ object StorageESP : Module("StorageESP", Category.RENDER) {
         }
     }
 
-    private val onLook by boolean("OnLook", false)
-    private val maxAngleDifference by float("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
+    private val onLook by _boolean("OnLook", false)
+    private val maxAngleDifference by floatValue("MaxAngleDifference", 90f, 5.0f..90f) { onLook }
 
-    private val thruBlocks by boolean("ThruBlocks", true)
+    private val thruBlocks by _boolean("ThruBlocks", true)
 
     private var maxRenderDistanceSq = 0.0
         set(value) {
             field = if (value <= 0.0) maxRenderDistance.toDouble().pow(2.0) else value
         }
 
-    private val chest by boolean("Chest", true)
-    private val enderChest by boolean("EnderChest", true)
-    private val furnace by boolean("Furnace", true)
-    private val dispenser by boolean("Dispenser", true)
-    private val hopper by boolean("Hopper", true)
-    private val enchantmentTable by boolean("EnchantmentTable", false)
-    private val brewingStand by boolean("BrewingStand", false)
-    private val sign by boolean("Sign", false)
+    private val chest by _boolean("Chest", true)
+    private val enderChest by _boolean("EnderChest", true)
+    private val furnace by _boolean("Furnace", true)
+    private val dispenser by _boolean("Dispenser", true)
+    private val hopper by _boolean("Hopper", true)
+    private val enchantmentTable by _boolean("EnchantmentTable", false)
+    private val brewingStand by _boolean("BrewingStand", false)
+    private val sign by _boolean("Sign", false)
 
     private fun getColor(tileEntity: TileEntity): Color? {
         return if (espColorMode == "Custom") {

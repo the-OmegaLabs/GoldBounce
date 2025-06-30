@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolat
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.font
 import net.minecraft.client.resources.I18n
 import net.minecraft.potion.Potion
@@ -31,7 +31,7 @@ class Effects(
 ) : Element(x, y, scale, side) {
 
     private val font by font("Font", Fonts.font35)
-    private val shadow by boolean("Shadow", true)
+    private val shadow by _boolean("Shadow", true)
     fun formatDuration(duration: Int): String {
         val seconds = duration / 20
         return when {

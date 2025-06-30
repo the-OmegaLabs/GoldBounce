@@ -13,8 +13,8 @@ import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.randomAccount
 import net.ccbluex.liquidbounce.value.ListValue
 import net.ccbluex.liquidbounce.value.TextValue
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.network.play.server.S40PacketDisconnect
 import net.minecraft.network.play.server.S45PacketTitle
@@ -26,8 +26,8 @@ import kotlin.concurrent.schedule
 object AutoAccount :
     Module("AutoAccount", Category.MISC, subjective = true, gameDetecting = false, hideModule = false) {
 
-    private val register by boolean("AutoRegister", true)
-    private val login by boolean("AutoLogin", true)
+    private val register by _boolean("AutoRegister", true)
+    private val login by _boolean("AutoLogin", true)
 
     // Gamster requires 8 chars+
     private val passwordValue = object : TextValue("Password", "axolotlaxolotl") {
@@ -56,14 +56,14 @@ object AutoAccount :
     private val password by passwordValue
 
     // Needed for Gamster
-    private val sendDelay by int("SendDelay", 250, 0..500) { passwordValue.isSupported() }
+    private val sendDelay by intValue("SendDelay", 250, 0..500) { passwordValue.isSupported() }
 
-    private val autoSession by boolean("AutoSession", false)
-    private val startupValue = boolean("RandomAccountOnStart", false) { autoSession }
-    private val relogInvalidValue = boolean("RelogWhenPasswordInvalid", true) { autoSession }
-    private val relogKickedValue = boolean("RelogWhenKicked", false) { autoSession }
+    private val autoSession by _boolean("AutoSession", false)
+    private val startupValue = _boolean("RandomAccountOnStart", false) { autoSession }
+    private val relogInvalidValue = _boolean("RelogWhenPasswordInvalid", true) { autoSession }
+    private val relogKickedValue = _boolean("RelogWhenKicked", false) { autoSession }
 
-    private val reconnectDelayValue = int("ReconnectDelay", 1000, 0..2500)
+    private val reconnectDelayValue = intValue("ReconnectDelay", 1000, 0..2500)
     { relogInvalidValue.isActive() || relogKickedValue.isActive() }
     private val reconnectDelay by reconnectDelayValue
 
@@ -81,7 +81,7 @@ object AutoAccount :
     }
     private val accountMode by accountModeValue
 
-    private val saveValue = boolean("SaveToAlts", false) {
+    private val saveValue = _boolean("SaveToAlts", false) {
         accountModeValue.isSupported() && accountMode != "RandomAlt"
     }
 

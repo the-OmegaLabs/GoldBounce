@@ -11,16 +11,15 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.MotionEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
-import net.ccbluex.liquidbounce.value.boolean
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
 
 object CameraView : Module("CameraView", Category.RENDER, gameDetecting = false, hideModule = false) {
 
-    private val customY by float("CustomY", 0f, -10f..10f)
-    private val saveLastGroundY by boolean("SaveLastGroundY", true)
-    private val onScaffold by boolean("OnScaffold", true)
-    private val onF5 by boolean("OnF5", true)
+    private val customY by floatValue("CustomY", 0f, -10f..10f)
+    private val saveLastGroundY by _boolean("SaveLastGroundY", true)
+    private val onScaffold by _boolean("OnScaffold", true)
+    private val onF5 by _boolean("OnF5", true)
 
     private var launchY: Double ?= null
 

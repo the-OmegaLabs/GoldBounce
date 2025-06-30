@@ -17,7 +17,7 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.inventory.hotBarSlot
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.block.BlockAir
 import net.minecraft.init.Items
 import net.minecraft.item.ItemBucket
@@ -31,8 +31,8 @@ import kotlin.math.sqrt
 // TODO: This desperately needs a recode
 object Ignite : Module("Ignite", Category.COMBAT, hideModule = false) {
 
-    private val lighter by boolean("Lighter", true)
-    private val lavaBucket by boolean("Lava", true)
+    private val lighter by _boolean("Lighter", true)
+    private val lavaBucket by _boolean("Lava", true)
 
     private val msTimer = MSTimer()
 

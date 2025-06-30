@@ -8,22 +8,22 @@ package net.ccbluex.liquidbounce.utils.render
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element.Companion.MAX_GRADIENT_COLORS
-import net.ccbluex.liquidbounce.value.float
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import java.awt.Color
 
 class ColorSettingsFloat(owner: Any, name: String, val index: Int? = null, generalApply: () -> Boolean = { true }) {
-    private val r by float(
+    private val r by floatValue(
         "$name-R${index ?: ""}",
         if ((index ?: 0) % 3 == 1) 255f else 0f,
         0f..255f
     ) { generalApply() }
-    private val g by float(
+    private val g by floatValue(
         "$name-G${index ?: ""}",
         if ((index ?: 0) % 3 == 2) 255f else 0f,
         0f..255f
     ) { generalApply() }
-    private val b by float(
+    private val b by floatValue(
         "$name-B${index ?: ""}",
         if ((index ?: 0) % 3 == 0) 255f else 0f,
         0f..255f
@@ -56,22 +56,22 @@ class ColorSettingsInteger(
     private val string = if (name == null) "" else "$name-"
     private val max = if (applyMax) 255 else 0
 
-    private var red = int(
+    private var red = intValue(
         "${string}R${index ?: ""}",
         max,
         0..255
     ) { generalApply() && (!zeroAlphaCheck || a > 0) }
-    private var green = int(
+    private var green = intValue(
         "${string}G${index ?: ""}",
         max,
         0..255
     ) { generalApply() && (!zeroAlphaCheck || a > 0) }
-    private var blue = int(
+    private var blue = intValue(
         "${string}B${index ?: ""}",
         max,
         0..255
     ) { generalApply() && (!zeroAlphaCheck || a > 0) }
-    private var alpha = int(
+    private var alpha = intValue(
         "${string}Alpha${index ?: ""}",
         255,
         0..255

@@ -11,7 +11,7 @@ import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.customRotatedObject2D
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.Tessellator
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -30,9 +30,9 @@ object HitBubbles : Module("HitBubbles", Category.RENDER, hideModule = false) {
         state = true
     }
 
-    private val followHit by boolean("Follow Hit", true)
+    private val followHit by _boolean("Follow Hit", true)
 
-    private val dynamicRotation by boolean("Dynamic Rotation", false)
+    private val dynamicRotation by _boolean("Dynamic Rotation", false)
 
     private const val MAX_LIFETIME = 1000.0f
     private val bubbles = ArrayList<Bubble>()

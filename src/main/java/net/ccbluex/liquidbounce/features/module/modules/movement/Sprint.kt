@@ -16,9 +16,9 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.activeSettings
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.float
+import net.ccbluex.liquidbounce.value.floatValue
 import net.minecraft.network.play.client.C0BPacketEntityAction
 import net.minecraft.potion.Potion
 import net.minecraft.util.MovementInput
@@ -27,26 +27,26 @@ import kotlin.math.abs
 object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideModule = false) {
     val mode by choices("Mode", arrayOf("Legit", "Vanilla"), "Vanilla")
 
-    val onlyOnSprintPress by boolean("OnlyOnSprintPress", false)
-    private val alwaysCorrect by boolean("AlwaysCorrectSprint", false)
+    val onlyOnSprintPress by _boolean("OnlyOnSprintPress", false)
+    private val alwaysCorrect by _boolean("AlwaysCorrectSprint", false)
 
-    val allDirections by boolean("AllDirections", true) { mode == "Vanilla" }
-    val jumpDirections by boolean("JumpDirections", false) { mode == "Vanilla" && allDirections }
+    val allDirections by _boolean("AllDirections", true) { mode == "Vanilla" }
+    val jumpDirections by _boolean("JumpDirections", false) { mode == "Vanilla" && allDirections }
 
-    private val allDirectionsLimitSpeed by float("AllDirectionsLimitSpeed", 1f, 0.75f..1f)
+    private val allDirectionsLimitSpeed by floatValue("AllDirectionsLimitSpeed", 1f, 0.75f..1f)
     { mode == "Vanilla" && allDirections }
-    private val allDirectionsLimitSpeedGround by boolean("AllDirectionsLimitSpeedOnlyGround", true)
+    private val allDirectionsLimitSpeedGround by _boolean("AllDirectionsLimitSpeedOnlyGround", true)
     { mode == "Vanilla" && allDirections }
 
-    private val blindness by boolean("Blindness", true) { mode == "Vanilla" }
-    var usingItem = boolean("UsingItem", false) { mode == "Vanilla" }
-    private val inventory by boolean("Inventory", false) { mode == "Vanilla" }
-    private val food by boolean("Food", true) { mode == "Vanilla" }
+    private val blindness by _boolean("Blindness", true) { mode == "Vanilla" }
+    var usingItem = _boolean("UsingItem", false) { mode == "Vanilla" }
+    private val inventory by _boolean("Inventory", false) { mode == "Vanilla" }
+    private val food by _boolean("Food", true) { mode == "Vanilla" }
 
-    private val checkServerSide by boolean("CheckServerSide", false) { mode == "Vanilla" }
-    private val checkServerSideGround by boolean("CheckServerSideOnlyGround", false)
+    private val checkServerSide by _boolean("CheckServerSide", false) { mode == "Vanilla" }
+    private val checkServerSideGround by _boolean("CheckServerSideOnlyGround", false)
     { mode == "Vanilla" && checkServerSide }
-    private val noPackets by boolean("NoPackets", false) { mode == "Vanilla" }
+    private val noPackets by _boolean("NoPackets", false) { mode == "Vanilla" }
 
     private var isSprinting = false
 

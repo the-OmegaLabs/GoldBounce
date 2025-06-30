@@ -7,9 +7,7 @@
  */
 package net.ccbluex.liquidbounce.utils.render
 
-import net.ccbluex.liquidbounce.utils.ClientUtils
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
-import net.ccbluex.liquidbounce.utils.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.chat
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager

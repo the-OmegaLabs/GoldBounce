@@ -7,21 +7,19 @@ import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.value.ListValue
-import net.ccbluex.liquidbounce.value.int
-import net.minecraft.client.gui.ScaledResolution
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
 import kotlin.math.ceil
-import kotlin.math.floor
 
 object Logo : Module("Logo",Category.HUD) {
     val mode by ListValue("Mode", arrayOf("ESound", "Bounce", "Sketch", "Static", "Tenna", "Nigga"), "Tenna")
-    val xoffset by int("XOffset", 10, -100..100)
-    val yoffset by int("YOffset", 10, -100..100)
-    val colorR by int("ColorR", 255, 0..255)
-    val colorG by int("ColorG", 255, 0..255)
-    val colorB by int("ColorB", 255, 0..255)
-    val colorA by int("ColorAlpha", 255, 0..255)
+    val xoffset by intValue("XOffset", 10, -100..100)
+    val yoffset by intValue("YOffset", 10, -100..100)
+    val colorR by intValue("ColorR", 255, 0..255)
+    val colorG by intValue("ColorG", 255, 0..255)
+    val colorB by intValue("ColorB", 255, 0..255)
+    val colorA by intValue("ColorAlpha", 255, 0..255)
     val color = Color(colorR, colorG, colorB, colorA)
     var scaledX = 0
     var scaledY = 0

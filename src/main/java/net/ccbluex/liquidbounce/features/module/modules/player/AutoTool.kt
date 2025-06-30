@@ -11,13 +11,13 @@ import net.ccbluex.liquidbounce.event.GameTickEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.SilentHotbar
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.minecraft.util.BlockPos
 
 object AutoTool : Module("AutoTool", Category.PLAYER, subjective = true, gameDetecting = false, hideModule = false) {
 
-    private val switchBack by boolean("SwitchBack", false)
-    private val onlySneaking by boolean("OnlySneaking", false)
+    private val switchBack by _boolean("SwitchBack", false)
+    private val onlySneaking by _boolean("OnlySneaking", false)
 
     @EventTarget
     fun onGameTick(event: GameTickEvent) {

@@ -13,9 +13,9 @@ import net.ccbluex.liquidbounce.utils.BlinkUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
-import net.ccbluex.liquidbounce.value.boolean
+import net.ccbluex.liquidbounce.value._boolean
 import net.ccbluex.liquidbounce.value.choices
-import net.ccbluex.liquidbounce.value.int
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.init.Blocks
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -24,10 +24,10 @@ object Blink : Module("Blink", Category.PLAYER, gameDetecting = false, hideModul
 
     private val mode by choices("Mode", arrayOf("Sent", "Received", "Both"), "Sent")
 
-    private val pulse by boolean("Pulse", false)
-    private val pulseDelay by int("PulseDelay", 1000, 500..5000) { pulse }
-    private val skywars by boolean("Skywars", false)
-    private val fakePlayerMenu by boolean("FakePlayer", true)
+    private val pulse by _boolean("Pulse", false)
+    private val pulseDelay by intValue("PulseDelay", 1000, 500..5000) { pulse }
+    private val skywars by _boolean("Skywars", false)
+    private val fakePlayerMenu by _boolean("FakePlayer", true)
 
     private val pulseTimer = MSTimer()
 
