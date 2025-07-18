@@ -12,9 +12,10 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.combat.Velocity.clicks
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler
+import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
+import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.MovementUtils.isOnGround
 import net.ccbluex.liquidbounce.utils.MovementUtils.speed
-import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
 import net.ccbluex.liquidbounce.utils.RaycastUtils.runWithModifiedRaycastResult
@@ -22,10 +23,8 @@ import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isLookingOnEntities
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.extensions.*
+import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
-import net.ccbluex.liquidbounce.utils.realMotionX
-import net.ccbluex.liquidbounce.utils.realMotionY
-import net.ccbluex.liquidbounce.utils.realMotionZ
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.block.BlockAir
@@ -41,19 +40,14 @@ import net.minecraft.network.play.client.C0BPacketEntityAction.Action.*
 import net.minecraft.network.play.server.S12PacketEntityVelocity
 import net.minecraft.network.play.server.S27PacketExplosion
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
-import net.minecraft.util.AxisAlignedBB
-import net.minecraft.util.BlockPos
+import net.minecraft.util.*
 import net.minecraft.util.EnumFacing.DOWN
-import net.minecraft.util.MathHelper
-import net.minecraft.util.MovingObjectPosition
 import net.minecraft.world.WorldSettings
+import op.wawa.opacketfix.features.hytpacket.CustomPacket
 import javax.vecmath.Vector2d
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.random.Random
+
 
 object Velocity : Module("Velocity", Category.COMBAT) {
 
@@ -66,7 +60,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             "Reverse", "SmoothReverse", "Jump", "Glitch", "Legit",
             "GhostBlock", "Vulcan", "S32Packet", "MatrixReduce",
             "IntaveReduce", "GrimReduce", "Delay", "GrimC03", "GrimCombat", "Hypixel", "HypixelAir",
-            "Click", "BlocksMC", "IntaveA", "IntaveB", "Polar"
+            "Click", "BlocksMC", "IntaveA", "IntaveB", "Polar", "Block"
         ), "Simple"
     )
     private val GrimReduceFactor by floatValue("Factor", 0.6f, 0.0f..1.0f) { mode == "GrimReduce" }
@@ -79,6 +73,8 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     private val verticalGround by intValue("VerticalOnGround", 0, 0..100) { mode == "Advanced" }
     private val horizontalInAir by intValue("HorizontalInAir", 0, 0..100) { mode == "Advanced" }
     private val verticalInAir by intValue("VerticalInAir", 0, 0..100) { mode == "Advanced" }
+    // Block
+    private val renderSlot by _boolean("RenderSlot", true) { mode == "Block" }
     // Reverse
     private val reverseStrength by floatValue("ReverseStrength", 1F, 0.1F..1F) { mode == "Reverse" }
     private val reverse2Strength by floatValue("SmoothReverseStrength", 0.05F, 0.02F..0.1F) { mode == "SmoothReverse" }
@@ -595,7 +591,22 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
         if (event.isCancelled)
             return
+        // Also from Phantom Injection
+        // 感谢dev发我的src。我爱你。
+        if (mode == "Block") {
+            if (packet is S12PacketEntityVelocity) {
+                if (packet.entityID == thePlayer.entityId) {
+                    val x = packet.motionX / 8000.0
+                    val y = packet.motionY / 8000.0
+                    val z = packet.motionZ / 8000.0
 
+                    val vec3 = Vec3(x, y, z)
+                    val vec2 = RotationUtils.aimToPoint(mc.thePlayer.getPositionEyes(mc.timer.renderPartialTicks),vec3)
+                    val yaw = RotationUtils.shortestYaw(thePlayer.rotationYaw, vec2.x)
+                    mc.thePlayer.rotationYaw = yaw
+                }
+            }
+        }
         if (mode == "GrimReduce") {
             if (packet is S12PacketEntityVelocity && packet.entityID == mc.thePlayer?.entityId) {
                 val player = mc.thePlayer ?: return
@@ -835,7 +846,39 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     @EventTarget
     fun onTick(event: GameTickEvent) {
         val player = mc.thePlayer ?: return
+        if (mode == "Block") {
+            if (mc.thePlayer.hurtTime > 5) {
+                val block = InventoryUtils.findBlockInHotbar()
+                if (block != null) {
+                    SilentHotbar.selectSlotSilently(
+                        this,
+                        block,
+                        immediate = true,
+                        render = renderSlot,
+                        resetManually = true
+                    )
+                }
+                var i = 60
+                while (i >= 45) {
+                    mc.thePlayer.rotationPitch = i.toFloat()
+                    val mop = mc.objectMouseOver
+                    if (mop?.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                        mc.playerController.onPlayerRightClick(
+                            mc.thePlayer,
+                            mc.theWorld,
+                            mc.thePlayer.heldItem,
+                            mop.blockPos,
+                            mop.sideHit,
+                            mop.hitVec
+                        )
+                    }
+                    i -= 5
+                }
+            } else {
+                RotationUtils.resetRotation()
+            }
 
+        }
         if (mode != "GrimC03")
             return
 

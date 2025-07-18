@@ -16,15 +16,19 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextDouble
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
+import net.ccbluex.liquidbounce.utils.skid.lbnew.MathUtil.clamp
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.network.play.client.C03PacketPlayer
+import net.minecraft.realms.RealmsMth.clamp
+import net.minecraft.realms.RealmsMth.wrapDegrees
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.*
-import java.util.PriorityQueue
+import java.util.*
 import javax.vecmath.Vector2f
 import kotlin.math.*
+
 
 object RotationUtils : MinecraftInstance(), Listenable {
     @Suppress("NOTHING_TO_INLINE")
@@ -941,8 +945,27 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         return baseRotation.plus(Rotation(yawAdjust, pitchAdjust))
     }
+    // From Phantom Injection
+    fun shortestYaw(from: Float, to: Float): Float {
+        return from + limitYaw180(to - from)
+    }
 
+    fun limitYaw180(yaw: Float): Float {
+        return wrapDegrees(yaw)
+    }
 
+    fun limitPitch90(pitch: Float): Float {
+        return clamp(pitch, -90F, 90F)
+    }
+
+    fun aimToPoint(from: Vec3?, to: Vec3): Vec2f {
+        val diff = to.subtract(from)
+        val distance = hypot(diff.xCoord, diff.zCoord)
+        val yaw = Math.toDegrees(atan2(diff.zCoord, diff.xCoord)).toFloat() - 90.0f
+        val pitch = -Math.toDegrees(atan2(diff.yCoord, distance)).toFloat()
+        return Vec2f(yaw, pitch)
+    }
+    // End of Phantom Injection
     fun setTargetRotation(rotation: Rotation, options: RotationSettings, ticks: Int = options.resetTicks) {
         if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90) return
         if (!options.prioritizeRequest && activeSettings?.prioritizeRequest == true) return
@@ -992,7 +1015,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
     }
 
 
-    private fun resetRotation() {
+    fun resetRotation() {
         resetTicks = 0
         currentRotation?.let { (yaw, _) ->
             mc.thePlayer?.let {

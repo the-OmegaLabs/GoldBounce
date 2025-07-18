@@ -1269,6 +1269,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         @EventTarget
         private fun onUpdate(event: UpdateEvent) {
+            if (mc.thePlayer == null || mc.theWorld == null || (mc.netHandler == null && !mc.isSingleplayer)) return
             val currentTarget = target
             // Visual feedback for hitting the target
             if (currentTarget != null) {
