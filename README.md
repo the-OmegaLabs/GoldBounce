@@ -7,7 +7,7 @@
   <br>
   但是这是金振口服液
   <br>
-  QQ群 718366220 
+  QQ群 445493864
   <br>
   https://discord.gg/RwmbBTtSPr
   <br>
