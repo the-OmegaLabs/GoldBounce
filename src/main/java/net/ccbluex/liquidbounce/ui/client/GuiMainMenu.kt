@@ -123,7 +123,7 @@ class GuiMainMenu : GuiScreen() {
                     xE, yE, ew.toInt(), eh.toInt()
                 )
             }
-            if (expOn && expFrame>expFrames && xPos>width) {
+            if (expOn && expFrame>expFrames) {
                 done = true
                 played = true
             }
