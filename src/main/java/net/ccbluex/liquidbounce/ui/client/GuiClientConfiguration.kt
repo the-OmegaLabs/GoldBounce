@@ -39,7 +39,7 @@ class GuiClientConfiguration(val prevGui: GuiScreen) : GuiScreen() {
         fun updateClientWindow() {
             if (enabledClientTitle) {
                 // Set LiquidBounce title
-                Display.setTitle("${LiquidBounce.CLIENT_NAME} ${LiquidBounce.clientVersionText}/${LiquidBounce.clientBigVersionText} 欢迎您。${GlobalFeatures().getIpLocation()}")
+                Display.setTitle("${LiquidBounce.CLIENT_NAME} ${LiquidBounce.clientVersionText} / ${LiquidBounce.clientBigVersionText} 欢迎您。${GlobalFeatures().getIpLocation()}")
                 IconUtils.getFavicon()?.let { icons ->
                     Display.setIcon(icons)
                 }
