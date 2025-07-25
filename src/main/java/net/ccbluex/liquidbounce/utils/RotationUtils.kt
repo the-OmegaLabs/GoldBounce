@@ -1013,7 +1013,17 @@ object RotationUtils : MinecraftInstance(), Listenable {
             update()
         }
     }
+    fun setRotation(rotation: Rotation) {
+        if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90) return
 
+        val current = currentRotation ?: rotation
+
+        targetRotation = rotation as Rotation?
+
+        if (Debugger.RotationDebug) {
+            chat("Target Rotation: ${targetRotation?.yaw}, ${targetRotation?.pitch}")
+        }
+    }
 
     fun resetRotation() {
         resetTicks = 0

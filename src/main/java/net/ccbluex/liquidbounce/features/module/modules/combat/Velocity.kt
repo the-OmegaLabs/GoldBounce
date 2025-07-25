@@ -10,21 +10,25 @@ import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.features.module.modules.combat.Velocity.clicks
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler
-import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
-import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.MovementUtils.isOnGround
 import net.ccbluex.liquidbounce.utils.MovementUtils.speed
+import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
-import net.ccbluex.liquidbounce.utils.RaycastUtils.runWithModifiedRaycastResult
+import net.ccbluex.liquidbounce.utils.RaycastUtils
+import net.ccbluex.liquidbounce.utils.Rotation
+import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
-import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isLookingOnEntities
+import net.ccbluex.liquidbounce.utils.SilentHotbar
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
+import net.ccbluex.liquidbounce.utils.realMotionX
+import net.ccbluex.liquidbounce.utils.realMotionY
+import net.ccbluex.liquidbounce.utils.realMotionZ
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.block.BlockAir
@@ -43,8 +47,6 @@ import net.minecraft.network.play.server.S32PacketConfirmTransaction
 import net.minecraft.util.*
 import net.minecraft.util.EnumFacing.DOWN
 import net.minecraft.world.WorldSettings
-import op.wawa.opacketfix.features.hytpacket.CustomPacket
-import javax.vecmath.Vector2d
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -60,7 +62,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             "Reverse", "SmoothReverse", "Jump", "Glitch", "Legit",
             "GhostBlock", "Vulcan", "S32Packet", "MatrixReduce",
             "IntaveReduce", "GrimReduce", "Delay", "GrimC03", "GrimCombat", "Hypixel", "HypixelAir",
-            "Click", "BlocksMC", "IntaveA", "IntaveB", "Polar", "Block"
+            "Click", "BlocksMC", "IntaveA", "IntaveB", "Polar", "Block", "Prediction"
         ), "Simple"
     )
     private val GrimReduceFactor by floatValue("Factor", 0.6f, 0.0f..1.0f) { mode == "GrimReduce" }
@@ -161,6 +163,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
      */
     private val velocityTimer = MSTimer()
     private var hasReceivedVelocity = false
+    private var predictionVelocity: S12PacketEntityVelocity? = null // MODIFIED: Added state variable
 
     // SmoothReverse
     private var reverseHurt = false
@@ -191,7 +194,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     // Pause On Explosion
     private var pauseTicks = 0
 
-//    Grim
+    //    Grim
     var velocityInput: Boolean = false
     private const val grim_1_17Velocity = false
     private var attacked = false
@@ -222,6 +225,35 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             return
 
         when (mode.lowercase()) {
+            "prediction" -> {
+                val packet = predictionVelocity
+                if (packet != null && packet.entityID == thePlayer.entityId) {
+                    // Convert integer velocity to double
+                    val motionX = packet.motionX / 8000.0
+                    val motionZ = packet.motionZ / 8000.0
+
+                    // Check for valid horizontal knockback
+                    if (motionX != 0.0 || motionZ != 0.0) {
+                        // Calculate the opposite yaw to the knockback vector
+                        // We want to move towards (-motionX, -motionZ)
+                        // The yaw angle in Minecraft can be calculated with atan2(z, x)
+                        val oppositeYaw = Math.toDegrees(atan2(-motionX, -motionZ)).toFloat()
+                        if (oppositeYaw >= 180.0) return
+                        // Set player rotation using RotationUtils
+                        // We only need to change the Yaw, pitch can remain the same
+                        RotationUtils.setRotation(Rotation(oppositeYaw-Random(1337).nextInt(50,-50), thePlayer.rotationPitch))
+
+                        // If on ground, jump to add vertical velocity
+                        if (thePlayer.onGround) {
+                            thePlayer.jump()
+                        }
+                    }
+
+                    // Reset the packet variable to prevent re-execution
+                    predictionVelocity = null
+                }
+            }
+
             "glitch" -> {
                 thePlayer.noClip = hasReceivedVelocity
 
@@ -239,7 +271,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
                 if (nearbyEntity != null) {
                     if (!thePlayer.onGround) {
-                        if (onLook && !isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble())) {
+                        if (onLook && !EntityUtils.isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble())) {
                             return
                         }
 
@@ -257,7 +289,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         thePlayer.speedInAir = 0.02F
                         reverseHurt = false
                     } else {
-                        if (onLook && !isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble())) {
+                        if (onLook && !EntityUtils.isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble())) {
                             hasReceivedVelocity = false
                             thePlayer.speedInAir = 0.02F
                             reverseHurt = false
@@ -465,7 +497,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             if (whenFacingEnemyOnly) {
                 var result: Entity? = null
 
-                runWithModifiedRaycastResult(
+                RaycastUtils.runWithModifiedRaycastResult(
                     currentRotation ?: thePlayer.rotation,
                     clickRange.toDouble(),
                     0.0
@@ -632,10 +664,10 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             if (mc.thePlayer.isEating && consumecheck) return
             if (soulSandCheck()) return
             if (packet is S12PacketEntityVelocity && packet.entityID == thePlayer.entityId) {
-    //            chat("触发反击退但还没攻击")
+                //            chat("触发反击退但还没攻击")
                 val s12 = (event.packet as S12PacketEntityVelocity)
                 val horizontalStrength =
-                    Vector2d(s12.getMotionX().toDouble(), s12.getMotionZ().toDouble()).length()
+                    kotlin.math.sqrt(s12.getMotionX().toDouble().pow(2) + s12.getMotionZ().toDouble().pow(2))
                 if (horizontalStrength <= 1000) return
                 val mouse = mc.objectMouseOver
                 velocityInput = true
@@ -802,7 +834,12 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     hasReceivedVelocity = true
                     event.cancelEvent()
                 }
-
+                
+                "prediction" -> {
+                    if (packet is S12PacketEntityVelocity && packet.entityID == thePlayer.entityId) {
+                        predictionVelocity = packet
+                    }
+                }
 
             }
         }
