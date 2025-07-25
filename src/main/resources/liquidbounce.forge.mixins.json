@@ -82,6 +82,7 @@
     "gui.MixinGuiTextField",
     "render.MixinItemRenderer",
     "render.MixinRenderGlobal",
+    "render.MixinShaderGroup",
     "tweaks.MixinEntityFX",
     "tweaks.TextureUtilMixin"
   ]

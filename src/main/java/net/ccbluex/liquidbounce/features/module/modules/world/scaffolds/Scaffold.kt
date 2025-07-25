@@ -295,7 +295,17 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
 
     // Visuals
     private val mark by _boolean("Mark", false, subjective = true)
+    private val markR by intValue("Mark-R", 255, 0..255) {mark}
+    private val markG by intValue("Mark-G", 255, 0..255) {mark}
+    private val markB by intValue("Mark-B", 0, 0..255) {mark}
+    private val markA by intValue("Mark-Alpha", 255, 0..255) {mark}
+
     private val trackCPS by _boolean("TrackCPS", false, subjective = true)
+
+    // Mark Animation
+    private var markCurrentBB: AxisAlignedBB? = null
+    private var markSlideBB: AxisAlignedBB? = null
+    private val markSmoothAnimations = Array(6) { SmoothAnimation(0.0F) }
 
     // Target placement
     var placeRotation: PlaceRotation? = null
@@ -873,24 +883,76 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
         }
 
         if (!mark) {
+            // Reset animation state if mark is disabled
+            markCurrentBB = null
+            markSlideBB = null
             return
         }
 
-        repeat(if (scaffoldMode == "Expand") expandLength + 1 else 2) {
+        var targetPos: BlockPos? = null
+
+        // Find the block to mark, same logic as before but we store the result
+        val count = if (scaffoldMode == "Expand") expandLength + 1 else 2
+        for (i in 0 until count) {
             val yaw = player.rotationYaw.toRadiansD()
             val x = if (omniDirectionalExpand) -sin(yaw).roundToInt() else player.horizontalFacing.directionVec.x
             val z = if (omniDirectionalExpand) cos(yaw).roundToInt() else player.horizontalFacing.directionVec.z
             val blockPos = BlockPos(
-                player.posX + x * it,
+                player.posX + x * i,
                 if (shouldKeepLaunchPosition && launchY <= player.posY) launchY - 1.0 else player.posY - (if (player.posY == player.posY + 0.5) 0.0 else 1.0) - if (shouldGoDown) 1.0 else 0.0,
-                player.posZ + z * it
+                player.posZ + z * i
             )
-            val placeInfo = PlaceInfo.get(blockPos)
 
-            if (isReplaceable(blockPos) && placeInfo != null) {
-                RenderUtils.drawBlockBox(blockPos, Color(68, 117, 255, 100), false)
-                return
+            if (isReplaceable(blockPos) && PlaceInfo.get(blockPos) != null) {
+                targetPos = blockPos
+                break
             }
+        }
+
+
+        // Animate and render if a target exists
+        if (targetPos != null) {
+            val selectedBB = AxisAlignedBB(
+                targetPos.x.toDouble(), targetPos.y.toDouble(), targetPos.z.toDouble(),
+                (targetPos.x + 1).toDouble(), (targetPos.y + 1).toDouble(), (targetPos.z + 1).toDouble()
+            )
+
+            // Update animation states
+            if (selectedBB != markCurrentBB) {
+                markSlideBB = markCurrentBB
+                markCurrentBB = selectedBB
+            }
+
+            val current = markCurrentBB
+            val slide = markSlideBB
+
+            val renderBB = if (slide != null && current != null) {
+                // Perform smoothing animation
+                markSmoothAnimations[0].setAnimation(current.minX.toFloat(), 14.0)
+                markSmoothAnimations[1].setAnimation(current.minY.toFloat(), 14.0)
+                markSmoothAnimations[2].setAnimation(current.minZ.toFloat(), 14.0)
+                markSmoothAnimations[3].setAnimation(current.maxX.toFloat(), 14.0)
+                markSmoothAnimations[4].setAnimation(current.maxY.toFloat(), 14.0)
+                markSmoothAnimations[5].setAnimation(current.maxZ.toFloat(), 14.0)
+
+                AxisAlignedBB(
+                    markSmoothAnimations[0].value.toDouble(), markSmoothAnimations[1].value.toDouble(), markSmoothAnimations[2].value.toDouble(),
+                    markSmoothAnimations[3].value.toDouble(), markSmoothAnimations[4].value.toDouble(), markSmoothAnimations[5].value.toDouble()
+                )
+            } else {
+                selectedBB // Fallback to the current block if animation can't run yet
+            }
+
+            // Render the animated box
+            val renderManager = mc.renderManager
+            val finalBB = renderBB.offset(-renderManager.viewerPosX, -renderManager.viewerPosY, -renderManager.viewerPosZ)
+
+            RenderUtils.glColor(Color(markR, markG, markB, markA))
+            RenderUtils.drawFilledBox(finalBB, true)
+        } else {
+            // No valid block found, reset animation state to prevent hanging
+            markCurrentBB = null
+            markSlideBB = null
         }
     }
 
@@ -1314,4 +1376,10 @@ object Scaffold : Module("Scaffold", Category.WORLD, Keyboard.KEY_I, hideModule 
         get() = if (towerMode != "None") ("$scaffoldMode | $towerMode") else scaffoldMode
 
     data class ExtraClickInfo(val delay: Int, val lastClick: Long, var clicks: Int)
+
+    private class SmoothAnimation(var value: Float) {
+        fun setAnimation(target: Float, speed: Double) {
+            value += ((target - value) / speed).toFloat()
+        }
+    }
 }

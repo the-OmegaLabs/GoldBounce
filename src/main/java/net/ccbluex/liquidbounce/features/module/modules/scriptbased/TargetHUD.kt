@@ -47,12 +47,13 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "Naven",
             "Wave",
             "Pulse",
-            "Neon"
+            "Neon",
+            "Layer"
         ),
         "Flux"
     )
-    private val posX by intValue("PosX", 0, -400..400)
-    private val posY by intValue("PosY", 0, -400..400)
+    private val posX by intValue("PosX", 0, -400..400) {hudStyle != "Layer"}
+    private val posY by intValue("PosY", 0, -400..400) {hudStyle != "Layer"}
     private val animSpeed by floatValue("AnimationSpeed", 0.1F, 0.01F..0.5F)
 
     // Flux Settings
@@ -143,73 +144,10 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         }
         southsideEasingHealth = southsideEasingHealth.coerceAtMost(maxHealth)
     }
+    private fun renderLayer() {
+        val kaTarget = KillAura.target
 
-    private fun renderSouthsideHUD(x: Float, y: Float) {
-        val entity = target ?: lastTarget ?: return
-
-        val health = entity.health
-        val maxHealth = entity.maxHealth
-        val healthPercent = (health / maxHealth).coerceIn(0f, 1f)
-
-        // Update easing health
-        updateSouthsideEasingHealth(health, maxHealth)
-        val easingHealthPercent = (southsideEasingHealth / maxHealth).coerceIn(0f, 1f)
-
-        val name = entity.name
-        val width = Fonts.font40.getStringWidth(name) + 75f
-        val presentWidth = easingHealthPercent * width
-
-        GlStateManager.pushMatrix()
-
-        // Animation
-        val animOutput = slideIn
-        GlStateManager.translate((x + width / 2) * (1 - animOutput).toDouble(), (y + 20) * (1 - animOutput).toDouble(), 0.0)
-        GlStateManager.scale(animOutput, animOutput, animOutput)
-
-        // Background
-        RenderUtils.drawRect(x, y, x + width, y + 40, Color(0, 0, 0, 100).rgb)
-        RenderUtils.drawRect(x, y, x + presentWidth, y + 40, Color(230, 230, 230, 100).rgb)
-
-        // Vertical health indicator
-        val healthColor = when {
-            healthPercent > 0.5 -> Color(63, 157, 4, 150)
-            healthPercent > 0.25 -> Color(255, 144, 2, 150)
-            else -> Color(168, 1, 1, 150)
-        }
-        RenderUtils.drawRect(x, y + 12.5f, x + 3, y + 27.5f, healthColor.rgb)
-
-        // Head
-        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
-            Target().drawHead(it.locationSkin, x.toInt() + 7, y.toInt() + 7, 26, 26, Color.WHITE)
-        } ?: RenderUtils.drawRect(x + 6, y + 6, x + 34, y + 34, Color.BLACK.rgb)
-
-
-        // Text
-        Fonts.font40.drawString(name, x + 40, y + 7, Color(200, 200, 200, 255).rgb)
-        Fonts.font35.drawString("${health.toInt()} HP", x + 40, y + 22, Color(200, 200, 200, 255).rgb)
-
-        // Held Item
-        val itemStack = entity.heldItem
-        val itemX = x + Fonts.font40.getStringWidth(name) + 50
-        if (itemStack != null) {
-            GlStateManager.pushMatrix()
-            GlStateManager.translate(itemX, y + 12, 0f)
-            GlStateManager.scale(1.5f, 1.5f, 1.5f) // Make item bigger
-            RenderHelper.enableGUIStandardItemLighting()
-            mc.renderItem.renderItemAndEffectIntoGUI(itemStack, 0, 0)
-            RenderHelper.disableStandardItemLighting()
-            GlStateManager.popMatrix()
-        } else {
-            Fonts.font40.drawString("?", x + Fonts.font40.getStringWidth(name) + 55, y + 11, Color(200, 200, 200, 255).rgb)
-        }
-
-        GlStateManager.popMatrix()
     }
-
-
-    // ... [Rest of the existing code is unchanged] ...
-    // Note: To save space, the rest of the file is omitted, but the changes below are essential.
-    // Make sure the following changes are also applied to your existing file.
 
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
@@ -262,7 +200,6 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "arc" -> renderArcHUD(x, y)
             "compact" -> renderCompactHUD(x, y)
             "moon4" -> renderMoon4HUD(x, y)
-            "southside" -> renderSouthsideHUD(x,y)
             "novoline" -> renderNovolineHUD(sr)
             "戶籍" -> render0x01a4HUD(sr)
             "chill" -> renderChillHUD(sr)
