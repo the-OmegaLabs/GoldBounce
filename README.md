@@ -11,7 +11,8 @@
   <br>
   https://discord.gg/RwmbBTtSPr
   <br>
-  Lombok SneakyThrows doesn't work, I hate gradle.
+  Lombok SneakyThrows doesn't work, I hate gradle.<br>
+  本客户端的全部源代码可自由使用与修改，我对此不持异议。无需署名作者，惟请在文件头部添加项目链接以示出处，感谢您的理解。
   <br>
   <img src="https://img.shields.io/github/license/bzym2/GoldBounce" alt="Licence Widget">
   <img src="https://img.shields.io/github/downloads/bzym2/GoldBounce/total" alt="Total Downloads">
