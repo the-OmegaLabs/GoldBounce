@@ -133,7 +133,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock
     val autoBlock by choices(
         "AutoBlock",
-        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC_A", "BlocksMC_B", "HypixelFull", "NCP"),
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "HypixelFull", "NCP"),
         "Packet"
     )
 
@@ -149,8 +149,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         )
     }
@@ -158,8 +157,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         ) && releaseAutoBlock
     }
@@ -167,8 +165,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         ) && releaseAutoBlock
     }
@@ -176,8 +173,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         ) && releaseAutoBlock
     }
@@ -185,8 +181,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         )
     }
@@ -194,8 +189,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         )
     }
@@ -203,8 +197,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         )
     }
@@ -213,8 +206,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         autoBlock !in listOf(
             "Off",
             "Fake",
-            "BlocksMC_A",
-            "BlocksMC_B",
+            "BlocksMC",
             "HypixelFull"
         ) && blinkAutoBlock
     }
@@ -252,23 +244,23 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     private val highestBodyPointToTargetValue: ListValue =
         object : ListValue("HighestBodyPointToTarget", arrayOf("Head", "Body", "Feet"), "Head") {
-        override fun isSupported() = options.rotationsActive
-        override fun onChange(oldValue: String, newValue: String): String {
-            val newPoint = RotationUtils.BodyPoint.fromString(newValue)
-            val lowestPoint = RotationUtils.BodyPoint.fromString(lowestBodyPointToTarget)
-            return RotationUtils.coerceBodyPoint(newPoint, lowestPoint, RotationUtils.BodyPoint.HEAD).name
+            override fun isSupported() = options.rotationsActive
+            override fun onChange(oldValue: String, newValue: String): String {
+                val newPoint = RotationUtils.BodyPoint.fromString(newValue)
+                val lowestPoint = RotationUtils.BodyPoint.fromString(lowestBodyPointToTarget)
+                return RotationUtils.coerceBodyPoint(newPoint, lowestPoint, RotationUtils.BodyPoint.HEAD).name
+            }
         }
-    }
     private val highestBodyPointToTarget by highestBodyPointToTargetValue
     private val lowestBodyPointToTargetValue: ListValue =
         object : ListValue("LowestBodyPointToTarget", arrayOf("Head", "Body", "Feet"), "Feet") {
-        override fun isSupported() = options.rotationsActive
-        override fun onChange(oldValue: String, newValue: String): String {
-            val newPoint = RotationUtils.BodyPoint.fromString(newValue)
-            val highestPoint = RotationUtils.BodyPoint.fromString(highestBodyPointToTarget)
-            return RotationUtils.coerceBodyPoint(newPoint, RotationUtils.BodyPoint.FEET, highestPoint).name
+            override fun isSupported() = options.rotationsActive
+            override fun onChange(oldValue: String, newValue: String): String {
+                val newPoint = RotationUtils.BodyPoint.fromString(newValue)
+                val highestPoint = RotationUtils.BodyPoint.fromString(highestBodyPointToTarget)
+                return RotationUtils.coerceBodyPoint(newPoint, RotationUtils.BodyPoint.FEET, highestPoint).name
+            }
         }
-    }
     private val lowestBodyPointToTarget by lowestBodyPointToTargetValue
 
     private val maxHorizontalBodySearch: FloatValue = object : FloatValue("MaxHorizontalBodySearch", 1f, 0f..1f) {
@@ -339,19 +331,16 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var attackDelay = 0
     private var clicks = 0
     private var attackTickTimes = mutableListOf<Pair<MovingObjectPosition, Int>>()
-    var attack = 0 // Used by BlocksMC modes
+    var attack = 0 // Used by BlocksMC mode
 
     // AutoBlock
     var renderBlocking = false
     var blockStatus = false
     var slotChangeAutoBlock = false
 
-    // AutoBlock (BlocksMC modes)
-    private var blocksmcJohnState = false
-    private var blocksmcClickCounter = 0
-    private var asw = 0 // BlocksMC_A state
-    private var blockTickB = 0 // BlocksMC_B state
-    private var blockTick: Int = 0 // Also for BlocksMC_A
+    // AutoBlock (BlocksMC mode)
+    private var asw = 0 // BlocksMC state
+    private var blockTick: Int = 0
 
     // AutoBlock (HypixelFull mode)
     private var hypixelBlinking = false
@@ -404,9 +393,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         attackTimer.reset()
         clicks = 0
 
+        if (autoBlock == "BlocksMC" && blockStatus) {
+            sendPacket(C09PacketHeldItemChange((mc.thePlayer.inventory.currentItem + 2) % 8))
+            sendPacket(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+        }
+
         // Reset all mode-specific states
         asw = 0
-        blockTickB = 0
         blockTick = 0
         attack = 0
 
@@ -483,13 +476,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         // Handle special autoblock modes which have their own attack/block timing
         when (autoBlock) {
-            "BlocksMC_A" -> {
-                handleBlocksMCA()
-                return // Prevent default attack logic from running
-            }
-
-            "BlocksMC_B" -> {
-                handleBlocksMCB()
+            "BlocksMC" -> {
+                handleBlocksMC()
                 return // Prevent default attack logic from running
             }
         }
@@ -731,7 +719,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private fun updateRotations(entity: Entity): Boolean {
         if (shouldPrioritize() || !options.rotationsActive) {
             // For non-rotation mode, still need to check range.
-            return mc.thePlayer.getDistanceToEntityBox(entity) <= range
+            hittable = mc.thePlayer.getDistanceToEntityBox(entity) <= range
+            return hittable
         }
 
         val player = mc.thePlayer ?: return false
@@ -946,13 +935,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             }
             blockStatus = false
         }
-
         renderBlocking = false
-
-        if (autoBlock.startsWith("BlocksMC")) {
-            blocksmcJohnState = false
-            blocksmcClickCounter = 0
-        }
     }
 
     @EventTarget
@@ -991,72 +974,52 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      * SPECIAL AUTOBOCK MODES
      */
 
-    // BlocksMC Mode A: A complex state machine for attacking and blocking.
-    private fun handleBlocksMCA() {
+    // BlocksMC Mode: A complex state machine for attacking and blocking.
+    private fun handleBlocksMC() {
         val player = mc.thePlayer ?: return
+        val currentTarget = target ?: return
+
+        asw++
         when (asw) {
-            0 -> {
-                asw = 1
-                if (blockStatus) {
-                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                    sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
-                }
-                blockStatus = true
-                blinking = true
-                if (attack < 4) attack = 4
-                attack++
-                blockTick++
-            }
-
             1 -> {
-                if (isTargetInRange(target!!, range + 2.0) && blockTick < 8) {
-                    attackEntityDirectly(target!!)
-                }
-                releaseBlinkedPackets()
-                asw = 2
-            }
+                val attackRangeCheck = player.getDistanceToEntityBox(currentTarget) <= (if (blinking) range else 3.0F)
 
-            2 -> {
-                if (isTargetInRange(target!!, range.toDouble()) && attack < 16) {
-                    attackEntityDirectly(target!!)
+                if (attackRangeCheck && hittable) {
+                    attackEntityDirectly(currentTarget)
+                    attack++
+                } else {
+                    attack = 0
+                    player.swingItem()
                 }
-                if (blockTick >= 8) blockTick = 0
-                if (attack >= 16) attack = 4
+
                 sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
-                asw = 0
-            }
-        }
-    }
+                blockStatus = true
+                renderBlocking = true
 
-    // BlocksMC Mode B: Another state machine for a different bypass.
-    private fun handleBlocksMCB() {
-        val player = mc.thePlayer ?: return
-        when (blockTickB) {
-            0 -> {
+                blinking = false
+                releaseBlinkedPackets()
+            }
+            2 -> {
+                if (attack % 3 == 0) {
+                    blinking = true
+                    sendPacket(C09PacketHeldItemChange((player.inventory.currentItem + 2) % 8))
+                    sendPacket(C09PacketHeldItemChange(player.inventory.currentItem))
+                    sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, player.heldItem, 0f, 0f, 0f))
+                    asw = 0
+                } else if (attack % 6 == 1) {
+                    blinking = true
+                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                    blockStatus = false
+                    renderBlocking = false
+                    asw = 0
+                }
+            }
+            3 -> {
                 blinking = true
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                attack++
                 blockStatus = false
-                blockTickB = 2
-            }
-
-            2, 3 -> {
-                if (attack < 7) {
-                    if (isTargetInRange(target!!, range.toDouble())) {
-                        attackEntityDirectly(target!!)
-                    } else {
-                        player.swingItem()
-                    }
-                }
-                if (blockTickB == 3) {
-                    sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
-                    releaseBlinkedPackets()
-                    if (attack >= 7) attack = 0
-                    blockStatus = true
-                    blockTickB = 0
-                } else {
-                    blockTickB = 3
-                }
+                renderBlocking = false
+                asw = 0
             }
         }
     }

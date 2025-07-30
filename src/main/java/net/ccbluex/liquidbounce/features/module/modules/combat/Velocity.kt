@@ -218,6 +218,10 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         reset()
     }
     @EventTarget
+    fun onMotion(event: MotionEvent) {
+
+    }
+    @EventTarget
     fun onUpdate(event: UpdateEvent) {
         val thePlayer = mc.thePlayer ?: return
 
@@ -238,10 +242,9 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         // We want to move towards (-motionX, -motionZ)
                         // The yaw angle in Minecraft can be calculated with atan2(z, x)
                         val oppositeYaw = Math.toDegrees(atan2(-motionX, -motionZ)).toFloat()
-                        if (oppositeYaw >= 180.0) return
                         // Set player rotation using RotationUtils
                         // We only need to change the Yaw, pitch can remain the same
-                        RotationUtils.setRotation(Rotation(oppositeYaw-Random(1337).nextInt(50,-50), thePlayer.rotationPitch))
+                        RotationUtils.setRotation(Rotation(oppositeYaw, thePlayer.rotationPitch))
 
                         // If on ground, jump to add vertical velocity
                         if (thePlayer.onGround) {
@@ -547,7 +550,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
             "grimcombat" -> {
                 if (attacked) {
-                    if (ViaLoadingBase.getInstance().targetVersion.olderThanOrEqualTo(ProtocolVersion.v1_8)) {
+                    if (ViaLoadingBase.getInstance().targetVersion == (ProtocolVersion.v1_8)) {
                         mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
                         mc.netHandler.networkManager.sendPacket(
                             C02PacketUseEntity(
@@ -695,7 +698,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     }
                     val count = attackCountValue
                     for (i in 1..count) {
-                        if (ViaLoadingBase.getInstance().targetVersion.olderThanOrEqualTo(ProtocolVersion.v1_8)) {
+                        if (ViaLoadingBase.getInstance().targetVersion == (ProtocolVersion.v1_8)) {
                             mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
                             mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
                         } else {

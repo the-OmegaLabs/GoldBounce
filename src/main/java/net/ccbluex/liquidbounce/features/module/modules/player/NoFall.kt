@@ -65,9 +65,7 @@ object NoFall : Module("NoFall", Category.PLAYER, hideModule = false) {
     val autoMLG by choices("AutoMLG", arrayOf("Off", "Pick", "Spoof", "Switch"), "Spoof") { mode == "MLG" }
     val swing by _boolean("Swing", true) { mode == "MLG" }
 
-    val options = RotationSettings(this) { mode == "MLG" }.apply {
-        resetTicksValue.setSupport { { it && keepRotation } }
-    }
+    val options = RotationSettings(this) { mode == "MLG" }
 
     // Using too many times of simulatePlayer could result timer flag. Hence, why this is disabled by default.
     val checkFallDist by _boolean("CheckFallDistance", false, subjective = true) { mode == "Blink" }
