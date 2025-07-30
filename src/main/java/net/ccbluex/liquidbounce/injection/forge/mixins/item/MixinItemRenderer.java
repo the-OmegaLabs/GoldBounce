@@ -181,14 +181,6 @@ public abstract class MixinItemRenderer {
         }
     }
 
-    @Redirect(method = "updateEquippedItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/InventoryPlayer;getCurrentItem()Lnet/minecraft/item/ItemStack;"))
-    private ItemStack hookSilentHotbar(InventoryPlayer instance) {
-        SilentHotbarModule module = SilentHotbarModule.INSTANCE;
-
-        int slot = SilentHotbar.INSTANCE.renderSlot(module.handleEvents() && module.getKeepItemInHandInFirstPerson());
-
-        return instance.getStackInSlot(slot);
-    }
 
 
 }
