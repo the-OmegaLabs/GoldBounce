@@ -974,8 +974,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      * SPECIAL AUTOBOCK MODES
      */
 
-    // BlocksMC Mode: A complex state machine for attacking and blocking.
     private fun handleBlocksMC() {
+        updateHittable()
+
         val player = mc.thePlayer ?: return
         val currentTarget = target ?: return
 
