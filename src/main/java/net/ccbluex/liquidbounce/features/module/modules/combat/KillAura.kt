@@ -101,6 +101,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             blockRange = blockRange.coerceAtMost(newValue)
         }
     }
+    private val clickRange by floatValue("ClickRange", 8f, 1f..12f)
+    private val clickRangeCPS by intValue("ClickRangeCPS", 4, 1..20)
     private val scanRange by floatValue("ScanRange", 2f, 0f..10f)
     private val throughWallsRange by floatValue("ThroughWallsRange", 3f, 0f..8f)
     private val rangeSprintReduction by floatValue("RangeSprintReduction", 0f, 0f..0.4f)
@@ -323,12 +325,15 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
      */
     // Target
     var target: EntityLivingBase? = null
+    private var clickRangeTarget: EntityLivingBase? = null
     private var hittable = false
     private val prevTargetEntities = mutableListOf<Int>()
 
     // Attack
     private val attackTimer = MSTimer()
+    private val clickRangeAttackTimer = MSTimer()
     private var attackDelay = 0
+    private var clickRangeAttackDelay = 0
     private var clicks = 0
     private var attackTickTimes = mutableListOf<Pair<MovingObjectPosition, Int>>()
     var attack = 0 // Used by BlocksMC mode
@@ -387,10 +392,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
     private fun reset() {
         target = null
+        clickRangeTarget = null
         hittable = false
         prevTargetEntities.clear()
         attackTickTimes.clear()
         attackTimer.reset()
+        clickRangeAttackTimer.reset()
         clicks = 0
 
         if (autoBlock == "BlocksMC" && blockStatus) {
@@ -428,7 +435,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         // Update target and rotations
         updateTarget()
 
-        if (autoF5 && target != null && mc.gameSettings.thirdPersonView != 1) {
+        if (autoF5 && (target != null || clickRangeTarget != null) && mc.gameSettings.thirdPersonView != 1) {
             mc.gameSettings.thirdPersonView = 1
         }
     }
@@ -443,15 +450,19 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         val player = mc.thePlayer ?: return
 
         target?.let { if (it.isDead) EventManager.callEvent(EntityKilledEvent(it)) }
+        clickRangeTarget?.let { if (it.isDead) clickRangeTarget = null }
+
 
         if (shouldPrioritize()) {
             target = null
+            clickRangeTarget = null
             renderBlocking = false
             return
         }
 
         if (cancelRun) {
             target = null
+            clickRangeTarget = null
             hittable = false
             stopBlocking()
             return
@@ -463,13 +474,27 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         if (noInventoryAttack && (mc.currentScreen is GuiContainer || System.currentTimeMillis() - containerOpen < noInventoryDelay)) {
             target = null
+            clickRangeTarget = null
             hittable = false
             return
         }
 
-        if (target == null) {
+        if (target == null && clickRangeTarget == null) {
             if (blockStatus) {
                 stopBlocking()
+            }
+            return
+        }
+
+        // Handle click range logic
+        if (target == null && clickRangeTarget != null) {
+            if (clickRangeAttackTimer.hasTimePassed(clickRangeAttackDelay)) {
+                if (!clickOnly || mc.gameSettings.keyBindAttack.isKeyDown) {
+                    mc.thePlayer.swingItem()
+                    CPSCounter.registerClick(CPSCounter.MouseButton.LEFT)
+                }
+                clickRangeAttackTimer.reset()
+                clickRangeAttackDelay = randomClickDelay(clickRangeCPS, clickRangeCPS)
             }
             return
         }
@@ -651,6 +676,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (shouldPrioritize()) return
 
         target = null
+        clickRangeTarget = null
 
         val switchMode = targetMode == "Switch"
         val theWorld = mc.theWorld ?: return
@@ -659,6 +685,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         var bestTarget: EntityLivingBase? = null
         var bestValue: Double? = null
+
+        var bestClickRangeTarget: EntityLivingBase? = null
+        var bestClickRangeValue: Double? = null
 
         for (entity in entities) {
             if (entity !is EntityLivingBase || !EntityUtils.isSelected(
@@ -669,48 +698,64 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
             var distance = 0.0
             Backtrack.runWithNearestTrackedDistance(entity) { distance = thePlayer.getDistanceToEntityBox(entity) }
-            if (switchMode && distance > range && prevTargetEntities.isNotEmpty()) continue
 
             val entityFov = rotationDifference(entity)
-            if (distance > maxRange || (fov != 180F && entityFov > fov)) continue
+            if (fov != 180F && entityFov > fov) continue
 
-            if (switchMode && !EntityUtils.isLookingOnEntities(entity, maxSwitchFOV.toDouble())) continue
-
-            val currentValue = when (priority.lowercase()) {
-                "distance" -> distance
-                "direction" -> entityFov.toDouble()
-                "health" -> entity.health.toDouble()
-                "livingtime" -> -entity.ticksExisted.toDouble()
-                "armor" -> entity.totalArmorValue.toDouble()
-                "hurtresistance" -> entity.hurtResistantTime.toDouble()
-                "hurttime" -> entity.hurtTime.toDouble()
-                "healthabsorption" -> (entity.health + entity.absorptionAmount).toDouble()
-                // BUG FIX: Correctly prioritize higher regen. Negative value makes lower (more negative) better.
-                "regenamplifier" -> -(if (entity.isPotionActive(Potion.regeneration)) {
-                    (entity.getActivePotionEffect(Potion.regeneration).amplifier + 1).toDouble()
-                } else 0.0)
-                "inweb" -> if (entity.isInWeb) -1.0 else Double.MAX_VALUE
-                "onladder" -> if (entity.isOnLadder) -1.0 else Double.MAX_VALUE
-                "inliquid" -> if (entity.isInWater || entity.isInLava) -1.0 else Double.MAX_VALUE
-                else -> continue
+            val currentValue by lazy {
+                when (priority.lowercase()) {
+                    "distance" -> distance
+                    "direction" -> entityFov.toDouble()
+                    "health" -> entity.health.toDouble()
+                    "livingtime" -> -entity.ticksExisted.toDouble()
+                    "armor" -> entity.totalArmorValue.toDouble()
+                    "hurtresistance" -> entity.hurtResistantTime.toDouble()
+                    "hurttime" -> entity.hurtTime.toDouble()
+                    "healthabsorption" -> (entity.health + entity.absorptionAmount).toDouble()
+                    "regenamplifier" -> -(if (entity.isPotionActive(Potion.regeneration)) {
+                        (entity.getActivePotionEffect(Potion.regeneration).amplifier + 1).toDouble()
+                    } else 0.0)
+                    "inweb" -> if (entity.isInWeb) -1.0 else Double.MAX_VALUE
+                    "onladder" -> if (entity.isOnLadder) -1.0 else Double.MAX_VALUE
+                    "inliquid" -> if (entity.isInWater || entity.isInLava) -1.0 else Double.MAX_VALUE
+                    else -> Double.MAX_VALUE
+                }
             }
+            if (distance <= maxRange) {
+                if (switchMode && distance > range && prevTargetEntities.isNotEmpty()) continue
+                if (switchMode && !EntityUtils.isLookingOnEntities(entity, maxSwitchFOV.toDouble())) continue
 
-            if (bestValue == null || currentValue < bestValue) {
-                bestValue = currentValue
-                bestTarget = entity
+                if (bestValue == null || currentValue < bestValue) {
+                    bestValue = currentValue
+                    bestTarget = entity
+                }
+            } else if (distance <= clickRange) {
+                if (bestClickRangeValue == null || currentValue < bestClickRangeValue) {
+                    bestClickRangeValue = currentValue
+                    bestClickRangeTarget = entity
+                }
             }
         }
 
+        // After searching, prioritize the main target found within 'range'.
+        // If a 'range' target exists, all 'clickRange' logic is ignored.
         if (bestTarget != null) {
-            var success = false
-            Backtrack.runWithNearestTrackedDistance(bestTarget) { success = updateRotations(bestTarget) }
-            if (success) {
-                target = bestTarget
-                return
+            updateRotations(bestTarget!!)
+            // We set the target regardless of rotation success to prevent clickRange from activating.
+            // The 'hittable' check will handle whether an attack is possible.
+            target = bestTarget
+            clickRangeTarget = null // Ensure click range target is cleared.
+            return // Exit immediately, giving no chance for clickRange logic to run.
+        }
+
+        // This block is only reachable if no target was found in the primary 'range'.
+        if (bestClickRangeTarget != null) {
+            if (updateRotations(bestClickRangeTarget!!)) {
+                clickRangeTarget = bestClickRangeTarget
             }
         }
 
-        if (prevTargetEntities.isNotEmpty()) {
+        if (target == null && clickRangeTarget == null && prevTargetEntities.isNotEmpty()) {
             prevTargetEntities.clear()
             updateTarget()
         }
@@ -720,7 +765,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (shouldPrioritize() || !options.rotationsActive) {
             // For non-rotation mode, still need to check range.
             hittable = mc.thePlayer.getDistanceToEntityBox(entity) <= range
-            return hittable
+            return true // Always return true to allow clickRange to lock on
         }
 
         val player = mc.thePlayer ?: return false
@@ -747,9 +792,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         player.setPosAndPrevPos(pos)
+        val searchRange = if (target != null) range + scanRange else clickRange
         val rotation = searchCenter(
             boundingBox, outborder && !attackTimer.hasTimePassed(attackDelay / 2),
-            randomization, predict = false, lookRange = range + scanRange, attackRange = range,
+            randomization, predict = false, lookRange = searchRange, attackRange = range,
             throughWallsRange = throughWallsRange,
             bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
             horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(), options
@@ -1052,11 +1098,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun onRender3D(event: Render3DEvent) {
         if (cancelRun) {
             target = null
+            clickRangeTarget = null
             hittable = false
             return
         }
 
-        val currentTarget = target
+        val currentTarget = target ?: clickRangeTarget
 
         if (renderMode == "Capsule" && currentTarget != null) {
             val color = Color(currentRed, currentGreen, currentBlue, 255)
@@ -1073,6 +1120,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         if (noInventoryAttack && (mc.currentScreen is GuiContainer || System.currentTimeMillis() - containerOpen < noInventoryDelay)) {
             target = null
+            clickRangeTarget = null
             hittable = false
             if (mc.currentScreen is GuiContainer) containerOpen = System.currentTimeMillis()
             return
@@ -1080,13 +1128,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         if (currentTarget == null) return
 
-        if (attackTimer.hasTimePassed(attackDelay)) {
+        if (target != null && attackTimer.hasTimePassed(attackDelay)) {
             if (maxCPS > 0) clicks++
             attackTimer.reset()
             attackDelay = randomClickDelay(minCPS, maxCPS)
         }
 
-        if (targetMode != "Multi") {
+        if (target != null && targetMode != "Multi") {
             val color = if (hittable) Color(37, 126, 255, 70) else Color(255, 0, 0, 70)
             when (mark.lowercase()) {
                 "platform" -> drawPlatform(currentTarget, color)
@@ -1234,7 +1282,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         @EventTarget
         private fun onUpdate(event: UpdateEvent) {
             if (mc.thePlayer == null || mc.theWorld == null || (mc.netHandler == null && !mc.isSingleplayer)) return
-            val currentTarget = target
+            val currentTarget = target ?: clickRangeTarget
             // Visual feedback for hitting the target
             if (currentTarget != null) {
                 if (currentTarget.health < lastHealth) {
@@ -1244,6 +1292,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
                 if (currentGreen < 255) currentGreen = (currentGreen + fadeSpeed.get() * 255).toInt().coerceAtMost(255)
                 if (currentBlue < 255) currentBlue = (currentBlue + fadeSpeed.get() * 255).toInt().coerceAtMost(255)
+            } else {
+                lastHealth = 0f
             }
 
             // Kill tracking logic
