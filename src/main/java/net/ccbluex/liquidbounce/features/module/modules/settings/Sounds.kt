@@ -20,7 +20,7 @@ object Sounds : Module("Sounds", Category.SETTINGS, canBeEnabled = false) {
         ListValue("Disable", getMP3S("/assets/minecraft/liquidbounce/sounds/Disable").toTypedArray(), "Mac")
     val infoSounds = ListValue("Info", getMP3S("/assets/minecraft/liquidbounce/sounds/Info").toTypedArray(), "Chord")
     val startupSounds =
-        ListValue("Startup", getMP3S("/assets/minecraft/liquidbounce/sounds/Startup").toTypedArray(), "MIUI")
+        ListValue("Startup", getMP3S("/assets/minecraft/liquidbounce/sounds/Startup").toTypedArray(), "Goldgustus")
     val enableKillSounds = BoolValue("Enable KillSounds", false)
     val killSounds =
         ListValue("KillSounds", getWAVS("/assets/minecraft/liquidbounce/sounds/Kill").toTypedArray(), "CS2")

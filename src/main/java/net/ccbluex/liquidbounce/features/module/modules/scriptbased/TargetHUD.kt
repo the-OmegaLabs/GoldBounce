@@ -8,6 +8,7 @@ import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.animations.ContinualAnimation
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
@@ -113,7 +114,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private var southsideEasingHealth = 0F
     private var slideIn = 0F
     private var damageHealth = 0F
-
+    private val animate = ContinualAnimation()
     override fun onEnable() {
         easingHealth = 0F
         moon4EasingHealth = 0F
@@ -209,9 +210,25 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "wave" -> renderWaveHUD(x, y)
             "pulse" -> renderPulseHUD(x, y)
             "neon" -> renderNeonHUD(x, y)
+            "layer" -> renderLayerHUD()
         }
     }
+    private fun renderLayerHUD() {
+        val entity = target ?: lastTarget ?: return
+        val sr = ScaledResolution(mc)
 
+        val targetHealth = target?.health ?: 0f
+        easingHealth = lerp(easingHealth, targetHealth, animSpeed)
+        val maxHealth = entity.maxHealth.takeIf { it > 0 } ?: 20f
+        val healthPercent = (easingHealth / maxHealth).coerceIn(0f, 1f)
+
+        val healthBarWidth = sr.scaledWidth * healthPercent
+
+        val overlayColor = Color(255, 80, 80, (120 * slideIn).toInt())
+        if (healthBarWidth > 0) {
+            RenderUtils.drawRect(0f, 0f, healthBarWidth, sr.scaledHeight.toFloat(), overlayColor.rgb)
+        }
+    }
     private fun renderMoon4HUD(x: Float, y: Float) {
         val entity = target ?: lastTarget ?: return
 

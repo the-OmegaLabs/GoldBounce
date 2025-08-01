@@ -311,7 +311,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val boxOutline by _boolean("Outline", true, subjective = true) { mark == "Box" }
     private val fakeSharp by _boolean("FakeSharp", true, subjective = true)
     private val renderMode by ListValue("RenderEffect", arrayOf("Capsule", "Nursultan"), "Capsule")
-    private val fadeSpeed = FloatValue("FadeSpeed", 0.1f, 0.01f..0.2f) { renderMode == "Capsule" }
+    private val nursultanRed by IntegerValue("Nursultan-R", 255, 0..255) { renderMode == "Nursultan" }
+    private val nursultanGreen by IntegerValue("Nursultan-G", 255, 0..255) { renderMode == "Nursultan" }
+    private val nursultanBlue by IntegerValue("Nursultan-B", 255, 0..255) { renderMode == "Nursultan" }
+    private val nursultanAlpha by IntegerValue("Nursultan-Alpha", 255, 0..255) { renderMode == "Nursultan" }
+    private val fadeSpeed = FloatValue("FadeSpeed", 0.1f, 0.01f..0.2f)
     private val circle by BoolValue("Circle", false)
     private val circleAccuracy by IntegerValue("Accuracy", 59, 0..59) { circle }
     private val circleThickness by FloatValue("Thickness", 2f, 0f..20f) { circle }
@@ -367,6 +371,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var currentRed = 255
     private var currentGreen = 255
     private var currentBlue = 255
+    // Nursultan animation
+    private var nursultanAnimationAlpha = 0f
+    private var lastNursultanTarget: EntityLivingBase? = null
 
     /**
      * CORE FUNCTIONS
@@ -422,6 +429,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
         blinking = false
         blinkedPackets.clear()
+
+        nursultanAnimationAlpha = 0f
+        lastNursultanTarget = null
 
         synchronized(swingFails) {
             swingFails.clear()
@@ -1108,8 +1118,13 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (renderMode == "Capsule" && currentTarget != null) {
             val color = Color(currentRed, currentGreen, currentBlue, 255)
             drawTargetCapsule(currentTarget, 0.5, true, color)
-        } else if(renderMode == "Nursultan" && currentTarget != null) {
-            drawTextureOnEntity(-24, -24, 48, 48, 48F, 48F, currentTarget, ResourceLocation("liquidbounce/target.png"), true, Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE);
+        } else if(renderMode == "Nursultan" && nursultanAnimationAlpha > 0f) {
+            val entityToRender = currentTarget ?: lastNursultanTarget
+            if (entityToRender != null && !entityToRender.isDead) {
+                val finalAlpha = (nursultanAlpha * nursultanAnimationAlpha).coerceIn(0f, 255f).toInt()
+                val nursultanColor = Color(nursultanRed, nursultanGreen, nursultanBlue, finalAlpha)
+                drawTextureOnEntity(-24, -24, 48, 48, 48F, 48F, entityToRender, ResourceLocation("liquidbounce/target.png"), true, nursultanColor, nursultanColor, nursultanColor, nursultanColor)
+            }
         }
 
         if (circle) {
@@ -1282,8 +1297,29 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         @EventTarget
         private fun onUpdate(event: UpdateEvent) {
             if (mc.thePlayer == null || mc.theWorld == null || (mc.netHandler == null && !mc.isSingleplayer)) return
+
             val currentTarget = target ?: clickRangeTarget
-            // Visual feedback for hitting the target
+
+            // Handle Nursultan animation state
+            if (renderMode == "Nursultan") {
+                if (currentTarget != null) {
+                    lastNursultanTarget = currentTarget
+                    if (nursultanAnimationAlpha < 1f) {
+                        nursultanAnimationAlpha += fadeSpeed.get()
+                    }
+                    nursultanAnimationAlpha = nursultanAnimationAlpha.coerceAtMost(1f)
+                } else {
+                    if (nursultanAnimationAlpha > 0f) {
+                        nursultanAnimationAlpha -= fadeSpeed.get()
+                    }
+                    nursultanAnimationAlpha = nursultanAnimationAlpha.coerceAtLeast(0f)
+                    if (nursultanAnimationAlpha == 0f) {
+                        lastNursultanTarget = null // Clear last target once fade out is complete
+                    }
+                }
+            }
+
+            // Visual feedback for hitting the target (Capsule mode)
             if (currentTarget != null) {
                 if (currentTarget.health < lastHealth) {
                     currentRed = 255; currentGreen = 0; currentBlue = 0

@@ -14,6 +14,13 @@ object ColorUtil {
         alpha = min(1.0, max(0.0, alpha.toDouble())).toFloat()
         return Color(rgbValue, rgbValue, rgbValue, (255 * alpha).toInt())
     }
+    fun blend(color1: Color, color2: Color, ratio: Double): Color {
+        val r = (color1.red * (1 - ratio) + color2.red * ratio).toInt().coerceIn(0, 255)
+        val g = (color1.green * (1 - ratio) + color2.green * ratio).toInt().coerceIn(0, 255)
+        val b = (color1.blue * (1 - ratio) + color2.blue * ratio).toInt().coerceIn(0, 255)
+        val a = (color1.alpha * (1 - ratio) + color2.alpha * ratio).toInt().coerceIn(0, 255)
+        return Color(r, g, b, a)
+    }
 
     fun getAnalogousColor(color: Color): Array<Color?> {
         val colors = arrayOfNulls<Color>(2)

@@ -20,6 +20,7 @@ import net.ccbluex.liquidbounce.features.command.CommandManager
 import net.ccbluex.liquidbounce.features.command.CommandManager.registerCommands
 import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.ModuleManager.registerModules
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds.playStartupSound
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Tower
@@ -171,6 +172,8 @@ object LiquidBounce {
             registerListener(SilentHotbar)
             registerListener(WaitMsUtils)
             registerListener(BPSUtils)
+            registerListener(KillAura.CombatListener)
+            KillAura.CombatListener.handleEvents()
             // Waiting for copy files
             runBlocking {
                 cpFiles()
