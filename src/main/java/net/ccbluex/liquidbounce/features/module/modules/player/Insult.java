@@ -10,18 +10,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import kotlin.ranges.IntRange;
 import net.ccbluex.liquidbounce.LiquidBounce;
 import net.ccbluex.liquidbounce.event.EntityKilledEvent;
 import net.ccbluex.liquidbounce.event.EventTarget;
 import net.ccbluex.liquidbounce.features.module.Module;
 import net.ccbluex.liquidbounce.features.module.Category;
 import net.ccbluex.liquidbounce.file.FileManager;
-import net.ccbluex.liquidbounce.script.api.global.Chat;
 import net.ccbluex.liquidbounce.utils.FileUtils;
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils;
 import net.ccbluex.liquidbounce.value.BoolValue;
-import net.ccbluex.liquidbounce.value.IntegerValue;
 import net.ccbluex.liquidbounce.value.ListValue;
 import net.minecraft.entity.player.EntityPlayer;
 

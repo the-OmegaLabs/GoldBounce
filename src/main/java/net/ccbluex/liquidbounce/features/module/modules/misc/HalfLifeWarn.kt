@@ -38,7 +38,7 @@ object HalfLifeWarn : Module("HalfLifeWarn", Category.MISC, gameDetecting = true
     fun onAttack(event: AttackEvent){
         if (mc.thePlayer.health <= healthValue) {
             if (canWarn) {
-                addNotification(Notification("你都他妈就这么点血了你打你妈呢",3000F, "别他妈打人了", Notifications.SeverityType.WARNING))
+                addNotification(Notification("你就这么点血了你还打什么？",3000F, "别打人了", Notifications.SeverityType.WARNING))
 
                 canWarn = false
             }

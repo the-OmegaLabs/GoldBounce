@@ -5,8 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.settings
 
-import net.ccbluex.liquidbounce.LiquidBounce
-import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.value.BoolValue

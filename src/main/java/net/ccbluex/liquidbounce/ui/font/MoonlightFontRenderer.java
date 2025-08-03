@@ -11,8 +11,6 @@ package net.ccbluex.liquidbounce.ui.font;
  * Author(s): [Randumbguy & opZywl & lucas]
  */
 
-import net.ccbluex.liquidbounce.LiquidBounce;
-import net.ccbluex.liquidbounce.features.module.modules.render.NameProtect;
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;

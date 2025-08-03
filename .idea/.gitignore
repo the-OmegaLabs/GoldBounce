@@ -13,3 +13,5 @@ jarRepositories.xml
 misc.xml
 vcs.xml
 /modules/
+# Android plugin generated file
+/AndroidProjectSystem.xml

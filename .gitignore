@@ -7,3 +7,8 @@
 /.settings/
 /bin/
 /.gradle/
+
+# Eclipse
+/.classpath
+/.project
+/*.launch

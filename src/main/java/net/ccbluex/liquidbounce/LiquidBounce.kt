@@ -5,6 +5,7 @@
  */
 package net.ccbluex.liquidbounce
 
+//import cn.a114.idk.AutoMTFdotWIKI
 import de.florianmichael.viamcp.ViaMCP
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -21,7 +22,6 @@ import net.ccbluex.liquidbounce.features.command.CommandManager.registerCommands
 import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.features.module.ModuleManager.registerModules
 import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
-import net.ccbluex.liquidbounce.features.module.modules.player.Gapple
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds.playStartupSound
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Tower
 import net.ccbluex.liquidbounce.features.special.BungeeCordSpoof
@@ -50,20 +50,16 @@ import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClassUtils.hasForge
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
 import net.ccbluex.liquidbounce.utils.ClientUtils.disableFastRender
-import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.client.SysUtils
 import net.ccbluex.liquidbounce.utils.client.TrayUtils
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
-import net.ccbluex.liquidbounce.utils.modernsplash.ModernSplash
 import net.ccbluex.liquidbounce.utils.render.MiniMapRegister
 import net.ccbluex.liquidbounce.utils.timing.TickedActions
 import net.ccbluex.liquidbounce.utils.timing.WaitMsUtils
 import net.ccbluex.liquidbounce.utils.timing.WaitTickUtils
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.util.ChatComponentText
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
 import op.wawa.opacketfix.features.hytpacket.PacketManager
@@ -79,7 +75,7 @@ object LiquidBounce {
     const val CLIENT_NAME = "GoldBounce"
     const val CLIENT_AUTHOR = "bzym2"
     const val CLIENT_CLOUD = "https://cloud.liquidbounce.net/LiquidBounce"
-    const val CLIENT_WEBSITE = "pornhub.com"
+    const val CLIENT_WEBSITE = "bzym.fun"
 
     const val MINECRAFT_VERSION = "1.8.9"
     val clientVersionText = "b11"
@@ -266,6 +262,10 @@ object LiquidBounce {
 
             callEvent(StartupEvent())
             LOGGER.info("Successfully started client")
+//              这玩意检测到Arch Linux用户
+//              就自动打开https://mtf.wiki/en
+//              太傻逼了我操
+//            AutoMTFdotWIKI.init();
         }
     }
     @SubscribeEvent

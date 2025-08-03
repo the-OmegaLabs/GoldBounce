@@ -9,7 +9,6 @@ import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Arraylist.Companion.inactiveStyle
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.GlowUtils
-import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.interpolateColorsCyclic
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.value.*

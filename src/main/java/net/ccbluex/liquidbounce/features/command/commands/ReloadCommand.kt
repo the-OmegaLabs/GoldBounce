@@ -23,7 +23,6 @@ import net.ccbluex.liquidbounce.file.FileManager.xrayConfig
 import net.ccbluex.liquidbounce.script.ScriptManager.disableScripts
 import net.ccbluex.liquidbounce.script.ScriptManager.reloadScripts
 import net.ccbluex.liquidbounce.script.ScriptManager.unloadScripts
-import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.ui.font.Fonts.loadFonts
 
 object ReloadCommand : Command("reload", "configreload") {

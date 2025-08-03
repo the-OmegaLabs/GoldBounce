@@ -1,14 +1,12 @@
 package net.ccbluex.liquidbounce.features.module.modules.render
 
 // ... existing imports ...
-import net.ccbluex.liquidbounce.LiquidBounce.eventManager
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderHelper
-import net.minecraft.client.renderer.entity.RenderManager
 import net.minecraft.entity.player.EntityPlayer
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.glu.Cylinder

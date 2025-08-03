@@ -13,7 +13,6 @@ import net.ccbluex.liquidbounce.value.BoolValue
 import net.minecraft.client.settings.GameSettings
 import net.minecraft.init.Items
 import net.minecraft.item.ItemSword
-import org.lwjgl.input.Keyboard
 
 object AuraZoom : Module("AuraZoom", Category.FUN) {
 

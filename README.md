@@ -11,7 +11,6 @@
   <br>
   https://discord.gg/RwmbBTtSPr
   <br>
-  Lombok SneakyThrows doesn't work, I hate gradle.<br>
   本客户端的全部源代码可自由使用与修改，我对此不持异议。无需署名作者，惟请在文件头部添加项目链接以示出处，感谢您的理解。
   <br>
   <img src="https://img.shields.io/github/license/bzym2/GoldBounce" alt="Licence Widget">
@@ -60,7 +59,3 @@ the following:
 
 If you have experience in one or more of these fields, we would highly appreciate
 your support.
-
-## Stats
-
-![Alt](https://repobeats.axiom.co/api/embed/53729ed6bb212df58c4c77544254d2c443053ad6.svg "Repobeats analytics image")
