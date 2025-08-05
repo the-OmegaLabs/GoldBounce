@@ -24,13 +24,11 @@ import net.ccbluex.liquidbounce.features.module.modules.player.*
 import net.ccbluex.liquidbounce.features.module.modules.render.*
 import net.ccbluex.liquidbounce.features.module.modules.scriptbased.BetterRotation
 import net.ccbluex.liquidbounce.features.module.modules.scriptbased.TargetHUD
-import net.ccbluex.liquidbounce.features.module.modules.scriptbased.VelocityLite
 import net.ccbluex.liquidbounce.features.module.modules.settings.BPSCalculation
 import net.ccbluex.liquidbounce.features.module.modules.settings.Camera
 import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.features.module.modules.settings.Interface
-import net.ccbluex.liquidbounce.features.module.modules.settings.MovementMonitor
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
 import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles
@@ -281,7 +279,8 @@ object ModuleManager : Listenable {
             NewGUI,
             Interface,
             Logo,
-            PotionEffect
+            PotionEffect,
+            VelocityBalancer
         )
 
         InventoryManager.startCoroutine()

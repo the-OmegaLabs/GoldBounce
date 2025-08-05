@@ -64,12 +64,12 @@ object ClientUtils : MinecraftInstance() {
 
     fun displayChatMessage(message: String) {
         if (mc.thePlayer == null) {
-            LOGGER.info("(MCChat) $message")
+            LOGGER.info("(Chat) $message")
             return
         }
 
         val prefixMessage =
-            "${EnumChatFormatting.YELLOW}${EnumChatFormatting.BOLD}Gold${EnumChatFormatting.WHITE}${EnumChatFormatting.BOLD}Bounce${EnumChatFormatting.RESET} ${EnumChatFormatting.BOLD}$message"
+            "GoldBounce ${EnumChatFormatting.RESET} ${EnumChatFormatting.BOLD}| $message"
         val jsonObject = JsonObject()
         jsonObject.addProperty("text", prefixMessage)
         mc.thePlayer.addChatMessage(IChatComponent.Serializer.jsonToComponent(jsonObject.toString()))

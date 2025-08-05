@@ -135,7 +135,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock
     val autoBlock by choices(
         "AutoBlock",
-        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "HypixelFull", "NCP"),
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "NCP", "Watchdog"),
         "Packet"
     )
 
@@ -152,7 +152,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         )
     }
     val forceBlockRender by _boolean("ForceBlockRender", true) {
@@ -160,7 +160,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         ) && releaseAutoBlock
     }
     private val ignoreTickRule by _boolean("IgnoreTickRule", false) {
@@ -168,7 +168,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         ) && releaseAutoBlock
     }
     private val blockRate by intValue("BlockRate", 100, 1..100) {
@@ -176,7 +176,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         ) && releaseAutoBlock
     }
     private val switchStartBlock by _boolean("SwitchStartBlock", false) {
@@ -184,7 +184,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         )
     }
     private val interactAutoBlock by _boolean("InteractAutoBlock", true) {
@@ -192,7 +192,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         )
     }
     val blinkAutoBlock by _boolean("BlinkAutoBlock", false) {
@@ -200,7 +200,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         )
     }
 
@@ -209,7 +209,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "HypixelFull"
+            "Watchdog"
         ) && blinkAutoBlock
     }
 
@@ -354,10 +354,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock (HypixelFull mode)
     private var hypixelBlinking = false
 
-    // AutoBlock (Blink mode)
+    // AutoBlock (Blink / Watchdog mode)
     var blinking: Boolean = false
     val blinkedPackets: ArrayList<Packet<*>?> = ArrayList()
     private var blinked = false
+    private var watchdogBlinkTick = 0
 
     // Switch Delay
     private val switchTimer = MSTimer()
@@ -416,6 +417,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         asw = 0
         blockTick = 0
         attack = 0
+        watchdogBlinkTick = 0
 
         stopBlocking(true)
 
@@ -493,6 +495,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (blockStatus) {
                 stopBlocking()
             }
+            if (autoBlock == "Watchdog") {
+                watchdogBlinkTick = 0
+                if(blinking) releaseBlinkedPackets()
+            }
             return
         }
 
@@ -514,6 +520,39 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "BlocksMC" -> {
                 handleBlocksMC()
                 return // Prevent default attack logic from running
+            }
+            "Watchdog" -> {
+                if (target == null) {
+                    if (blockStatus) stopBlocking()
+                    if (blinking) releaseBlinkedPackets()
+                    watchdogBlinkTick = 0
+                    return
+                }
+
+                watchdogBlinkTick++
+
+                when (watchdogBlinkTick) {
+                    1 -> { // Unblock and start blinking
+                        if (blockStatus) {
+                            blinking = true // Start capturing packets
+                            stopBlocking()
+                        }
+                    }
+                    2 -> { // Attack and re-block tick
+                        if (clicks > 0) {
+                            runAttack(isFirstClick = true, isLastClick = true)
+                            clicks = 0 // Consume the click
+
+                            if (blinking) {
+                                releaseBlinkedPackets()
+                            }
+                        }
+                    }
+                }
+                if (watchdogBlinkTick >= 3) { // Reset tick
+                    watchdogBlinkTick = 0
+                }
+                return // Prevent default attack logic from running for this mode
             }
         }
 
@@ -1227,7 +1266,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             val player = mc.thePlayer ?: return false
             val currentTarget = target ?: return false
 
-            if (autoBlock.startsWith("BlocksMC")) return true
+            if (autoBlock.startsWith("BlocksMC") || autoBlock == "Watchdog") return true
 
             if (player.heldItem?.item is ItemSword) {
                 if (smartAutoBlock) {

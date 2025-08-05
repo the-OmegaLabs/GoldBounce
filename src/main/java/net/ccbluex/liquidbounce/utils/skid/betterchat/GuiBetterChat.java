@@ -6,12 +6,10 @@ import com.google.common.collect.Lists;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nullable;
+
+import net.ccbluex.liquidbounce.utils.render.迷信要用的一些函数.对;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ChatLine;
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.GuiNewChat;
-import net.minecraft.client.gui.GuiUtilRenderComponents;
-import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
@@ -118,13 +116,9 @@ public class GuiBetterChat extends GuiNewChat {
                     String text = chatline.getChatComponent().getFormattedText();
                     GlStateManager.enableBlend();
                     if (i <= newLines) {
-                        this.mc.fontRendererObj.drawStringWithShadow(
-                            text, 0.0f, yPos - 8, 0xFFFFFF + ((int) ((float) alpha * percent) << 24)
-                        );
+                        drawGoldBounceChatText(text, 0.0F, yPos - 8, 0xFFFFFF + ((int) ((float) alpha * percent) << 24));
                     } else {
-                        this.mc.fontRendererObj.drawStringWithShadow(
-                            text, xOffset, yPos - 8, 0xFFFFFF + (alpha << 24)
-                        );
+                        drawGoldBounceChatText(text, xOffset, yPos - 8, 0xFFFFFF + (alpha << 24));
                     }
                     GlStateManager.disableBlend();
                     GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -165,6 +159,26 @@ public class GuiBetterChat extends GuiNewChat {
         percentComplete = 0.0f;
         this.setChatLine(chatComponent, chatLineId, this.mc.ingameGUI.getUpdateCounter(), false);
         LOGGER.info("[CHAT] {}", chatComponent.getUnformattedText().replaceAll("\r", "\\\\r").replaceAll("\n", "\\\\n"));
+    }
+    private void drawGoldBounceChatText(String text, float x, float y, int color) {
+        FontRenderer fontRenderer = this.mc.fontRendererObj;
+        if (text.contains("GoldBounce")) {
+            String mark = "GoldBounce";
+            int start = text.indexOf(mark);
+            int end = start + mark.length();
+
+            String prefix = text.substring(0, start);
+            String suffix = text.substring(end);
+
+            float prefixWidth = fontRenderer.getStringWidth(prefix);
+            float markWidth = fontRenderer.getStringWidth(mark);
+
+            fontRenderer.drawStringWithShadow(prefix, x, y, color);
+            new 对().绘制额就是金振主题色额还会变换(mark, x + prefixWidth, y, color);
+            fontRenderer.drawStringWithShadow(suffix, x + prefixWidth + markWidth, y, color);
+        } else {
+            fontRenderer.drawStringWithShadow(text, x, y, color);
+        }
     }
 
     private void setChatLine(IChatComponent chatComponent, int chatLineId, int updateCounter, boolean displayOnly) {
