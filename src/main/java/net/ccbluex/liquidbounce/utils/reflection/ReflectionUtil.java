@@ -14,8 +14,8 @@ public class ReflectionUtil {
 	@NotNull
 	public static final ReflectionUtil INSTANCE = new ReflectionUtil();
 	@NotNull
-	private static final Map<AbstractMap.SimpleEntry, Field> fieldCache =
-			new LinkedHashMap<AbstractMap.SimpleEntry, Field>();
+	private static final Map<AbstractMap.SimpleEntry<?,?>, Field> fieldCache =
+			new LinkedHashMap<>();
 
 	private ReflectionUtil () {
 	}
@@ -26,8 +26,6 @@ public class ReflectionUtil {
 			@NotNull Class<?> clazz,
 			@NotNull String fieldName
 	                                   ) {
-		Intrinsics.checkNotNullParameter(clazz, "clazz");
-		Intrinsics.checkNotNullParameter(fieldName, "fieldName");
 
 		// Create cache key using a Pair (or TuplesKt.to() if you prefer)
 		AbstractMap.SimpleEntry key = new AbstractMap.SimpleEntry<>(
@@ -56,8 +54,6 @@ public class ReflectionUtil {
 			@NotNull String fieldName
 	                                  ) throws
 			IllegalAccessException {
-		Intrinsics.checkNotNullParameter(instance, "instance");
-		Intrinsics.checkNotNullParameter(fieldName, "fieldName");
 		Field field = getField(instance.getClass(), fieldName);
 		return (T) field.get(instance);
 	}
@@ -67,8 +63,6 @@ public class ReflectionUtil {
 			@NotNull String fieldName, @Nullable Object value
 	                                       ) throws
 			IllegalAccessException {
-		Intrinsics.checkNotNullParameter(instance, "instance");
-		Intrinsics.checkNotNullParameter(fieldName, "fieldName");
 		Field field = getField(instance.getClass(), fieldName);
 		field.set(instance, value);
 	}

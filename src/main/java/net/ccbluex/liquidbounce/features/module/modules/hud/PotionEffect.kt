@@ -6,8 +6,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.GlowUtils.drawGlow
-import net.ccbluex.liquidbounce.utils.render.AnimationUtils
-import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加
+import net.ccbluex.liquidbounce.utils.render.LBPPAnimationUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
 import net.ccbluex.liquidbounce.value.FloatValue
@@ -21,8 +20,6 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.math.cos
-import kotlin.math.sin
 
 object PotionEffect : Module("PotionEffect", Category.HUD) {
 
@@ -112,8 +109,8 @@ object PotionEffect : Module("PotionEffect", Category.HUD) {
         fun update(speed: Float) {
             val targetX = if (isMarkedForRemoval) -boxWidth - 10f else 0f
             val targetY = if (isMarkedForRemoval) 0f else 1f
-            animationX = AnimationUtils水影加加.animate(targetX, animationX, speed)
-            animationY = AnimationUtils水影加加.animate(targetY, animationY, speed)
+            animationX = LBPPAnimationUtils.animate(targetX, animationX, speed)
+            animationY = LBPPAnimationUtils.animate(targetY, animationY, speed)
         }
 
         fun isReadyToRemove(): Boolean {

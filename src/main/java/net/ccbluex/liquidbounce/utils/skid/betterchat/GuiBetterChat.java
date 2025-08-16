@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nullable;
 
-import net.ccbluex.liquidbounce.utils.render.迷信要用的一些函数.对;
+import net.ccbluex.liquidbounce.utils.render.bruh.Yes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
@@ -174,7 +174,7 @@ public class GuiBetterChat extends GuiNewChat {
             float markWidth = fontRenderer.getStringWidth(mark);
 
             fontRenderer.drawStringWithShadow(prefix, x, y, color);
-            new 对().绘制额就是金振主题色额还会变换(mark, x + prefixWidth, y, color);
+            Yes.drawClientColourWithGradient(mark, x + prefixWidth, y, color);
             fontRenderer.drawStringWithShadow(suffix, x + prefixWidth + markWidth, y, color);
         } else {
             fontRenderer.drawStringWithShadow(text, x, y, color);

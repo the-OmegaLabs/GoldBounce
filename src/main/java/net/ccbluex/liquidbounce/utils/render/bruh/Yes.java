@@ -1,11 +1,11 @@
-package net.ccbluex.liquidbounce.utils.render.迷信要用的一些函数;
+package net.ccbluex.liquidbounce.utils.render.bruh;
 
 import java.awt.*;
 
 import static net.ccbluex.liquidbounce.utils.client.MinecraftInstance.mc;
 
-public class 对 {
-    public void 绘制额就是金振主题色额还会变换(String text, float x, float y, int alpha) {
+public class Yes {
+    public static void drawClientColourWithGradient(String text, float x, float y, int alpha) {
         Color color1 = new Color(255, 215, 0);
         Color color2 = new Color(255, 255, 255);
 

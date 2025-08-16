@@ -11,7 +11,7 @@ import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.ServerUtils
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.extensions.getPing
-import net.ccbluex.liquidbounce.utils.render.AnimationUtils水影加加
+import net.ccbluex.liquidbounce.utils.render.LBPPAnimationUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
 import net.ccbluex.liquidbounce.value.ListValue
@@ -95,7 +95,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         // Update animation state
         fun update() {
             val targetProgress = if (isFading()) 0f else 1f
-            animationProgress = AnimationUtils水影加加.animate(targetProgress, animationProgress, NOTIFICATION_ANIM_SPEED)
+            animationProgress = LBPPAnimationUtils.animate(targetProgress, animationProgress, NOTIFICATION_ANIM_SPEED)
             if (isFading() && animationProgress < 0.05f) {
                 isMarkedForDelete = true
             }
@@ -237,8 +237,8 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
     private fun updateContainerAnimation(targetWidth: Float, targetHeight: Float) {
         val speed = 0.5f
-        animWidth = AnimationUtils水影加加.animate(targetWidth, animWidth, speed * RenderUtils.deltaTime * 0.025f)
-        animHeight = AnimationUtils水影加加.animate(targetHeight, animHeight, speed * RenderUtils.deltaTime * 0.025f)
+        animWidth = LBPPAnimationUtils.animate(targetWidth, animWidth, speed * RenderUtils.deltaTime * 0.025f)
+        animHeight = LBPPAnimationUtils.animate(targetHeight, animHeight, speed * RenderUtils.deltaTime * 0.025f)
     }
 
     // --- Size Calculation ---
@@ -453,7 +453,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             if (notifHeight > 0) {
                 // Calculate each notification's Y position and animate it
                 val targetY = currentY
-                notif.yOffset = AnimationUtils水影加加.animate(targetY, notif.yOffset, NOTIFICATION_ANIM_SPEED)
+                notif.yOffset = LBPPAnimationUtils.animate(targetY, notif.yOffset, NOTIFICATION_ANIM_SPEED)
 
                 notif.draw(startX, notif.yOffset, animWidth)
 

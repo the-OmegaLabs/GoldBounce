@@ -5,9 +5,7 @@
  */
 package net.ccbluex.liquidbounce.utils.render;
 
-import java.math.*;
-
-public final class AnimationUtils水影加加 {
+public final class LBPPAnimationUtils {
    public static double animate(double target, double current, double speed) {
       if (current == target) return current;
 
