@@ -30,8 +30,6 @@ import net.ccbluex.liquidbounce.features.module.modules.settings.CustomTag
 import net.ccbluex.liquidbounce.features.module.modules.settings.Debugger
 import net.ccbluex.liquidbounce.features.module.modules.settings.Interface
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
-import net.ccbluex.liquidbounce.features.module.modules.visual.FireFlies
-import net.ccbluex.liquidbounce.features.module.modules.visual.HitBubbles
 import net.ccbluex.liquidbounce.features.module.modules.world.*
 import net.ccbluex.liquidbounce.features.module.modules.world.Timer
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold

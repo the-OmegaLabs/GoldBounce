@@ -12,3 +12,5 @@
 /.classpath
 /.project
 /*.launch
+/.idea/developer-tools.xml
+/.idea/kotlinc.xml

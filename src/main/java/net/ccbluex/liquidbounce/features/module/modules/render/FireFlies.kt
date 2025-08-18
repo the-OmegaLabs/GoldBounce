@@ -1,4 +1,4 @@
-package net.ccbluex.liquidbounce.features.module.modules.visual
+package net.ccbluex.liquidbounce.features.module.modules.render;
 
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render3DEvent
@@ -28,7 +28,7 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
 
-object FireFlies : Module(name = "金液", category = Category.RENDER) {
+object FireFlies : Module(name = "Fireflies", category = Category.RENDER) {
     private val darkImprint: BoolValue = BoolValue("DarkImprint", false)
     private val lighting: BoolValue = BoolValue("Lighting", false)
     private val spawnDelay: FloatValue = FloatValue("SpawnDelay", 3.0f, 1.0f..10.0f)
@@ -465,5 +465,5 @@ object FireFlies : Module(name = "金液", category = Category.RENDER) {
         }
     }
     override val tag
-        get() = if(darkImprint.get()) "黑的" else "白的"
+        get() = if(darkImprint.get()) "Black" else "?"
 }

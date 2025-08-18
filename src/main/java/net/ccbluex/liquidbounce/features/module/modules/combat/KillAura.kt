@@ -613,7 +613,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private fun runAttack(isFirstClick: Boolean, isLastClick: Boolean) {
         var currentTarget = this.target ?: return
 
-        if (viewingCheck && !net.ccbluex.liquidbounce.utils.EntityUtils.isLookingAtEntity(
+        if (viewingCheck && !EntityUtils.isLookingAtEntity(
                 mc.thePlayer,
                 currentTarget,
                 RotationUtils.serverRotation.yaw,

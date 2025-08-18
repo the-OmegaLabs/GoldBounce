@@ -22,7 +22,6 @@ import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils
-import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
@@ -505,11 +504,11 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     clickRange.toDouble(),
                     0.0
                 ) {
-                    result = it.entityHit?.takeIf { isSelected(it, true) }
+                    result = it.entityHit?.takeIf { EntityUtils.isSelected(it, true) }
                 }
 
                 entity = result
-            } else getNearestEntityInRange(clickRange)?.takeIf { isSelected(it, true) }
+            } else getNearestEntityInRange(clickRange)?.takeIf { EntityUtils.isSelected(it, true) }
         }
 
         entity ?: return
@@ -1187,7 +1186,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         val player = mc.thePlayer ?: return null
 
         return mc.theWorld.loadedEntityList.filter {
-            isSelected(it, true) && player.getDistanceToEntityBox(it) <= range
+            EntityUtils.isSelected(it, true) && player.getDistanceToEntityBox(it) <= range
         }.minByOrNull { player.getDistanceToEntityBox(it) }
     }
 

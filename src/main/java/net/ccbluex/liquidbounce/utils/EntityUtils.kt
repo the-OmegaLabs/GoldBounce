@@ -26,6 +26,9 @@ import net.minecraft.util.Vec3
 import kotlin.math.cos
 import kotlin.math.sin
 
+// Fuck kotlin
+@Suppress("DEPRECATED_JAVA_ANNOTATION")
+@java.lang.Deprecated
 
 object EntityUtils : MinecraftInstance() {
 
@@ -68,98 +71,6 @@ object EntityUtils : MinecraftInstance() {
         }
         return false
     }
-
-    /**
-     * 检测给定角度是否指向目标实体
-     *
-     * @param viewer    观察者实体（通常是玩家）
-     * @param target    目标实体
-     * @param yaw       偏航角（角度制）
-     * @param pitch     俯仰角（角度制）
-     * @param maxRange  最大检测距离（方块）
-     * @return 是否命中实体碰撞箱
-     */
-    fun isLookingAtEntity(viewer: Entity, target: Entity, yaw: Float, pitch: Float, maxRange: Double): Boolean {
-        // 1. 获取观察者眼睛位置
-        val eyePos = Vec3(
-            viewer.posX,
-            viewer.posY + viewer.eyeHeight,
-            viewer.posZ
-        )
-
-        // 2. 根据角度计算视线方向向量
-        val lookVec = calculateLookVector(yaw, pitch)
-
-        // 3. 计算视线终点（起点 + 方向 * 距离）
-        val endPos = eyePos.addVector(
-            lookVec.xCoord * maxRange,
-            lookVec.yCoord * maxRange,
-            lookVec.zCoord * maxRange
-        )
-
-        // 4. 获取目标实体的碰撞箱（可能需要扩大边界）
-        val targetBB = target.entityBoundingBox.expand(
-            target.collisionBorderSize.toDouble(),  // 避免精度问题
-            target.collisionBorderSize.toDouble(),
-            target.collisionBorderSize.toDouble()
-        )
-
-        // 5. 检测视线与碰撞箱的交点
-        val hit = targetBB.calculateIntercept(eyePos, endPos)
-        return hit != null // 有交点即表示命中
-    }
-
-    /**
-     * 将偏航角和俯仰角转换为单位方向向量
-     *
-     * @param yaw   偏航角（角度制）
-     * @param pitch 俯仰角（角度制）
-     * @return 单位方向向量 (Vec3)
-     */
-    private fun calculateLookVector(yaw: Float, pitch: Float): Vec3 {
-        // 转换为弧度
-        val yawRad = yaw * Math.PI.toFloat() / 180f
-        val pitchRad = pitch * Math.PI.toFloat() / 180f
-
-        // 计算方向向量分量
-        val x = -MathHelper.sin(yawRad) * MathHelper.cos(pitchRad)
-        val y = -MathHelper.sin(pitchRad)
-        val z = MathHelper.cos(yawRad) * MathHelper.cos(pitchRad)
-
-        // 返回单位向量（已归一化）
-        return Vec3(x.toDouble(), y.toDouble(), z.toDouble()).normalize()
-    }
-    fun isLookingOnEntities(entity: Any, maxAngleDifference: Double): Boolean {
-        val player = mc.thePlayer ?: return false
-        val playerYaw = player.rotationYawHead
-        val playerPitch = player.rotationPitch
-
-        val maxAngleDifferenceRadians = Math.toRadians(maxAngleDifference)
-
-        val lookVec = Vec3(
-            -sin(playerYaw.toRadiansD()),
-            -sin(playerPitch.toRadiansD()),
-            cos(playerYaw.toRadiansD())
-        ).normalize()
-
-        val playerPos = player.positionVector.addVector(0.0, player.eyeHeight.toDouble(), 0.0)
-
-        val entityPos = when (entity) {
-            is Entity -> entity.positionVector.addVector(0.0, entity.eyeHeight.toDouble(), 0.0)
-            is TileEntity -> Vec3(
-                entity.pos.x.toDouble(),
-                entity.pos.y.toDouble(),
-                entity.pos.z.toDouble()
-            )
-            else -> return false
-        }
-
-        val directionToEntity = entityPos.subtract(playerPos).normalize()
-        val dotProductThreshold = lookVec.dotProduct(directionToEntity)
-
-        return dotProductThreshold > cos(maxAngleDifferenceRadians)
-    }
-
     fun getHealth(entity: EntityLivingBase, fromScoreboard: Boolean = false, absorption: Boolean = true): Float {
         if (fromScoreboard && entity is EntityPlayer) run {
             val scoreboard = entity.worldScoreboard
