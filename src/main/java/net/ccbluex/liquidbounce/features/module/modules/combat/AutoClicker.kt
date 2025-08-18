@@ -11,8 +11,7 @@ import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.event.UpdateEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.utils.EntityUtils.isLookingOnEntities
-import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.fixedSensitivityPitch
 import net.ccbluex.liquidbounce.utils.extensions.fixedSensitivityYaw
 import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
@@ -107,7 +106,7 @@ object AutoClicker : Module("AutoClicker", Category.COMBAT, hideModule = false) 
 
             if (requiresNoInput) {
                 val nearbyEntity = getNearestEntityInRange() ?: return
-                if (!isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble())) return
+                if (!EntityUtils.isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble())) return
 
                 if (left && shouldAutoClick && time - leftLastSwing >= leftDelay) {
                     handleLeftClick(time, doubleClick)
@@ -146,7 +145,7 @@ object AutoClicker : Module("AutoClicker", Category.COMBAT, hideModule = false) 
         val player = mc.thePlayer ?: return null
 
         return mc.theWorld?.loadedEntityList?.asSequence()
-            ?.filter { isSelected(it, true) && player.getDistanceToEntityBox(it) <= range }
+            ?.filter { EntityUtils.isSelected(it, true) && player.getDistanceToEntityBox(it) <= range }
             ?.minByOrNull { player.getDistanceToEntityBox(it) }
     }
 

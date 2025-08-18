@@ -11,8 +11,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot.isBot
 import net.ccbluex.liquidbounce.features.module.modules.misc.Teams
-import net.ccbluex.liquidbounce.utils.EntityUtils.isLookingOnEntities
-import net.ccbluex.liquidbounce.utils.EntityUtils.isSelected
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
@@ -78,11 +77,11 @@ object Tracers : Module("Tracers", Category.RENDER, hideModule = false) {
             val distanceSquared = thePlayer.getDistanceSqToEntity(entity)
 
             if (distanceSquared <= maxRenderDistanceSq) {
-                if (onLook && !isLookingOnEntities(entity, maxAngleDifference.toDouble())) continue
+                if (onLook && !EntityUtils.isLookingOnEntities(entity, maxAngleDifference.toDouble())) continue
                 if (entity !is EntityLivingBase || !bot && isBot(entity)) continue
                 if (!thruBlocks && !isEntityHeightVisible(entity)) continue
 
-                if (entity != thePlayer && isSelected(entity, false)) {
+                if (entity != thePlayer && EntityUtils.isSelected(entity, false)) {
                     val dist = (thePlayer.getDistanceToEntity(entity) * 2).toInt().coerceAtMost(255)
 
                     val colorMode = colorMode.lowercase()

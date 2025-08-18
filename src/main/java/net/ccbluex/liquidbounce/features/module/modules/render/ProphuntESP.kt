@@ -11,8 +11,8 @@ import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
-import net.ccbluex.liquidbounce.utils.EntityUtils.isLookingOnEntities
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
+import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBlockBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawEntityBox
@@ -70,7 +70,7 @@ object ProphuntESP : Module("ProphuntESP", Category.RENDER, gameDetecting = fals
         for (entity in mc.theWorld.loadedEntityList) {
             if (mode != "Box" && mode != "OtherBox") break
             if (entity !is EntityFallingBlock) continue
-            if (onLook && !isLookingOnEntities(entity, maxAngleDifference.toDouble())) continue
+            if (onLook && !EntityUtils.isLookingOnEntities(entity, maxAngleDifference.toDouble())) continue
             if (!thruBlocks && !isEntityHeightVisible(entity)) continue
             val distanceSquared = mc.thePlayer.getDistanceSqToEntity(entity)
 
@@ -107,7 +107,7 @@ object ProphuntESP : Module("ProphuntESP", Category.RENDER, gameDetecting = fals
 
             if (distanceSquared <= maxRenderDistanceSq) {
                 if (entity !is EntityFallingBlock) continue
-                if (onLook && !isLookingOnEntities(entity, maxAngleDifference.toDouble())) continue
+                if (onLook && !EntityUtils.isLookingOnEntities(entity, maxAngleDifference.toDouble())) continue
                 if (!thruBlocks && !isEntityHeightVisible(entity)) continue
 
                 try {
