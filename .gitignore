@@ -14,3 +14,6 @@
 /*.launch
 /.idea/developer-tools.xml
 /.idea/kotlinc.xml
+src/main/java/net/ccbluex/liquidbounce/features/module/modules/movement/VelocityBalancer.kt
+src/main/java/net/ccbluex/liquidbounce/features/module/modules/misc/IRC.kt
+src/main/java/net/ccbluex/liquidbounce/utils/IrcClient.kt

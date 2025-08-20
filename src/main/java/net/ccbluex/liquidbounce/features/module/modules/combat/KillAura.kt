@@ -51,6 +51,8 @@ import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.item.EntityArmorStand
+import net.minecraft.entity.monster.IMob
+import net.minecraft.entity.passive.IAnimals
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemAxe
 import net.minecraft.item.ItemSword
@@ -126,6 +128,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Bypass
     private val swing by _boolean("Swing", true)
     private val keepSprint by _boolean("KeepSprint", true)
+
+    // Targets
+    private val attackPlayers by _boolean("Players", true)
+    private val attackAnimals by _boolean("Animals", false)
+    private val attackMobs by _boolean("Mobs", false)
 
     // Settings
     private val autoF5 by _boolean("AutoF5", false, subjective = true)
@@ -492,9 +499,6 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         if (target == null && clickRangeTarget == null) {
-            if (blockStatus) {
-                stopBlocking()
-            }
             if (autoBlock == "Watchdog") {
                 watchdogBlinkTick = 0
                 if(blinking) releaseBlinkedPackets()
@@ -744,6 +748,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                     true
                 ) || (switchMode && entity.entityId in prevTargetEntities)
             ) continue
+
+            if (!attackPlayers && entity is EntityPlayer) continue
+            if (!attackAnimals && entity is IAnimals) continue
+            if (!attackMobs && entity is IMob) continue
 
             var distance = 0.0
             Backtrack.runWithNearestTrackedDistance(entity) { distance = thePlayer.getDistanceToEntityBox(entity) }
