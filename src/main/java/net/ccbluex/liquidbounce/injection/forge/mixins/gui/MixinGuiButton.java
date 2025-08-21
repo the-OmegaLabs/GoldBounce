@@ -34,6 +34,10 @@ public abstract class MixinGuiButton extends Gui {
     @Shadow public boolean enabled;
     @Shadow protected abstract void mouseDragged(Minecraft mc, int mouseX, int mouseY);
     @Shadow public String displayString;
+    /**
+     * @author IDK
+     * @reason fuck mixin
+     */
     @Overwrite
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         MaterialButtonRenderer.draw((GuiButton)(Object)this, mc, mouseX, mouseY);

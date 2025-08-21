@@ -28,6 +28,7 @@ public abstract class MixinBlockLadder extends MixinBlock {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos) {

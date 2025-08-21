@@ -76,6 +76,7 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     protected void jump() {

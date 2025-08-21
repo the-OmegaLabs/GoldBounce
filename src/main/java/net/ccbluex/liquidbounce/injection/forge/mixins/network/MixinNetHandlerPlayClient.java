@@ -207,7 +207,7 @@ public abstract class MixinNetHandlerPlayClient {
                 if (isLevelProtocol && (url.contains("..") || !url.endsWith("/resources.zip")))
                     throw new URISyntaxException(url, "Invalid levelstorage resourcepack path");
             } catch (final URISyntaxException e) {
-                ClientUtils.INSTANCE.getLOGGER().error("Failed to handle resource pack", e);
+                ClientUtils.INSTANCE.getLogger().error("Failed to handle resource pack", e);
 
                 // We fail of course.
                 netManager.sendPacket(new C19PacketResourcePackStatus(hash, FAILED_DOWNLOAD));

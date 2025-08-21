@@ -30,6 +30,7 @@ public abstract class MixinRenderPlayer {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     private void setModelVisibilities(AbstractClientPlayer entity) {

@@ -31,6 +31,7 @@ public abstract class MixinGuiConnecting extends GuiScreen {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {

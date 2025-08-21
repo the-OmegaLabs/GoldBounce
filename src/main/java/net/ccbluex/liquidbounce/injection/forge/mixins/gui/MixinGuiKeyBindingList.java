@@ -20,6 +20,7 @@ public abstract class MixinGuiKeyBindingList extends GuiSlot {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     protected int getScrollBarX() {

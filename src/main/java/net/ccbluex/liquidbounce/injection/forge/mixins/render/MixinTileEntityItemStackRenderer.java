@@ -46,6 +46,7 @@ public class MixinTileEntityItemStackRenderer {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     public void renderByItem(ItemStack itemStackIn) {

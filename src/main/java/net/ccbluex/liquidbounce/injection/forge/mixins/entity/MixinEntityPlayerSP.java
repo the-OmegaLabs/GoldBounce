@@ -281,6 +281,7 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     public void onLivingUpdate() {

@@ -84,6 +84,7 @@ public abstract class MixinItemRenderer {
 
     /**
      * @author CCBlueX
+     * @reason fuck mixin
      */
     @Overwrite
     public void renderItemInFirstPerson(float partialTicks) {

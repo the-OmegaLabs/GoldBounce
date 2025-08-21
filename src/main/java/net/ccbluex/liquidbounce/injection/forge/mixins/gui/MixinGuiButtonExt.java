@@ -31,6 +31,10 @@ public abstract class MixinGuiButtonExt extends GuiButton {
     public MixinGuiButtonExt(int id, int x, int y, String text) { super(id, x, y, text); }
     public MixinGuiButtonExt(int id, int x, int y, int w, int h, String text) { super(id, x, y, w, h, text); }
 
+    /**
+     * @author IDK
+     * @reason fuck mixin
+     */
     @Overwrite
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         MaterialButtonRenderer.draw(this, mc, mouseX, mouseY);

@@ -24,6 +24,10 @@ extends GuiButton {
         super(buttonId, x, y, buttonText);
     }
 
+    /**
+     * @author IDK
+     * @reason fuck mixin
+     */
     @Overwrite
     protected void mouseDragged(Minecraft mc, int mouseX, int mouseY) {
         if (this.visible) {
