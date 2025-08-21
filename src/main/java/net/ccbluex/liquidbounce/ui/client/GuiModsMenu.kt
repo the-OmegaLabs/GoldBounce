@@ -11,7 +11,7 @@ import net.ccbluex.liquidbounce.file.FileManager.saveConfig
 import net.ccbluex.liquidbounce.file.FileManager.valuesConfig
 import net.ccbluex.liquidbounce.lang.translationMenu
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
@@ -60,7 +60,7 @@ class GuiModsMenu(private val prevGui: GuiScreen) : GuiScreen() {
                             rpc.setup()
                             true
                         } catch (throwable: Throwable) {
-                            LOGGER.error("Failed to setup Discord RPC.", throwable)
+                            logger.error("Failed to setup Discord RPC.", throwable)
                             false
                         }
                     }
@@ -82,7 +82,7 @@ class GuiModsMenu(private val prevGui: GuiScreen) : GuiScreen() {
                             rpc.update()
                             true
                         } catch (throwable: Throwable) {
-                            LOGGER.error("Failed to update Discord RPC.", throwable)
+                            logger.error("Failed to update Discord RPC.", throwable)
                             false
                         }
                     }
@@ -105,7 +105,7 @@ class GuiModsMenu(private val prevGui: GuiScreen) : GuiScreen() {
                             rpc.update()
                             true
                         } catch (throwable: Throwable) {
-                            LOGGER.error("Failed to update Discord RPC.", throwable)
+                            logger.error("Failed to update Discord RPC.", throwable)
                             false
                         }
                     }

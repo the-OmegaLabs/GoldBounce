@@ -17,7 +17,7 @@ import net.ccbluex.liquidbounce.api.loadSettings
 import net.ccbluex.liquidbounce.features.command.Command
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.SettingsUtils
 import net.ccbluex.liquidbounce.utils.misc.HttpUtils.get
 import net.ccbluex.liquidbounce.utils.misc.StringUtils
@@ -74,7 +74,7 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
                 addNotification(Notification("Updated Settings"))
                 playEdit()
             } catch (e: Exception) {
-                LOGGER.error("Failed to load settings", e)
+                logger.error("Failed to load settings", e)
                 chat("Failed to load settings: ${e.message}")
             }
         }
@@ -95,7 +95,7 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
                     Status.ERROR -> chat("§c${response.message}")
                 }
             } catch (e: Exception) {
-                LOGGER.error("Failed to report settings", e)
+                logger.error("Failed to report settings", e)
                 chat("Failed to report settings: ${e.message}")
             }
         }
@@ -137,7 +137,7 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
                     Status.ERROR -> chat("§c${response.message}")
                 }
             } catch (e: Exception) {
-                LOGGER.error("Failed to upload settings", e)
+                logger.error("Failed to upload settings", e)
                 chat("Failed to upload settings: ${e.message}")
             }
         }

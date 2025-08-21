@@ -15,7 +15,7 @@ import net.ccbluex.liquidbounce.features.module.ModuleManager
 import net.ccbluex.liquidbounce.file.FileManager.keybindsDir
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.SettingsUtils
 import org.lwjgl.input.Keyboard
 import java.awt.Desktop
@@ -135,7 +135,7 @@ object LocalKeybindsCommand : Command("localkeybinds", "localkeybind", "keybinds
             try {
                 Desktop.getDesktop().open(keybindsDir)
             } catch (e: IOException) {
-                LOGGER.error("Failed to open Keybinds folder.", e)
+                logger.error("Failed to open Keybinds folder.", e)
                 chat("§cFailed to open Keybinds folder.")
             }
         }

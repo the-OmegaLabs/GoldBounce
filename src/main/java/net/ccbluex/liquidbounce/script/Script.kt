@@ -22,7 +22,7 @@ import net.ccbluex.liquidbounce.script.api.ScriptTab
 import net.ccbluex.liquidbounce.script.api.global.Chat
 import net.ccbluex.liquidbounce.script.api.global.Item
 import net.ccbluex.liquidbounce.script.api.global.Setting
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import java.io.File
 import java.util.function.Function
@@ -72,7 +72,7 @@ class Script(val scriptFile: File) : MinecraftInstance() {
 
         callEvent("load")
 
-        LOGGER.info("[ScriptAPI] Successfully loaded script '${scriptFile.name}'.")
+        logger.info("[ScriptAPI] Successfully loaded script '${scriptFile.name}'.")
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -209,7 +209,7 @@ class Script(val scriptFile: File) : MinecraftInstance() {
         try {
             events[eventName]?.call(null)
         } catch (throwable: Throwable) {
-            LOGGER.error("[ScriptAPI] Exception in script '$scriptName'!", throwable)
+            logger.error("[ScriptAPI] Exception in script '$scriptName'!", throwable)
         }
     }
 }

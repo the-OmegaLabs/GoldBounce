@@ -7,7 +7,7 @@ package net.ccbluex.liquidbounce.script
 
 import net.ccbluex.liquidbounce.file.FileManager.dir
 import net.ccbluex.liquidbounce.script.remapper.Remapper
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import java.io.File
 import java.io.FileFilter
 
@@ -46,7 +46,7 @@ object ScriptManager {
             script.initScript()
             scripts += script
         } catch (t: Throwable) {
-            LOGGER.error("[ScriptAPI] Failed to load script '${scriptFile.name}'.", t)
+            logger.error("[ScriptAPI] Failed to load script '${scriptFile.name}'.", t)
         }
     }
 
@@ -69,7 +69,7 @@ object ScriptManager {
         file.copyTo(scriptFile)
 
         loadScript(scriptFile)
-        LOGGER.info("[ScriptAPI] Successfully imported script '${scriptFile.name}'.")
+        logger.info("[ScriptAPI] Successfully imported script '${scriptFile.name}'.")
     }
 
     /**
@@ -81,7 +81,7 @@ object ScriptManager {
         scripts.remove(script)
         script.scriptFile.delete()
 
-        LOGGER.info("[ScriptAPI]  Successfully deleted script '${script.scriptFile.name}'.")
+        logger.info("[ScriptAPI]  Successfully deleted script '${script.scriptFile.name}'.")
     }
 
     /**
@@ -93,6 +93,6 @@ object ScriptManager {
         loadScripts()
         enableScripts()
 
-        LOGGER.info("[ScriptAPI]  Successfully reloaded scripts.")
+        logger.info("[ScriptAPI]  Successfully reloaded scripts.")
     }
 }

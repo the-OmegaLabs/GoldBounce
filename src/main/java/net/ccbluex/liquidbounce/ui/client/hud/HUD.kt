@@ -6,13 +6,11 @@
 package net.ccbluex.liquidbounce.ui.client.hud
 
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
-import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.*
-import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Target
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.extensions.component1
 import net.ccbluex.liquidbounce.utils.extensions.component2
@@ -65,7 +63,7 @@ object HUD : MinecraftInstance() {
 
                 if (designer) it.border?.draw()
             } catch (ex: Exception) {
-                LOGGER.error("Something went wrong while drawing ${it.name} element in HUD.", ex)
+                logger.error("Something went wrong while drawing ${it.name} element in HUD.", ex)
             }
 
             glPopMatrix()

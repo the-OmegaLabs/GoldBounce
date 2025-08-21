@@ -6,7 +6,7 @@
 package net.ccbluex.liquidbounce.cape
 
 import net.ccbluex.liquidbounce.file.FileManager.dir
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.minecraft.client.renderer.IImageBuffer
 import net.minecraft.client.renderer.ThreadDownloadImageData
@@ -50,7 +50,7 @@ object CapeAPI : MinecraftInstance() {
                 mc.textureManager.loadTexture(resourceLocation, threadDownloadImageData)
                 success(capeInfo)
             }.onFailure {
-                LOGGER.error("Failed to load cape for UUID: $uuid", it)
+                logger.error("Failed to load cape for UUID: $uuid", it)
             }
         }
     }

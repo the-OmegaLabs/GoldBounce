@@ -12,7 +12,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.player.InventoryCleaner
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isLookingOnEntities
 import net.ccbluex.liquidbounce.utils.extensions.*
@@ -96,7 +96,7 @@ object ItemESP : Module("ItemESP", Category.RENDER, hideModule = false) {
                     drawEntityBox(entityItem, if (isUseful) Color.green else color, mode == "Box")
                 }
         }.onFailure {
-            LOGGER.error("An error occurred while rendering ItemESP!", it)
+            logger.error("An error occurred while rendering ItemESP!", it)
         }
     }
 
@@ -127,7 +127,7 @@ object ItemESP : Module("ItemESP", Category.RENDER, hideModule = false) {
                     GlowShader.stopDraw(if (isUseful) Color.green else color, glowRadius, glowFade, glowTargetAlpha)
                 }
         }.onFailure {
-            LOGGER.error("An error occurred while rendering ItemESP!", it)
+            logger.error("An error occurred while rendering ItemESP!", it)
         }
     }
 

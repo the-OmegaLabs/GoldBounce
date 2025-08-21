@@ -5,7 +5,7 @@
  */
 package net.ccbluex.liquidbounce.utils.render.shader
 
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import org.apache.commons.io.IOUtils
 import org.lwjgl.opengl.ARBFragmentShader
@@ -56,7 +56,7 @@ abstract class Shader : MinecraftInstance {
         glLinkProgramARB(programId)
         glValidateProgramARB(programId)
         
-        LOGGER.info("[Shader] Successfully loaded: $fragmentShader")
+        logger.info("[Shader] Successfully loaded: $fragmentShader")
     }
 
     @Throws(IOException::class)
@@ -86,7 +86,7 @@ abstract class Shader : MinecraftInstance {
         glLinkProgramARB(programId)
         glValidateProgramARB(programId)
         
-        LOGGER.info("[Shader] Successfully loaded: " + fragmentShader.name)
+        logger.info("[Shader] Successfully loaded: " + fragmentShader.name)
     }
 
     open fun startShader() {

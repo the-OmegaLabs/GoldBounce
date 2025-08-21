@@ -12,7 +12,7 @@ import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.world.ChestAura.clickedTileEntities
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.ClientUtils.disableFastRender
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
@@ -281,7 +281,7 @@ object StorageESP : Module("StorageESP", Category.RENDER) {
                     GlowShader.stopDraw(color, glowRadius, glowFade, glowTargetAlpha)
                 }
         } catch (ex: Exception) {
-            LOGGER.error("An error occurred while rendering all storages for shader esp", ex)
+            logger.error("An error occurred while rendering all storages for shader esp", ex)
         }
     }
 }

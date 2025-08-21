@@ -10,7 +10,7 @@ import net.ccbluex.liquidbounce.event.Render2DEvent
 import net.ccbluex.liquidbounce.event.Render3DEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
@@ -113,7 +113,7 @@ object ProphuntESP : Module("ProphuntESP", Category.RENDER, gameDetecting = fals
                 try {
                     mc.renderManager.renderEntityStatic(entity, mc.timer.renderPartialTicks, true)
                 } catch (ex: Exception) {
-                    LOGGER.error("An error occurred while rendering all entities for shader esp", ex)
+                    logger.error("An error occurred while rendering all entities for shader esp", ex)
                 }
             }
         }

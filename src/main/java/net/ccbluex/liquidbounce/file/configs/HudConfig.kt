@@ -71,7 +71,7 @@ class HudConfig(file: File) : FileConfig(file) {
                         }
                     }
                 } catch (e: Exception) {
-                    ClientUtils.LOGGER.error("Error while loading custom hud element from config.", e)
+                    ClientUtils.logger.error("Error while loading custom hud element from config.", e)
                 }
             }
 
@@ -83,7 +83,7 @@ class HudConfig(file: File) : FileConfig(file) {
                 }
             }
         } catch (e: Exception) {
-            ClientUtils.LOGGER.error("Error while loading custom hud config.", e)
+            ClientUtils.logger.error("Error while loading custom hud config.", e)
             HUD.setDefault()
         }
     }

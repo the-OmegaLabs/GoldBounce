@@ -3,7 +3,7 @@ package net.ccbluex.liquidbounce.utils
 import javazoom.jl.player.Player
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.ui.client.GuiMiniGame
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
@@ -31,10 +31,10 @@ fun playMP3(resourcePath: String) {
 
 private fun validateSoundPath(path: String) {
     if (getMP3S(path).isEmpty()) {
-        LOGGER.warn("声音目录 [$path] 存在但未找到WAV文件，请检查：")
-        LOGGER.warn("- 文件扩展名是否为小写 .mp3")
-        LOGGER.warn("- 文件实际路径是否包含中文/特殊字符")
-        LOGGER.warn("- IDE中是否正确标记资源目录")
+        logger.warn("声音目录 [$path] 存在但未找到WAV文件，请检查：")
+        logger.warn("- 文件扩展名是否为小写 .mp3")
+        logger.warn("- 文件实际路径是否包含中文/特殊字符")
+        logger.warn("- IDE中是否正确标记资源目录")
     }
 }
 
@@ -125,7 +125,7 @@ fun getWAVS(resourcePath: String): List<String> {
             }
         }
     } catch (e: Exception) {
-        LOGGER.warn("加载音频资源失败: ${e.message}") // 改为警告级别日志
+        logger.warn("加载音频资源失败: ${e.message}") // 改为警告级别日志
     }
 
     return mp3Files.distinct() // 添加去重
@@ -173,7 +173,7 @@ fun getMP3S(resourcePath: String): List<String> {
             }
         }
     } catch (e: Exception) {
-        LOGGER.warn("加载音频资源失败: ${e.message}") // 改为警告级别日志
+        logger.warn("加载音频资源失败: ${e.message}") // 改为警告级别日志
     }
 
     return mp3Files.distinct() // 添加去重

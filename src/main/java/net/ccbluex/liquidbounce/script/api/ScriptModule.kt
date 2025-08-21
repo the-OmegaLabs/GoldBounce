@@ -9,7 +9,7 @@ import jdk.nashorn.api.scripting.JSObject
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.value.Value
 
 class ScriptModule(name: String, category: Category, description: String, private val moduleObject: JSObject)
@@ -124,7 +124,7 @@ class ScriptModule(name: String, category: Category, description: String, privat
         try {
             events[eventName]?.call(moduleObject, payload)
         } catch (throwable: Throwable) {
-            LOGGER.error("[ScriptAPI] Exception in module '${getName()}'!", throwable)
+            logger.error("[ScriptAPI] Exception in module '${getName()}'!", throwable)
         }
     }
 }

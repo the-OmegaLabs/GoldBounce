@@ -6,13 +6,13 @@
 package net.ccbluex.liquidbounce.api
 
 import net.ccbluex.liquidbounce.api.ClientApi.requestMessageOfTheDayEndpoint
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 
 val messageOfTheDay by lazy {
     try {
         requestMessageOfTheDayEndpoint()
     } catch (e: Exception) {
-        LOGGER.error("Unable to receive message of the day", e)
+        logger.error("Unable to receive message of the day", e)
         return@lazy null
     }
 }

@@ -11,7 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_CLOUD
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils
 import net.ccbluex.liquidbounce.utils.misc.HttpUtils.get
 import net.minecraft.creativetab.CreativeTabs
@@ -37,7 +37,7 @@ class HeadsTab : CreativeTabs("Heads") {
     private suspend fun loadHeads() {
         runBlocking {
             runCatching {
-                LOGGER.info("Loading heads...")
+                logger.info("Loading heads...")
 
                 // Asynchronously fetch the heads configuration
                 val responseDeferred = async { get("$CLIENT_CLOUD/heads.json") }
@@ -52,7 +52,7 @@ class HeadsTab : CreativeTabs("Heads") {
                 if (headsConf["enabled"].asBoolean) {
                     val url = headsConf["url"].asString
 
-                    LOGGER.info("Loading heads from $url...")
+                    logger.info("Loading heads from $url...")
 
                     // Asynchronously fetch the heads data
                     val headsResponseDeferred = async { get(url) }
@@ -61,7 +61,7 @@ class HeadsTab : CreativeTabs("Heads") {
 
                     // Process the heads data
                     if (!headsElement.isJsonObject) {
-                        LOGGER.error("Something is wrong, the heads json is not a JsonObject!")
+                        logger.error("Something is wrong, the heads json is not a JsonObject!")
                         return@runBlocking
                     }
 
@@ -73,11 +73,11 @@ class HeadsTab : CreativeTabs("Heads") {
                         heads += ItemUtils.createItem("skull 1 3 {display:{Name:\"${headElement["name"].asString}\"},SkullOwner:{Id:\"${headElement["uuid"].asString}\",Properties:{textures:[{Value:\"${headElement["value"].asString}\"}]}}}")!!
                     }
 
-                    LOGGER.info("Loaded ${heads.size} heads from HeadDB.")
+                    logger.info("Loaded ${heads.size} heads from HeadDB.")
                 } else
-                    LOGGER.info("Heads are disabled.")
+                    logger.info("Heads are disabled.")
             }.onFailure {
-                LOGGER.error("Error while reading heads.", it)
+                logger.error("Error while reading heads.", it)
             }
         }
     }

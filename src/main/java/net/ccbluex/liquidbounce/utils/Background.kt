@@ -6,7 +6,7 @@
 package net.ccbluex.liquidbounce.utils
 
 import kotlinx.coroutines.*
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.render.shader.Shader
 import net.ccbluex.liquidbounce.utils.render.shader.shaders.BackgroundShader
@@ -80,11 +80,11 @@ class ShaderBackground(backgroundFile: File) : Background(backgroundFile) {
             runCatching {
                 shader = BackgroundShader(backgroundFile)
             }.onFailure {
-                LOGGER.error("Failed to load background.", it)
+                logger.error("Failed to load background.", it)
             }.onSuccess {
                 initializationLatch.countDown()
                 shaderInitialized = true
-                LOGGER.info("Successfully loaded background.")
+                logger.info("Successfully loaded background.")
             }
         }
     }
@@ -94,7 +94,7 @@ class ShaderBackground(backgroundFile: File) : Background(backgroundFile) {
             runCatching {
                 initializationLatch.await()
             }.onFailure {
-                LOGGER.error(it.message)
+                logger.error(it.message)
                 return
             }
         }

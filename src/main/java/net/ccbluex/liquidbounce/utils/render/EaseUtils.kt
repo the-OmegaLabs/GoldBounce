@@ -167,7 +167,7 @@ object EaseUtils {
             return if (it != null) {
                 it.invoke(this, value) as Double
             } else {
-                ClientUtils.LOGGER.error("Cannot found easing method: $methodName")
+                ClientUtils.logger.error("Cannot found easing method: $methodName")
                 value
             }
         }

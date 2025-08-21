@@ -12,7 +12,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.misc.AntiBot.isBot
 import net.ccbluex.liquidbounce.ui.font.GameFontRenderer.Companion.getColorIndex
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.RotationUtils.isEntityHeightVisible
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isLookingOnEntities
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils.isSelected
@@ -209,7 +209,7 @@ object ESP : Module("ESP", Category.RENDER, hideModule = false) {
                 GlowShader.stopDraw(color, glowRadius, glowFade, glowTargetAlpha)
             }
         } catch (ex: Exception) {
-            LOGGER.error("An error occurred while rendering all entities for shader esp", ex)
+            logger.error("An error occurred while rendering all entities for shader esp", ex)
         }
 
         renderNameTags = true

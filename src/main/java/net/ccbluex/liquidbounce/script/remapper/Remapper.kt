@@ -7,7 +7,7 @@ package net.ccbluex.liquidbounce.script.remapper
 
 import net.ccbluex.liquidbounce.LiquidBounce.CLIENT_CLOUD
 import net.ccbluex.liquidbounce.file.FileManager.dir
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.misc.HttpUtils.download
 import java.io.File
 import java.security.MessageDigest
@@ -37,7 +37,7 @@ object Remapper {
             sha256File.createNewFile()
 
             download("$CLIENT_CLOUD/srgs/mcp-$srgName.srg.sha256", sha256File)
-            LOGGER.info("[Remapper] Downloaded $srgName sha256.")
+            logger.info("[Remapper] Downloaded $srgName sha256.")
         }
 
         // Check if srg file is already downloaded
@@ -46,12 +46,12 @@ object Remapper {
             srgFile.createNewFile()
 
             download("$CLIENT_CLOUD/srgs/mcp-$srgName.srg", srgFile)
-            LOGGER.info("[Remapper] Downloaded $srgName.")
+            logger.info("[Remapper] Downloaded $srgName.")
         }
 
         // Load srg
         parseSrg()
-        LOGGER.info("[Remapper] Successfully loaded SRG mappings.")
+        logger.info("[Remapper] Successfully loaded SRG mappings.")
     }
 
     private fun hashMatches(srgFile: File, sha256File: File): Boolean {
@@ -66,11 +66,11 @@ object Remapper {
         if (sha256File.exists()) {
             val sha256 = sha256File.readText().split(" ")[0]
 
-            LOGGER.info("[Remapper] Hash $sha256 compared to $hash")
+            logger.info("[Remapper] Hash $sha256 compared to $hash")
             return sha256 == hash
         }
 
-        LOGGER.warn("[Remapper] No sha256 file found.")
+        logger.warn("[Remapper] No sha256 file found.")
         return false
     }
 

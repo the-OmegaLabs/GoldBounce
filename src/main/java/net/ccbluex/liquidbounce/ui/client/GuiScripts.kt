@@ -15,7 +15,7 @@ import net.ccbluex.liquidbounce.script.ScriptManager.scripts
 import net.ccbluex.liquidbounce.script.ScriptManager.scriptsFolder
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.misc.MiscUtils
 import net.minecraft.client.gui.GuiButton
 import net.minecraft.client.gui.GuiScreen
@@ -109,7 +109,7 @@ class GuiScripts(private val prevGui: GuiScreen) : GuiScreen() {
 
                 MiscUtils.showErrorPopup("Wrong file extension.", "The file extension has to be .js or .zip")
             } catch (t: Throwable) {
-                LOGGER.error("Something went wrong while importing a script.", t)
+                logger.error("Something went wrong while importing a script.", t)
                 MiscUtils.showErrorPopup(t.javaClass.name, t.message!!)
             }
 
@@ -122,32 +122,32 @@ class GuiScripts(private val prevGui: GuiScreen) : GuiScreen() {
                     loadConfigs(clickGuiConfig, hudConfig)
                 }
             } catch (t: Throwable) {
-                LOGGER.error("Something went wrong while deleting a script.", t)
+                logger.error("Something went wrong while deleting a script.", t)
                 MiscUtils.showErrorPopup(t.javaClass.name, t.message!!)
             }
             3 -> try {
                 reloadScripts()
             } catch (t: Throwable) {
-                LOGGER.error("Something went wrong while reloading all scripts.", t)
+                logger.error("Something went wrong while reloading all scripts.", t)
                 MiscUtils.showErrorPopup(t.javaClass.name, t.message!!)
             }
             4 -> try {
                 Desktop.getDesktop().open(scriptsFolder)
             } catch (t: Throwable) {
-                LOGGER.error("Something went wrong while trying to open your scripts folder.", t)
+                logger.error("Something went wrong while trying to open your scripts folder.", t)
                 MiscUtils.showErrorPopup(t.javaClass.name, t.message!!)
             }
             5 -> try {
                 Desktop.getDesktop().browse(URL("https://github.com/CCBlueX/Documentation/blob/master/md/scriptapi_v2/getting_started.md").toURI())
             } catch (e: Exception) {
-                LOGGER.error("Something went wrong while trying to open the web scripts docs.", e)
+                logger.error("Something went wrong while trying to open the web scripts docs.", e)
                 MiscUtils.showErrorPopup("Scripts Error | Manual Link", "github.com/CCBlueX/Documentation/blob/master/md/scriptapi_v2/getting_started.md")
             }
 
             6 -> try {
                 Desktop.getDesktop().browse(URL("https://forums.ccbluex.net/category/9/scripts").toURI())
             } catch (e: Exception) {
-                LOGGER.error("Something went wrong while trying to open web scripts forums", e)
+                logger.error("Something went wrong while trying to open web scripts forums", e)
                 MiscUtils.showErrorPopup("Scripts Error | Manual Link", "forums.ccbluex.net/category/9/scripts")
             }
         }

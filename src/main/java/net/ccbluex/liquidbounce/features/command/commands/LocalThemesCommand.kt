@@ -12,7 +12,7 @@ import net.ccbluex.liquidbounce.file.FileManager.loadConfig
 import net.ccbluex.liquidbounce.file.FileManager.themesDir
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import java.awt.Desktop
 import java.io.File
 import java.io.FileFilter
@@ -79,7 +79,7 @@ object LocalThemesCommand : Command("localthemes", "localtheme") {
                     chat("§6Theme saved successfully.")
                 } catch (throwable: Throwable) {
                     chat("§cFailed to create local theme: §3${throwable.message}")
-                    LOGGER.error("Failed to create local theme.", throwable)
+                    logger.error("Failed to create local theme.", throwable)
                 }
             }
 

@@ -19,7 +19,7 @@ import net.ccbluex.liquidbounce.LiquidBounce.MINECRAFT_VERSION
 import net.ccbluex.liquidbounce.LiquidBounce.clientCommit
 import net.ccbluex.liquidbounce.LiquidBounce.clientVersionText
 import net.ccbluex.liquidbounce.LiquidBounce.moduleManager
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.ServerUtils
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
@@ -85,7 +85,7 @@ object ClientRichPresence : MinecraftInstance() {
             }
             ipcClient?.connect()
         } catch (e: Throwable) {
-            LOGGER.error("Failed to setup Discord RPC.", e)
+            logger.error("Failed to setup Discord RPC.", e)
         }
 
     }
@@ -140,7 +140,7 @@ object ClientRichPresence : MinecraftInstance() {
         try {
             ipcClient?.close()
         } catch (e: Throwable) {
-            LOGGER.error("Failed to close Discord RPC.", e)
+            logger.error("Failed to close Discord RPC.", e)
         }
     }
 

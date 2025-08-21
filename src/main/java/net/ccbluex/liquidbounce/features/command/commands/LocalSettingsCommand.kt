@@ -14,7 +14,7 @@ import net.ccbluex.liquidbounce.features.command.Command
 import net.ccbluex.liquidbounce.file.FileManager.settingsDir
 import net.ccbluex.liquidbounce.ui.client.hud.HUD.addNotification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.SettingsUtils
 import net.ccbluex.liquidbounce.utils.misc.StringUtils
 import java.awt.Desktop
@@ -110,7 +110,7 @@ object LocalSettingsCommand : Command("localsettings", "localsetting", "localcon
                 chat("§6Settings saved successfully.")
             } catch (throwable: Throwable) {
                 chat("§cFailed to create local config: §3${throwable.message}")
-                LOGGER.error("Failed to create local config.", throwable)
+                logger.error("Failed to create local config.", throwable)
             }
         }
     }
@@ -151,7 +151,7 @@ object LocalSettingsCommand : Command("localsettings", "localsetting", "localcon
             try {
                 Desktop.getDesktop().open(settingsDir)
             } catch (e: IOException) {
-                LOGGER.error("Failed to open settings folder.", e)
+                logger.error("Failed to open settings folder.", e)
                 chat("§cFailed to open settings folder.")
             }
         }

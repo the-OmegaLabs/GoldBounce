@@ -20,7 +20,7 @@ object PacketDebuggerCommand : Command("packetdebugger", "debug") {
                 packetList = it.readLines().toSet()
             }
         }.onFailure {
-            ClientUtils.LOGGER.error("Failed to load packet list", it)
+            ClientUtils.logger.error("Failed to load packet list", it)
         }
     }
 

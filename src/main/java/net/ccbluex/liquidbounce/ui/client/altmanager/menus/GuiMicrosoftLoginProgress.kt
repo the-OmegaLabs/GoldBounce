@@ -11,7 +11,7 @@ import net.ccbluex.liquidbounce.file.FileManager.accountsConfig
 import net.ccbluex.liquidbounce.file.FileManager.saveConfig
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.misc.MiscUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawLoadingCircle
 import net.minecraft.client.gui.GuiButton
@@ -67,10 +67,10 @@ class GuiMicrosoftLoginProgress(val updateStatus: (String) -> Unit, val done: ()
             })
         } catch (bindException: BindException) {
             errorAndDone("Failed to start login server. (Port already in use)")
-            LOGGER.error("Failed to start login server.", bindException)
+            logger.error("Failed to start login server.", bindException)
         } catch (e: Exception) {
             errorAndDone("Failed to start login server.")
-            LOGGER.error("Failed to start login server.", e)
+            logger.error("Failed to start login server.", e)
         }
 
         buttonList.run {

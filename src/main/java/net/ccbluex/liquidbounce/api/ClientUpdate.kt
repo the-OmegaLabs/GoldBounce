@@ -9,7 +9,7 @@ import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.LiquidBounce.IN_DEV
 import net.ccbluex.liquidbounce.LiquidBounce.clientVersionNumber
 import net.ccbluex.liquidbounce.api.ClientApi.requestNewestBuildEndpoint
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,7 +30,7 @@ object ClientUpdate {
         try {
             requestNewestBuildEndpoint(branch = LiquidBounce.clientBranch, release = !IN_DEV)
         } catch (e: Exception) {
-            LOGGER.error("Unable to receive update information", e)
+            logger.error("Unable to receive update information", e)
             return@lazy null
         }
     }
@@ -50,7 +50,7 @@ object ClientUpdate {
                 newestVersion.release && actualVersionNumber > clientVersionNumber
             }
         } catch (e: Exception) {
-            LOGGER.error("Unable to check for update", e)
+            logger.error("Unable to check for update", e)
             return false
         }
     }

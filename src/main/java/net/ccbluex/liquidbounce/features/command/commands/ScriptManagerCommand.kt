@@ -19,7 +19,7 @@ import net.ccbluex.liquidbounce.file.FileManager.valuesConfig
 import net.ccbluex.liquidbounce.script.ScriptManager.reloadScripts
 import net.ccbluex.liquidbounce.script.ScriptManager.scripts
 import net.ccbluex.liquidbounce.script.ScriptManager.scriptsFolder
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.misc.MiscUtils
 import org.apache.commons.io.IOUtils
 import java.awt.Desktop
@@ -87,7 +87,7 @@ object ScriptManagerCommand : Command("scriptmanager", "scripts") {
 
                     chat("The file extension has to be .js or .zip")
                 } catch (t: Throwable) {
-                    LOGGER.error("Something went wrong while importing a script.", t)
+                    logger.error("Something went wrong while importing a script.", t)
                     chat("${t.javaClass.name}: ${t.message}")
                 }
             }
@@ -116,7 +116,7 @@ object ScriptManagerCommand : Command("scriptmanager", "scripts") {
                 } catch (numberFormat: NumberFormatException) {
                     chatSyntaxError()
                 } catch (t: Throwable) {
-                    LOGGER.error("Something went wrong while deleting a script.", t)
+                    logger.error("Something went wrong while deleting a script.", t)
                     chat("${t.javaClass.name}: ${t.message}")
                 }
             }
@@ -137,7 +137,7 @@ object ScriptManagerCommand : Command("scriptmanager", "scripts") {
 
                     chat("Successfully reloaded all scripts.")
                 } catch (t: Throwable) {
-                    LOGGER.error("Something went wrong while reloading all scripts.", t)
+                    logger.error("Something went wrong while reloading all scripts.", t)
                     chat("${t.javaClass.name}: ${t.message}")
                 }
             }
@@ -147,7 +147,7 @@ object ScriptManagerCommand : Command("scriptmanager", "scripts") {
                     Desktop.getDesktop().open(scriptsFolder)
                     chat("Successfully opened scripts folder.")
                 } catch (t: Throwable) {
-                    LOGGER.error("Something went wrong while trying to open your scripts folder.", t)
+                    logger.error("Something went wrong while trying to open your scripts folder.", t)
                     chat("${t.javaClass.name}: ${t.message}")
                 }
             }

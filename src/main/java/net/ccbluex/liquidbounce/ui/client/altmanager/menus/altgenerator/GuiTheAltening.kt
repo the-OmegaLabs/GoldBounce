@@ -16,7 +16,7 @@ import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
 import net.ccbluex.liquidbounce.ui.elements.GuiPasswordField
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.TabUtils
 import net.ccbluex.liquidbounce.utils.misc.MiscUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
@@ -148,11 +148,11 @@ class GuiTheAltening(private val prevGui: GuiAltManager) : GuiScreen() {
                             "§aYour name is now §b§l${yggdrasilUserAuthentication.selectedProfile.name}§c."
                         } catch (e: AuthenticationException) {
 
-                            LOGGER.error("Failed to login.", e)
+                            logger.error("Failed to login.", e)
                             "§cFailed to login: ${e.message}"
                         }
                     } catch (throwable: Throwable) {
-                        LOGGER.error("Failed to login.", throwable)
+                        logger.error("Failed to login.", throwable)
                         status = "§cFailed to login. Unknown error."
                     }
 

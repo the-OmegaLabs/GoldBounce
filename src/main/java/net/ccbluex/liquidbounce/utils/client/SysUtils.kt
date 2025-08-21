@@ -2,7 +2,7 @@ package net.ccbluex.liquidbounce.utils.client
 
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.file.FileManager
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.io.File
@@ -19,9 +19,9 @@ class SysUtils {
                     ?: throw IllegalStateException("$filePath not found in resources")
             Files.copy(inputStream, isFileInDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
             inputStream.close()
-            LOGGER.info("Copied $filePath to ${isFileInDir.absolutePath}")
+            logger.info("Copied $filePath to ${isFileInDir.absolutePath}")
         } else {
-            LOGGER.info("${filePath} already exists.")
+            logger.info("${filePath} already exists.")
         }
     }
 
@@ -33,9 +33,9 @@ class SysUtils {
                     ?: throw IllegalStateException("$filePath not found in resources")
             Files.copy(inputStream, isFileInDir.toPath(), StandardCopyOption.REPLACE_EXISTING)
             inputStream.close()
-            LOGGER.info("Copied $filePath to ${isFileInDir.absolutePath}")
+            logger.info("Copied $filePath to ${isFileInDir.absolutePath}")
         } else {
-            LOGGER.info("${filePath} already exists.")
+            logger.info("${filePath} already exists.")
         }
     }
 
@@ -44,7 +44,7 @@ class SysUtils {
             val clipboard = Toolkit.getDefaultToolkit().systemClipboard
             clipboard.setContents(StringSelection(text), null)
         } catch (e: Exception){
-            LOGGER.error("Failed to copy text to clipboard.", e)
+            logger.error("Failed to copy text to clipboard.", e)
         }
     }
 

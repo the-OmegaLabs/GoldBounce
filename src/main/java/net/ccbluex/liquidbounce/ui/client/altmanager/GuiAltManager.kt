@@ -23,7 +23,7 @@ import net.ccbluex.liquidbounce.ui.client.altmanager.menus.GuiSessionLogin
 import net.ccbluex.liquidbounce.ui.client.altmanager.menus.altgenerator.GuiTheAltening
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
 import net.ccbluex.liquidbounce.utils.login.UserUtils.isValidTokenOffline
@@ -433,7 +433,7 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
                 }
             } catch (throwable: Throwable) {
                 // Print throwable to console
-                LOGGER.error("Failed to load enabled generators.", throwable)
+                logger.error("Failed to load enabled generators.", throwable)
             }
         }
 

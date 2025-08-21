@@ -5,7 +5,7 @@
  */
 package net.ccbluex.liquidbounce.api
 
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.chat
 import java.text.SimpleDateFormat
 import java.util.concurrent.locks.ReentrantLock
@@ -42,7 +42,7 @@ fun loadSettings(useCached: Boolean, join: Long? = null, callback: (Array<AutoSe
                         it.date = humanReadableDateFormat.format(date)
                         it.statusDate = humanReadableDateFormat.format(statusDate)
                     }.onFailure {
-                        LOGGER.error("Failed to parse date.", it)
+                        logger.error("Failed to parse date.", it)
                     }
 
                     it
@@ -52,7 +52,7 @@ fun loadSettings(useCached: Boolean, join: Long? = null, callback: (Array<AutoSe
                 callback(autoSettings)
                 autoSettingsList = autoSettings
             } catch (e: Exception) {
-                LOGGER.error("Failed to fetch auto settings list.", e)
+                logger.error("Failed to fetch auto settings list.", e)
 
                 // If an error occurs, display an error message to the user
                 chat("Failed to fetch auto settings list.")

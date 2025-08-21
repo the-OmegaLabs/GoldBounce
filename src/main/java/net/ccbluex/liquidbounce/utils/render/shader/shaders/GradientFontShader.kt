@@ -6,7 +6,7 @@
 package net.ccbluex.liquidbounce.utils.render.shader.shaders
 
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element.Companion.MAX_GRADIENT_COLORS
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.render.shader.Shader
 import org.lwjgl.opengl.GL20.*
 import java.io.Closeable
@@ -33,7 +33,7 @@ object GradientFontShader : Shader("gradient_font_shader.frag"), Closeable {
             try {
                 setupUniform("colors[$i]")
             } catch (e: Exception) {
-                LOGGER.error("${javaClass.name} setup uniforms error.", e)
+                logger.error("${javaClass.name} setup uniforms error.", e)
             }
         }
     }
@@ -48,7 +48,7 @@ object GradientFontShader : Shader("gradient_font_shader.frag"), Closeable {
             try {
                 glUniform4f(getUniform("colors[$i]"), colors[i][0], colors[i][1], colors[i][2], colors[i][3])
             } catch (e: Exception) {
-                LOGGER.error("${javaClass.name} update uniforms error.", e)
+                logger.error("${javaClass.name} update uniforms error.", e)
             }
         }
     }

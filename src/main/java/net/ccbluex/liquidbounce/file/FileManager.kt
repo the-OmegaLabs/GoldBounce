@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.LiquidBounce.background
 import net.ccbluex.liquidbounce.LiquidBounce.isStarting
 import net.ccbluex.liquidbounce.file.configs.*
 import net.ccbluex.liquidbounce.utils.Background.Companion.createBackground
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.minecraftforge.fml.relauncher.Side
 import net.minecraftforge.fml.relauncher.SideOnly
@@ -74,7 +74,7 @@ object FileManager : MinecraftInstance() {
                     val fileConfig = field[this] as FileConfig
                     loadConfig(fileConfig)
                 } catch (e: IllegalAccessException) {
-                    LOGGER.error("Failed to load config file of field ${field.name}.", e)
+                    logger.error("Failed to load config file of field ${field.name}.", e)
                 }
             }
         }
@@ -96,16 +96,16 @@ object FileManager : MinecraftInstance() {
      */
     fun loadConfig(config: FileConfig) {
         if (!config.hasConfig()) {
-            LOGGER.info("[FileManager] Skipped loading config: ${config.file.name}.")
+            logger.info("[FileManager] Skipped loading config: ${config.file.name}.")
             config.loadDefault()
             saveConfig(config, false)
             return
         }
         try {
             config.loadConfig()
-            LOGGER.info("[FileManager] Loaded config: ${config.file.name}.")
+            logger.info("[FileManager] Loaded config: ${config.file.name}.")
         } catch (t: Throwable) {
-            LOGGER.error("[FileManager] Failed to load config file: ${config.file.name}.", t)
+            logger.error("[FileManager] Failed to load config file: ${config.file.name}.", t)
         }
     }
 
@@ -120,7 +120,7 @@ object FileManager : MinecraftInstance() {
                     val fileConfig = field[this] as FileConfig
                     saveConfig(fileConfig)
                 } catch (e: IllegalAccessException) {
-                    LOGGER.error("[FileManager] Failed to save config file of field ${field.name}.", e)
+                    logger.error("[FileManager] Failed to save config file of field ${field.name}.", e)
                 }
             }
         }
@@ -147,9 +147,9 @@ object FileManager : MinecraftInstance() {
         try {
             if (!config.hasConfig()) config.createConfig()
             config.saveConfig()
-            LOGGER.info("[FileManager] Saved config: ${config.file.name}.")
+            logger.info("[FileManager] Saved config: ${config.file.name}.")
         } catch (t: Throwable) {
-            LOGGER.error("[FileManager] Failed to save config file: ${config.file.name}.", t)
+            logger.error("[FileManager] Failed to save config file: ${config.file.name}.", t)
         }
     }
 

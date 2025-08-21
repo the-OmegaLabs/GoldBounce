@@ -48,7 +48,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.HUD
 import net.ccbluex.liquidbounce.ui.font.Fonts.loadFonts
 import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.ClassUtils.hasForge
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.ClientUtils.disableFastRender
 import net.ccbluex.liquidbounce.utils.client.SysUtils
 import net.ccbluex.liquidbounce.utils.client.TrayUtils
@@ -143,7 +143,7 @@ object LiquidBounce {
     fun startClient() {
 
         isStarting = true
-        LOGGER.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
+        logger.info("Starting $CLIENT_NAME $clientVersionText $clientCommit, by $CLIENT_AUTHOR")
 
         try {
             TrayUtils().start()
@@ -180,7 +180,7 @@ object LiquidBounce {
             }
             // Load settings
             loadSettings(false) {
-                LOGGER.info("Successfully loaded ${it.size} settings.")
+                logger.info("Successfully loaded ${it.size} settings.")
             }
 
             // Register commands
@@ -199,7 +199,7 @@ object LiquidBounce {
                 loadScripts()
                 enableScripts()
             }.onFailure {
-                LOGGER.error("Failed to load scripts.", it)
+                logger.error("Failed to load scripts.", it)
             }
 
             // Load configs
@@ -221,7 +221,7 @@ object LiquidBounce {
             loadActiveGenerators()
 
             // Load message of the day
-            messageOfTheDay?.message?.let { LOGGER.info("Message of the day: $it") }
+            messageOfTheDay?.message?.let { logger.info("Message of the day: $it") }
 
             // Setup Discord RPC
             if (showRPCValue) {
@@ -229,7 +229,7 @@ object LiquidBounce {
                     try {
                         clientRichPresence.setup()
                     } catch (throwable: Throwable) {
-                        LOGGER.error("Failed to setup Discord RPC.", throwable)
+                        logger.error("Failed to setup Discord RPC.", throwable)
                     }
                 }
             }
@@ -239,15 +239,15 @@ object LiquidBounce {
                 runCatching {
                     CapeService.login(CapeService.knownToken)
                 }.onFailure {
-                    LOGGER.error("Failed to login into known cape token.", it)
+                    logger.error("Failed to login into known cape token.", it)
                 }.onSuccess {
-                    LOGGER.info("Successfully logged in into known cape token.")
+                    logger.info("Successfully logged in into known cape token.")
                 }
             }
 
             // Refresh cape service
             CapeService.refreshCapeCarriers {
-                LOGGER.info("Successfully loaded ${CapeService.capeCarriers.size} cape carriers.")
+                logger.info("Successfully loaded ${CapeService.capeCarriers.size} cape carriers.")
             }
 
             // Load background
@@ -255,13 +255,13 @@ object LiquidBounce {
             PacketManager().init()
             playStartupSound()
         } catch (e: Exception) {
-            LOGGER.error("Failed to start client ${e.message}")
+            logger.error("Failed to start client ${e.message}")
         } finally {
             // Set is starting status
             isStarting = false
 
             callEvent(StartupEvent())
-            LOGGER.info("Successfully started client")
+            logger.info("Successfully started client")
 //              这玩意检测到Arch Linux用户
 //              就自动打开https://mtf.wiki/en
 //              太傻逼了我操

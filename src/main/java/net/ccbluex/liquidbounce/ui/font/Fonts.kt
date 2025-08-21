@@ -11,7 +11,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
 import net.ccbluex.liquidbounce.file.FileManager.fontsDir
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.minecraft.client.gui.FontRenderer
 import java.awt.Font
@@ -108,7 +108,7 @@ object Fonts : MinecraftInstance() {
 
     fun loadFonts() {
         val l = System.currentTimeMillis()
-        LOGGER.info("Loading Fonts.")
+        logger.info("Loading Fonts.")
 
         downloadFonts()
         font16 = GameFontRenderer(getFont("Product Sans Regular.ttf", 16))
@@ -160,15 +160,15 @@ object Fonts : MinecraftInstance() {
             e.printStackTrace()
         }
 
-        LOGGER.info("Loaded Fonts. (" + (System.currentTimeMillis() - l) + "ms)")
+        logger.info("Loaded Fonts. (" + (System.currentTimeMillis() - l) + "ms)")
     }
 
     private fun downloadFonts() {
         try {
             val outputFile = File(fontsDir, "roboto.zip")
             if (!outputFile.exists()) {
-                LOGGER.info("Downloading fonts...")
-                LOGGER.error("Download font module is not available now")
+                logger.info("Downloading fonts...")
+                logger.error("Download font module is not available now")
             }
         } catch (e: IOException) {
             e.printStackTrace()

@@ -5,7 +5,7 @@
  */
 package net.ccbluex.liquidbounce.utils
 
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.value.Value
 
 object ClassUtils {
@@ -96,7 +96,7 @@ object ClassUtils {
 
             orderedValues.addAll(list)
         } catch (e: Exception) {
-            LOGGER.error(e)
+            logger.error(e)
         }
     }
 

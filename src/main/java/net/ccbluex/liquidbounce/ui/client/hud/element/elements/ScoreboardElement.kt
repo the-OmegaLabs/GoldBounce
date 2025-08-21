@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.client.hud.element.Side
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.render.ColorUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedRect
@@ -146,10 +146,10 @@ class ScoreboardElement(
                             }
                         }
                     }.onFailure {
-                        LOGGER.error("Error while changing Scoreboard Server IP: ${it.message}")
+                        logger.error("Error while changing Scoreboard Server IP: ${it.message}")
                     }
                 }.onFailure {
-                    LOGGER.error("Failed to run: ${it.message}")
+                    logger.error("Failed to run: ${it.message}")
                 }
             }
 

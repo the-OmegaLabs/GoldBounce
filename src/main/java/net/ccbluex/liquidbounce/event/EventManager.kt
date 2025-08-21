@@ -4,7 +4,7 @@
  * https://github.com/bzym2/GoldBounce/
  */
 package net.ccbluex.liquidbounce.event
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 
 object EventManager {
 
@@ -55,7 +55,7 @@ object EventManager {
             } catch (throwable: Throwable) {
                 val className = invokableEventTarget.eventClass::class.java.simpleName
                 val methodName = invokableEventTarget.method.name
-                LOGGER.error("Error in $className.$methodName handling ${event.javaClass.simpleName}", throwable)
+                logger.error("Error in $className.$methodName handling ${event.javaClass.simpleName}", throwable)
             }
 
          }

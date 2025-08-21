@@ -10,7 +10,7 @@ import com.google.gson.JsonParser
 import net.ccbluex.liquidbounce.features.module.modules.render.XRay
 import net.ccbluex.liquidbounce.file.FileConfig
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.minecraft.block.Block
 import java.io.File
 import java.io.IOException
@@ -31,12 +31,12 @@ class XRayConfig(file: File) : FileConfig(file) {
             try {
                 val block = Block.getBlockFromName(jsonElement.asString)
                 if (block in XRay.xrayBlocks) {
-                    LOGGER.error("[FileManager] Skipped xray block '${block.registryName}' because the block is already added.")
+                    logger.error("[FileManager] Skipped xray block '${block.registryName}' because the block is already added.")
                     continue
                 }
                 XRay.xrayBlocks += block
             } catch (throwable: Throwable) {
-                LOGGER.error("[FileManager] Failed to add block to xray.", throwable)
+                logger.error("[FileManager] Failed to add block to xray.", throwable)
             }
         }
     }

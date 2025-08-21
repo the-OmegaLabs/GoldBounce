@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.event.SessionEvent
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.login.UserUtils
 import net.ccbluex.liquidbounce.utils.misc.HttpUtils.get
@@ -109,7 +109,7 @@ object CapeService : Listenable, MinecraftInstance() {
                         lastUpdate.set(currentTime)
                         done()
                     }.onFailure {
-                        LOGGER.error("Failed to refresh cape carriers due to error.", it)
+                        logger.error("Failed to refresh cape carriers due to error.", it)
                     }
                 }
             }
@@ -159,12 +159,12 @@ object CapeService : Listenable, MinecraftInstance() {
                     val uuid = json.getString("uuid")
 
                     clientCapeUser = CapeSelfUser(token, enabled, uuid, capeName)
-                    LOGGER.info("Logged in successfully. Cape: $capeName")
+                    logger.info("Logged in successfully. Cape: $capeName")
                 } else {
                     throw RuntimeException("Failed to get self cape. Status code: $statusCode")
                 }
             }.onFailure {
-                LOGGER.error("Failed to login due to error.", it)
+                logger.error("Failed to login due to error.", it)
             }
         }
     }
@@ -172,7 +172,7 @@ object CapeService : Listenable, MinecraftInstance() {
     fun logout() {
         clientCapeUser = null
         knownToken = ""
-        LOGGER.info("Logged out successfully.")
+        logger.info("Logged out successfully.")
     }
 
     /**
@@ -200,13 +200,13 @@ object CapeService : Listenable, MinecraftInstance() {
 
                 // Refresh cape carriers
                 refreshCapeCarriers(force = true) {
-                    LOGGER.info("Cape state toggled successfully.")
+                    logger.info("Cape state toggled successfully.")
                 }
 
                 capeUser.enabled = !capeUser.enabled
                 done(capeUser.enabled, statusCode == HttpStatus.SC_NO_CONTENT, statusCode)
             }.onFailure {
-                LOGGER.error("Failed to toggle cape state due to error.", it)
+                logger.error("Failed to toggle cape state due to error.", it)
             }
         }
     }
@@ -245,17 +245,17 @@ object CapeService : Listenable, MinecraftInstance() {
 
                 if (statusCode == HttpStatus.SC_NO_CONTENT) {
                     capeUser.uuid = uuid
-                    LOGGER.info("[Donator Cape] Successfully transferred cape to $uuid ($username)")
+                    logger.info("[Donator Cape] Successfully transferred cape to $uuid ($username)")
                 } else {
-                    LOGGER.info("[Donator Cape] Failed to transfer cape ($statusCode)")
+                    logger.info("[Donator Cape] Failed to transfer cape ($statusCode)")
                 }
 
                 // Refresh cape carriers
                 refreshCapeCarriers(force = true) {
-                    LOGGER.info("Cape carriers refreshed after session change.")
+                    logger.info("Cape carriers refreshed after session change.")
                 }
             }.onFailure {
-                LOGGER.error("Failed to handle new session due to error.", it)
+                logger.error("Failed to handle new session due to error.", it)
             }
         }
     }

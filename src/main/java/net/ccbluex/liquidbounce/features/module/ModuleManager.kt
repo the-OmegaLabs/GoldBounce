@@ -19,7 +19,6 @@ import net.ccbluex.liquidbounce.features.module.modules.`fun`.SkinDerp
 import net.ccbluex.liquidbounce.features.module.modules.hud.*
 import net.ccbluex.liquidbounce.features.module.modules.misc.*
 import net.ccbluex.liquidbounce.features.module.modules.movement.*
-import net.ccbluex.liquidbounce.features.module.modules.other.AntiStaff
 import net.ccbluex.liquidbounce.features.module.modules.player.*
 import net.ccbluex.liquidbounce.features.module.modules.render.*
 import net.ccbluex.liquidbounce.features.module.modules.scriptbased.BetterRotation
@@ -33,7 +32,7 @@ import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.features.module.modules.world.*
 import net.ccbluex.liquidbounce.features.module.modules.world.Timer
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.inventory.InventoryManager
 import java.util.*
 
@@ -52,7 +51,7 @@ object ModuleManager : Listenable {
      * Register all modules
      */
     fun registerModules() {
-        LOGGER.info("[ModuleManager] Loading modules...")
+        logger.info("[ModuleManager] Loading modules...")
 
         // Register modules
         registerModules(
@@ -283,7 +282,7 @@ object ModuleManager : Listenable {
 
         InventoryManager.startCoroutine()
 
-        LOGGER.info("[ModuleManager] Loaded ${modules.size} modules.")
+        logger.info("[ModuleManager] Loaded ${modules.size} modules.")
     }
 
     /**
@@ -304,7 +303,7 @@ object ModuleManager : Listenable {
         try {
             registerModule(moduleClass.newInstance())
         } catch (e: Throwable) {
-            LOGGER.error("Failed to load module: ${moduleClass.name} (${e.javaClass.name}: ${e.message})")
+            logger.error("Failed to load module: ${moduleClass.name} (${e.javaClass.name}: ${e.message})")
         }
     }
 

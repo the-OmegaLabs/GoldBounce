@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.file.FileConfig
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
 import net.ccbluex.liquidbounce.ui.client.clickgui.ClickGui
 import net.ccbluex.liquidbounce.ui.client.clickgui.elements.ModuleElement
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import java.io.File
 import java.io.IOException
 
@@ -51,13 +51,13 @@ class ClickGuiConfig(file: File) : FileConfig(file) {
                         val elementObject = panelObject.getAsJsonObject(element.module.name)
                         element.showSettings = elementObject["Settings"].asBoolean
                     } catch (e: Exception) {
-                        LOGGER.error(
+                        logger.error(
                             "Error while loading clickgui module element with the name '" + element.module.getName() + "' (Panel Name: " + panel.name + ").", e
                         )
                     }
                 }
             } catch (e: Exception) {
-                LOGGER.error("Error while loading clickgui panel with the name '" + panel.name + "'.", e)
+                logger.error("Error while loading clickgui panel with the name '" + panel.name + "'.", e)
             }
         }
     }

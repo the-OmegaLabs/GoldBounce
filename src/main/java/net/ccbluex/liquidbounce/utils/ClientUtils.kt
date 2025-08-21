@@ -6,8 +6,8 @@
 package net.ccbluex.liquidbounce.utils
 
 import com.google.gson.JsonObject
+import lombok.Getter
 import net.minecraft.client.settings.GameSettings
-import net.minecraft.client.shader.Shader
 import net.minecraft.network.NetworkManager
 import net.minecraft.network.login.client.C01PacketEncryptionResponse
 import net.minecraft.network.login.server.S01PacketEncryptionRequest
@@ -35,8 +35,10 @@ object ClientUtils : MinecraftInstance() {
         } catch (ignored: NoSuchFieldException) {
         }
     }
-
-    val LOGGER: Logger = LogManager.getLogger("GoldBounce")
+    @Getter
+    @JvmStatic
+    // Retarded kotlin
+    val logger: Logger = LogManager.getLogger("GoldBounce")
 
     fun disableFastRender() {
         try {
@@ -64,7 +66,7 @@ object ClientUtils : MinecraftInstance() {
 
     fun displayChatMessage(message: String) {
         if (mc.thePlayer == null) {
-            LOGGER.info("(Chat) $message")
+            logger.info("(Chat) $message")
             return
         }
 

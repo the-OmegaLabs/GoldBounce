@@ -298,16 +298,21 @@ object Fucker3 : Module(name = "Fucker3", Category.WORLD) {
                 firstPos = nearestBlock
                 LiquidBounce.hud.addNotification(Notification("找到第一个${getBlockName(targetID)}方块在${nearestBlock!!.x.toInt()} ${nearestBlock!!.y.toInt()} ${nearestBlock!!.z.toInt()}", title = "Fucker。", delay = 3000F, severityType = Notifications.SeverityType.SUCCESS))
             }
-            if (targetID == 26 && firstPos != null && firstPosBed == null) { // bed
-                when (true) {
-                    getBlock(firstPos!!.east()) != null && Block.getIdFromBlock(getBlock(firstPos!!.east())!!) == 26 -> firstPosBed = firstPos!!.east()
-                    getBlock(firstPos!!.west()) != null && Block.getIdFromBlock(getBlock(firstPos!!.west())!!) == 26 -> firstPosBed = firstPos!!.west()
-                    getBlock(firstPos!!.south()) != null && Block.getIdFromBlock(getBlock(firstPos!!.south())!!) == 26 -> firstPosBed = firstPos!!.south()
-                    getBlock(firstPos!!.north()) != null && Block.getIdFromBlock(getBlock(firstPos!!.north())!!) == 26 -> firstPosBed = firstPos!!.north()
-                }
-                if (firstPosBed != null)
-                    LiquidBounce.hud.addNotification(Notification("找到第二个方块在${firstPosBed!!.x.toInt()} ${firstPosBed!!.y.toInt()} ${firstPosBed!!.z.toInt()}", title = "Fucker。", delay = 3000F, severityType = Notifications.SeverityType.SUCCESS))
-            }
+//            Fuck kotlin compiler for clueless shit error output
+//            Kotlin was extremely retarded
+//            if (targetID == 26 && firstPos != null && firstPosBed == null) { // bed
+//                when (true) {
+//                    getBlock(firstPos!!.east()) != null && Block.getIdFromBlock(getBlock(firstPos!!.east())!!) == 26 -> firstPosBed = firstPos!!.east()
+//                    getBlock(firstPos!!.west()) != null && Block.getIdFromBlock(getBlock(firstPos!!.west())!!) == 26 -> firstPosBed = firstPos!!.west()
+//                    getBlock(firstPos!!.south()) != null && Block.getIdFromBlock(getBlock(firstPos!!.south())!!) == 26 -> firstPosBed = firstPos!!.south()
+//                    getBlock(firstPos!!.north()) != null && Block.getIdFromBlock(getBlock(firstPos!!.north())!!) == 26 -> firstPosBed = firstPos!!.north()
+//                    else -> {
+//                        // fuck
+//                    }
+//                }
+//                if (firstPosBed != null)
+//                    LiquidBounce.hud.addNotification(Notification("找到第二个方块在${firstPosBed!!.x.toInt()} ${firstPosBed!!.y.toInt()} ${firstPosBed!!.z.toInt()}", title = "Fucker。", delay = 3000F, severityType = Notifications.SeverityType.SUCCESS))
+//            }
         }
         return if (ignoreFirstBlockValue.get() && (firstPos == nearestBlock || firstPosBed == nearestBlock)) null else nearestBlock
     }

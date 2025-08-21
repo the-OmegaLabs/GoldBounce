@@ -15,7 +15,7 @@ import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element.Companion.MAX_GRADIENT_COLORS
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.BEDWARS_BLOCKS
 import net.ccbluex.liquidbounce.utils.block.BlockUtils.getBlockTexture
 import net.ccbluex.liquidbounce.utils.extensions.SharedScopes
@@ -135,7 +135,7 @@ object BedPlates : Module("BedPlates", Category.RENDER, hideModule = false) {
                 }
             }
         } catch (e: Exception) {
-            LOGGER.error("Failed to run BedPlates Coroutine Job.", e)
+            logger.error("Failed to run BedPlates Coroutine Job.", e)
         }
     }
 

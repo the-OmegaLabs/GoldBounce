@@ -5,10 +5,8 @@
  */
 package net.ccbluex.liquidbounce.ui.client.hud.element
 
-import net.ccbluex.liquidbounce.ui.client.hud.element.Side.Horizontal.values
-import net.ccbluex.liquidbounce.ui.client.hud.element.Side.Vertical.values
 import net.ccbluex.liquidbounce.utils.ClassUtils
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBorderedRect
 import net.ccbluex.liquidbounce.value.Value
@@ -106,7 +104,7 @@ abstract class Element(
                     ClassUtils.findValues(element, configurables, orderedValues)
                 }
             } catch (e: Exception) {
-                LOGGER.error(e)
+                logger.error(e)
             }
 
             return orderedValues

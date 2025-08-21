@@ -8,7 +8,7 @@ package net.ccbluex.liquidbounce.lang
 import net.ccbluex.liquidbounce.file.FileManager.PRETTY_GSON
 import net.ccbluex.liquidbounce.lang.LanguageManager.knownLanguages
 import net.ccbluex.liquidbounce.lang.LanguageManager.languageMap
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 
 fun translationMenu(key: String, vararg args: Any) = LanguageManager.getTranslation("menu.$key", *args)
@@ -51,9 +51,9 @@ object LanguageManager : MinecraftInstance() {
                 val languageJson = PRETTY_GSON.fromJson(languageFile.bufferedReader(), Language::class.java)
                 languageMap[language] = languageJson
             }.onSuccess {
-                LOGGER.info("Loaded language $language")
+                logger.info("Loaded language $language")
             }.onFailure {
-                LOGGER.error("Failed to load language $language", it)
+                logger.error("Failed to load language $language", it)
             }
         }
     }

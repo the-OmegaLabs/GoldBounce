@@ -13,7 +13,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.Element
 import net.ccbluex.liquidbounce.ui.client.hud.element.ElementInfo
 import net.ccbluex.liquidbounce.ui.font.AWTFontRenderer.Companion.assumeNonVolatile
 import net.ccbluex.liquidbounce.ui.font.Fonts
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.EntityUtils
 import net.ccbluex.liquidbounce.utils.EntityUtils.getHealth
 import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
@@ -168,7 +168,7 @@ class Target : Element() {
                 posX = MathHelper.clamp_double(pos4.x.toDouble(), 0.0, sr.scaledWidth - 162.0)
                 posY = MathHelper.clamp_double(pos4.y.toDouble(), 0.0, sr.scaledHeight - 50.0)
             } catch (e: Exception) {
-                LOGGER.error("Position calculation failed: ${e.stackTraceToString()}")
+                logger.error("Position calculation failed: ${e.stackTraceToString()}")
                 posX = -1.0 // 触发位置重置
             }
         }

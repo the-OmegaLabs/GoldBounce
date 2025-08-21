@@ -18,7 +18,7 @@ import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Arraylist
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notifications
 import net.ccbluex.liquidbounce.utils.ClassUtils
-import net.ccbluex.liquidbounce.utils.ClientUtils.LOGGER
+import net.ccbluex.liquidbounce.utils.ClientUtils.logger
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.extensions.toLowerCamelCase
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextFloat
@@ -201,7 +201,7 @@ open class Module(
                 if (gameDetecting) orderedValues += onlyInGameValue
                 if (!hideModule) orderedValues += hideModuleValue
             } catch (e: Exception) {
-                LOGGER.error(e)
+                logger.error(e)
             }
 
             return orderedValues
