@@ -75,8 +75,6 @@ dependencies {
 //    implementation("io.ktor:ktor-client-content-negotiation:2.3.10")
 //    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.10")
 //    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("org.bouncycastle:bcprov-jdk15to18:1.77")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     include "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3"
     implementation 'javazoom:jlayer:1.0.1'
     include fileTree(include: ["*.jar"], dir: "libs")
