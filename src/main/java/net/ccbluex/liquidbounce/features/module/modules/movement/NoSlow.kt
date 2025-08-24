@@ -70,7 +70,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val consumeMode by choices(
         "ConsumeMode",
-        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "Hypixel"),
+        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "Hypixel", "BlocksMC"),
         "None"
     )
 
@@ -101,6 +101,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     private var shouldSwap = false
     private var shouldBlink = true
     private var shouldNoSlow = false
+    private var consumeTickCycle = 0
 
     private var hasDropped = false
     private val BlinkTimer = TickTimer()
@@ -134,6 +135,16 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             ) {
                 val stack = mc.thePlayer.getHeldItem()
                 when (consumeMode.lowercase()) {
+                    "blocksmc" -> {
+                        if (event.eventState == EventState.PRE) {
+                            consumeTickCycle++
+                            if (consumeTickCycle == 1) {
+                                mc.netHandler.addToSendQueue(C09PacketHeldItemChange((mc.thePlayer.inventory.currentItem + 1) % 9))
+                                mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                                sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 0, heldItem, 0f, 0f, 0f))
+                            }
+                        }
+                    }
                     "aac5" ->
                         sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, heldItem, 0f, 0f, 0f))
 
@@ -179,6 +190,8 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                     }
                 }
             }
+        }else {
+            consumeTickCycle = 0
         }
 
         if (heldItem.item is ItemBow && (isUsingItem || shouldSwap)) {
