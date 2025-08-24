@@ -45,7 +45,7 @@ public class NewUi extends GuiScreen {
         instance = new NewUi();
     }
 
-    private NewUi() {
+    public NewUi() {
         for (Category c : Category.values())
             categoryElements.add(new CategoryElement(c));
         categoryElements.get(0).setFocused(true);
@@ -146,15 +146,16 @@ public class NewUi extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         ScaledResolution sr = new ScaledResolution(mc);
+//        RenderUtils.INSTANCE.drawBlurRect(30F, 30F, this.width - 30F, this.height - 30F, 5);
         // will draw reduced ver once it gets under 1140x780.
         GlowUtils.INSTANCE.drawGlow(30, 30, sr.getScaledWidth()-60, sr.getScaledHeight()-60, 4, new Color(0, 0, 0, 150));
-        RenderUtils.INSTANCE.drawRoundedRect(30, sr.getScaledHeight()-30, sr.getScaledWidth()-30, 30, new Color(33, 33, 33, 150).getRGB(), 4F);
+//        RenderUtils.INSTANCE.drawRoundedRect(30, sr.getScaledHeight()-30, sr.getScaledWidth()-30, 30, new Color(33, 33, 33, 150).getRGB(), 4F);
         drawFullSized(mouseX, mouseY, partialTicks, new Color(0,140,255));
     }
 
     private void drawFullSized(int mouseX, int mouseY, float partialTicks, Color accentColor) {
         // Draw the main background
-        RenderUtils.INSTANCE.drawRoundedRect(30F, 30F, this.width - 30F, this.height - 30F, 8, 0xFF101010);
+//        RenderUtils.INSTANCE.drawRoundedRect(30F, 30F, this.width - 30F, this.height - 30F, 8, 0xFF101010);
 
         // something to make it look more like windoze
         if (MouseUtils.mouseWithinBounds(mouseX, mouseY, this.width - 54F, 30F, this.width - 30F, 50F)) {

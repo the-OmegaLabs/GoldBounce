@@ -1,5 +1,7 @@
 package net.ccbluex.liquidbounce.utils.render;
 
+// From Xylitol
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -138,7 +140,7 @@ public class ShaderUtil {
     int fragmentShaderID = createShader(new ByteArrayInputStream(fragmentShadersrc.getBytes()), 35632);
     int vertexShaderID = 0;
     try {
-      vertexShaderID = createShader(Client.mc.getResourceManager().getResource(new ResourceLocation("express/shader/vertex.vsh")).getInputStream(), 35633);
+      vertexShaderID = createShader(Client.mc.getResourceManager().getResource(new ResourceLocation("liquidbounce/shader/vertex.vsh")).getInputStream(), 35633);
     } catch (IOException e) {
       throw new RuntimeException(e);
     } 
@@ -152,7 +154,7 @@ public class ShaderUtil {
   }
   
   public ShaderUtil(String fragmentShaderLoc) {
-    this(fragmentShaderLoc, "express/shader/vertex.vsh");
+    this(fragmentShaderLoc, "liquidbounce/shader/vertex.vsh");
   }
   
   public void init() {

@@ -35,7 +35,7 @@ object ColorUtils {
 
         return interpolateColor(colors[index0], colors[index1], fraction)
     }
-    private fun interpolateColor(color1: Color, color2: Color, fraction: Float): Color {
+    fun interpolateColor(color1: Color, color2: Color, fraction: Float): Color {
         val invertedFraction = 1f - fraction
         return Color(
             (color1.red * invertedFraction + color2.red * fraction).toInt(),

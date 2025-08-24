@@ -8,6 +8,7 @@ package net.ccbluex.liquidbounce.utils.timing
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.utils.CoroutineUtils
+import net.ccbluex.liquidbounce.utils.CoroutineUtils.waitUntil
 import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.MinecraftInstance.Companion.mc
 import net.minecraft.item.ItemStack
@@ -69,7 +70,9 @@ object TickedActions : Listenable {
         actions.any { it.owner == module && it.id == id && it !in calledThisTick }
 
     private fun clear(module: Module) = actions.removeIf { it.owner == module }
-
+    suspend fun Module.awaitTicked() {
+        waitUntil { hasNoTicked() }
+    }
     private fun size(module: Module) = actions.count { it.owner == module }
 
     private fun isEmpty(module: Module) = size(module) == 0

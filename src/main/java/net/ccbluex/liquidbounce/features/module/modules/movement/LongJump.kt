@@ -47,7 +47,7 @@ object LongJump : Module("LongJump", Category.MOVEMENT) {
 
     val mode by choices("Mode", modes, "NCP")
     val ncpBoost by floatValue("NCPBoost", 4.25f, 1f..10f) { mode == "NCP" }
-
+    val whenhurt by _boolean("WhenHurt", false)
     private val autoJump by _boolean("AutoJump", true)
 
     val autoDisable by _boolean("AutoDisable", true) { mode == "VerusDamage" }
@@ -76,11 +76,15 @@ object LongJump : Module("LongJump", Category.MOVEMENT) {
 
             modeModule.onUpdate()
         }
-        if (autoJump && mc.thePlayer.onGround && mc.thePlayer.isMoving) {
+        if (autoJump && mc.thePlayer.onGround && mc.thePlayer.isMoving && !whenhurt) {
             if (autoDisable && !damaged) {
                 return
             }
 
+            jumped = true
+            mc.thePlayer.tryJump()
+        }
+        if (whenhurt && mc.thePlayer.hurtTime != 0 && !jumped) {
             jumped = true
             mc.thePlayer.tryJump()
         }

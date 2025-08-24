@@ -186,7 +186,9 @@ object LiquidBounce {
             // Register commands
             registerCommands()
             // Setup module manager and register modules
-            registerModules()
+            runBlocking {
+                registerModules()
+            }
             runCatching {
                 // Remapper
                 loadSrg()
@@ -252,7 +254,6 @@ object LiquidBounce {
 
             // Load background
             FileManager.loadBackground()
-            PacketManager().init()
             playStartupSound()
         } catch (e: Exception) {
             logger.error("Failed to start client ${e.message}")

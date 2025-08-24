@@ -23,9 +23,10 @@ import net.ccbluex.liquidbounce.utils.misc.HttpUtils.get
 import net.ccbluex.liquidbounce.utils.misc.StringUtils
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+import java.net.URL
 
-object SettingsCommand : Command("autosettings", "autosetting", "settings", "setting", "config") {
-
+object SettingsCommand : Command("cloud", "cloudsettings") {
+    var cloudSettings : Array<CloudSettings>? = null
     /**
      * Execute commands with provided [args]
      */
@@ -40,10 +41,8 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
         GlobalScope.launch {
             when (args[1].lowercase()) {
                 "load" -> loadSettings(args)
-                "report" -> reportSettings(args)
-                "upload" -> uploadSettings(args)
                 "list" -> listSettings()
-                else -> chatSyntax("$usedAlias <load/list/upload/report>")
+                else -> chatSyntax("$usedAlias <load/list>")
             }
         }
     }
@@ -65,92 +64,61 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
 
                     text
                 } else {
-                    ClientApi.requestSettingsScript(args[2])
+                    try {
+                        URL("https://hub.gitmirror.com/https://raw.githubusercontent.com/bzym2/GoldBounce-Cloud/refs/heads/main/${args[2]}.txt").readText()
+                    } catch (e: Exception) {
+                        chat("请求失败, ${e.message}")
+                        return@withContext
+                    }
                 }
-
-                chat("Applying settings...")
+                chat("应用配置中...")
                 SettingsUtils.applyScript(settings)
-                chat("§6Settings applied successfully")
-                addNotification(Notification("Updated Settings"))
+                chat("§6配置成功应用！")
                 playEdit()
             } catch (e: Exception) {
                 logger.error("Failed to load settings", e)
-                chat("Failed to load settings: ${e.message}")
+                chat("加载配置失败: ${e.message}")
             }
         }
     }
+    fun loadCloudSettings(): Array<CloudSettings> {
+        val url = "https://hub.gitmirror.com/https://raw.githubusercontent.com/bzym2/GoldBounce-Cloud/refs/heads/main/list.txt"
 
-    // Report subcommand
-    private suspend fun reportSettings(args: Array<String>) {
-        withContext(Dispatchers.IO) {
-            if (args.size < 3) {
-                chatSyntax("${args[0].lowercase()} report <name>")
-                return@withContext
-            }
-
-            try {
-                val response = ClientApi.reportSettings(args[2])
-                when (response.status) {
-                    Status.SUCCESS -> chat("§6${response.message}")
-                    Status.ERROR -> chat("§c${response.message}")
-                }
-            } catch (e: Exception) {
-                logger.error("Failed to report settings", e)
-                chat("Failed to report settings: ${e.message}")
-            }
-        }
-    }
-
-    // Upload subcommand
-    private suspend fun uploadSettings(args: Array<String>) {
-        withContext(Dispatchers.IO) {
-            val option = if (args.size > 3) StringUtils.toCompleteString(args, 3).lowercase() else "all"
-            val all = "all" in option
-            val values = all || "values" in option
-            val binds = all || "binds" in option
-            val states = all || "states" in option
-
-            if (!values && !binds && !states) {
-                chatSyntax("${args[0].lowercase()} upload [all/values/binds/states]...")
-                return@withContext
-            }
-
-            try {
-                chat("§eCreating settings...")
-                val settingsScript = SettingsUtils.generateScript(values, binds, states)
-                chat("§eUploading settings...")
-
-                val serverData = mc.currentServerData ?: error("You need to be on a server to upload settings.")
-
-                val name = "${LiquidBounce.clientCommit}-${serverData.serverIP.replace(".", "_")}"
-                val response = ClientApi.uploadSettings(name, mc.session.username, settingsScript)
-
-                when (response.status) {
-                    Status.SUCCESS -> {
-                        chat("§6${response.message}")
-                        chat("§eToken: §6${response.token}")
-
-                        // Store token in clipboard
-                        val stringSelection = StringSelection(response.token)
-                        Toolkit.getDefaultToolkit().systemClipboard.setContents(stringSelection, stringSelection)
+        return try {
+            URL(url).readText() // 读取全部内容
+                .lines()        // 按行拆分
+                .filter { it.isNotBlank() } // 过滤空行
+                .map { line ->
+                    val parts = line.split(",") // 按英文逗号拆分
+                    if (parts.size >= 4) {
+                        CloudSettings(
+                            name = parts[0].trim(),
+                            date = parts[1].trim(),
+                            desc = parts[2].trim(),
+                            author = parts[3].trim()
+                        )
+                    } else {
+                        // 如果某行格式不对，返回一个空对象或抛异常可自定义
+                        CloudSettings("N/A", "N/A", "N/A", "N/A")
                     }
-                    Status.ERROR -> chat("§c${response.message}")
                 }
-            } catch (e: Exception) {
-                logger.error("Failed to upload settings", e)
-                chat("Failed to upload settings: ${e.message}")
-            }
+                .toTypedArray() // 转成 Array
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyArray()
         }
     }
 
     // List subcommand
     private suspend fun listSettings() {
         withContext(Dispatchers.IO) {
-            chat("Loading settings...")
-            loadSettings(false) {
-                for (setting in it) {
-                    chat("> ${setting.settingId} (Last updated: ${setting.date}, Status: ${setting.statusType.displayName})")
-                }
+            chat("加载云配中...")
+            val settings = loadCloudSettings()
+            if (settings.isEmpty()) {
+                chat("加载失败！")
+            }
+            settings.forEach { it ->
+                chat("参数${it.name} 描述: ${it.desc} 发布日期：${it.date} by ${it.author}")
             }
         }
     }
@@ -161,19 +129,15 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
         }
 
         return when (args.size) {
-            1 -> listOf("list", "load", "upload", "report").filter { it.startsWith(args[0], true) }
+            1 -> listOf("list", "load").filter { it.startsWith(args[0], true) }
             2 -> {
                 when (args[0].lowercase()) {
-                    "load", "report" -> {
-                        if (autoSettingsList == null) {
-                            loadSettings(true, 500) {}
+                    "load"-> {
+                        if (cloudSettings == null) {
+                            cloudSettings = loadCloudSettings()
                         }
-
-                        return autoSettingsList?.filter { it.settingId.startsWith(args[1], true) }?.map { it.settingId }
+                        return cloudSettings?.filter { it.name.startsWith(args[1], true) }?.map { it.name }
                             ?: emptyList()
-                    }
-                    "upload" -> {
-                        return listOf("all", "values", "binds", "states").filter { it.startsWith(args[1], true) }
                     }
                     else -> emptyList()
                 }
@@ -182,3 +146,10 @@ object SettingsCommand : Command("autosettings", "autosetting", "settings", "set
         }
     }
 }
+
+data class CloudSettings(
+    val name: String,
+    val date: String,
+    val desc: String,
+    val author: String
+)

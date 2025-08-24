@@ -11,56 +11,61 @@ import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.animations.ContinualAnimation
 import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.deltaTime
+import net.ccbluex.liquidbounce.utils.render.Stencil
 import net.ccbluex.liquidbounce.utils.skid.moonlight.render.ColorUtils
-import net.ccbluex.liquidbounce.value.*
+import net.ccbluex.liquidbounce.value.ListValue
+import net.ccbluex.liquidbounce.value._boolean
+import net.ccbluex.liquidbounce.value.floatValue
+import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.util.EnumChatFormatting.BOLD
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.*
 import kotlin.math.*
-import net.minecraft.util.EnumChatFormatting.BOLD
-import net.ccbluex.liquidbounce.utils.render.Stencil
 
 
 object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
     // General Settings
     private val hudStyle by ListValue(
-        "Style",
-        arrayOf(
+        "Style", arrayOf(
             "Flux",
             "Arc",
             "Compact",
             "Moon4",
-            "Southside",
             "Novoline",
             "戶籍",
             "Chill",
             "Myau",
             "RavenB4",
             "Naven",
-            "Wave",
-            "Pulse",
-            "Neon",
-            "Layer"
-        ),
-        "Flux"
+            "Layer",
+            "Animated"
+        ), "Flux"
     )
-    private val posX by intValue("PosX", 0, -400..400) {hudStyle != "Layer"}
-    private val posY by intValue("PosY", 0, -400..400) {hudStyle != "Layer"}
+    private val posX by intValue("PosX", 0, -400..400) { hudStyle != "Layer" }
+    private val posY by intValue("PosY", 0, -400..400) { hudStyle != "Layer" }
     private val animSpeed by floatValue("AnimationSpeed", 0.1F, 0.01F..0.5F)
 
     // Flux Settings
-    private val fluxColorMode by ListValue("Flux-Color", arrayOf("Custom", "Health", "Rainbow"), "Health") { hudStyle == "Flux" }
+    private val fluxColorMode by ListValue(
+        "Flux-Color",
+        arrayOf("Custom", "Health", "Rainbow"),
+        "Health"
+    ) { hudStyle == "Flux" }
     private val fluxColorRed by intValue("Flux-Red", 0, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
-    private val fluxColorGreen by intValue("Flux-Green", 120, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
+    private val fluxColorGreen by intValue(
+        "Flux-Green",
+        120,
+        0..255
+    ) { hudStyle == "Flux" && fluxColorMode == "Custom" }
     private val fluxColorBlue by intValue("Flux-Blue", 255, 0..255) { hudStyle == "Flux" && fluxColorMode == "Custom" }
 
     // Arc Settings
@@ -97,8 +102,13 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private var target: EntityLivingBase? = null
     private var lastTarget: EntityLivingBase? = null
     override var hue = 0.0f
+
     // Wave样式设置项
-    private val waveColor by ListValue("Wave-Color", arrayOf("Health", "Rainbow", "Custom"), "Health") { hudStyle == "Wave" }
+    private val waveColor by ListValue(
+        "Wave-Color",
+        arrayOf("Health", "Rainbow", "Custom"),
+        "Health"
+    ) { hudStyle == "Wave" }
     private val waveCustomColor = Color(0, 150, 255)
 
     // Pulse样式设置项
@@ -108,6 +118,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     // Neon样式设置项
     private val neonGlow by _boolean("Neon-Glow", true) { hudStyle == "Neon" }
     private val neonColor = Color(255, 50, 255)
+
     // Animation States
     private var easingHealth = 0F
     private var moon4EasingHealth = 0F
@@ -115,6 +126,13 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private var slideIn = 0F
     private var damageHealth = 0F
     private val animate = ContinualAnimation()
+    private var prevHealth = -1f
+    private var avatarScale = 1f
+    private var avatarTargetScale = 1f
+    private var avatarTintAlpha = 0f // 0..1
+    private var isHitAnimating = false
+    private var hitAnimTimer = 0f
+    private val hitAnimDuration = 500f // 毫秒
     override fun onEnable() {
         easingHealth = 0F
         moon4EasingHealth = 0F
@@ -124,6 +142,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         hue = 0.0f
         target = null
         lastTarget = null
+        prevHealth = -1f
+        avatarScale = 1f
+        avatarTargetScale = 1f
+        avatarTintAlpha = 0f
+        isHitAnimating = false
+        hitAnimTimer = 0f
     }
 
     private fun updateSouthsideEasingHealth(targetHealth: Float, maxHealth: Float) {
@@ -145,8 +169,9 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         }
         southsideEasingHealth = southsideEasingHealth.coerceAtMost(maxHealth)
     }
+
     private fun renderLayer() {
-        val kaTarget = KillAura.target
+        KillAura.target
 
     }
 
@@ -211,8 +236,126 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "pulse" -> renderPulseHUD(x, y)
             "neon" -> renderNeonHUD(x, y)
             "layer" -> renderLayerHUD()
+            "animated" -> renderAnimatedHUD(x, y)
         }
     }
+
+    private fun renderAnimatedHUD(x: Float, y: Float) {
+        val entity = target ?: lastTarget ?: return
+
+        // Size and layout
+        val width = 210f
+        val height = 62f
+        val padding = 10f
+        val avatarSize = 46f
+        val left = x
+        val top = y
+
+        // Update health easing
+        easingHealth = lerp(easingHealth, entity.health, animSpeed * 1.5f)
+
+        // Initialize prevHealth if needed
+        if (prevHealth < 0f) prevHealth = entity.health
+
+        // Detect hit: health decreased
+        if (entity.health < prevHealth && !isHitAnimating) {
+            isHitAnimating = true
+            hitAnimTimer = 0f
+            avatarTargetScale = 0.85f
+            // tint alpha will be driven in animation update
+        }
+
+        // Update hit animation state
+        if (isHitAnimating) {
+            hitAnimTimer += deltaTime
+            val progress = (hitAnimTimer / hitAnimDuration).coerceIn(0f, 1f)
+
+            when {
+                progress < 0.4f -> {
+                    avatarTargetScale = 0.85f
+                    val desiredTint = 1f
+                    avatarTintAlpha = lerp(avatarTintAlpha, desiredTint, 0.25f)
+                }
+                progress < 0.75f -> {
+                    avatarTargetScale = 1.12f // quick bounce
+                    val desiredTint = 0.6f
+                    avatarTintAlpha = lerp(avatarTintAlpha, desiredTint, 0.25f)
+                }
+                else -> {
+                    avatarTargetScale = 1f
+                    avatarTintAlpha = lerp(avatarTintAlpha, 0f, 0.25f)
+                }
+            }
+
+            if (progress >= 1f) {
+                isHitAnimating = false
+                avatarTargetScale = 1f
+                avatarTintAlpha = 0f
+                hitAnimTimer = 0f
+            }
+        } else {
+            // Ensure avatar returns to normal if no animation
+            avatarTargetScale = 1f
+            avatarTintAlpha = lerp(avatarTintAlpha, 0f, 0.12f)
+        }
+
+        // Smoothly interpolate avatar scale
+        avatarScale = lerp(avatarScale, avatarTargetScale, 0.22f)
+
+        // Draw HUD with slide-in animation
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(left, top, 0f)
+        GlStateManager.scale(slideIn, slideIn, 1f)
+
+        // Subtle inner shadow/background for contrast
+        RenderUtils.drawRoundedRect(4f, 4f, width - 4f, height - 4f, Color(245, 245, 245).rgb, 6f)
+
+        // Draw avatar with scaling and tint overlay
+        val ax = padding
+        val ay = (height - avatarSize) / 2f
+
+        GlStateManager.pushMatrix()
+        GlStateManager.translate(ax, ay, 0f)
+        GlStateManager.scale(avatarScale, avatarScale, 1f)
+
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, 0, 0, avatarSize.toInt(), avatarSize.toInt(), Color.WHITE)
+        }
+        GlStateManager.popMatrix()
+
+        // Tint overlay (red) to indicate hit
+        if (avatarTintAlpha > 0.01f) {
+            val tint = Color(255, 50, 50, (avatarTintAlpha * 140).toInt())
+            RenderUtils.drawRoundedRect(ax, ay, ax + avatarSize, ay + avatarSize, tint.rgb, 6f)
+        }
+
+        // Name above health bar
+        val nameX = ax + avatarSize + 12f
+        val nameY = 12f
+        Fonts.font40.drawString(entity.name, nameX, nameY, Color(30, 30, 30).rgb)
+
+        // Health bar (rounded)
+        val barX = nameX
+        val barY = height - 22f
+        val barW = width - barX - padding
+        val barH = 12f
+
+        // Background of bar (light)
+        RenderUtils.drawRoundedRect(barX, barY, barX + barW, barY + barH, Color(230, 230, 230).rgb, 6f)
+
+        // Foreground: eased health
+        val healthPercent = (easingHealth / entity.maxHealth).coerceIn(0f, 1f)
+        val fillW = barW * healthPercent
+        val barColor = ColorUtils.healthColor(easingHealth, entity.maxHealth)
+
+        RenderUtils.drawRoundedRect(barX, barY, barX + fillW, barY + barH, barColor.rgb, 6f)
+
+        GlStateManager.popMatrix()
+
+        // Update prevHealth for next frame
+        prevHealth = entity.health
+    }
+
     private fun renderLayerHUD() {
         val entity = target ?: lastTarget ?: return
         val sr = ScaledResolution(mc)
@@ -229,6 +372,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             RenderUtils.drawRect(0f, 0f, healthBarWidth, sr.scaledHeight.toFloat(), overlayColor.rgb)
         }
     }
+
     private fun renderMoon4HUD(x: Float, y: Float) {
         val entity = target ?: lastTarget ?: return
 
@@ -249,7 +393,8 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         val healthPercent = (entity.health / entity.maxHealth).coerceIn(0F, 1F)
         val barWidth = healthPercent * (nameLength - 2F)
-        val animateThingy = (moon4EasingHealth.coerceIn(entity.health, entity.maxHealth) / entity.maxHealth) * (nameLength - 2F)
+        val animateThingy =
+            (moon4EasingHealth.coerceIn(entity.health, entity.maxHealth) / entity.maxHealth) * (nameLength - 2F)
 
         GlStateManager.pushMatrix()
         GlStateManager.translate(x, y, 0F)
@@ -314,7 +459,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         // Health Bar
         val healthPercent = (easingHealth / entity.maxHealth).coerceIn(0F, 1F)
         val healthBarWidth = (width - 52) * healthPercent
-        val barColor = when(fluxColorMode) {
+        val barColor = when (fluxColorMode) {
             "Custom" -> Color(fluxColorRed, fluxColorGreen, fluxColorBlue)
             "Rainbow" -> Color.getHSBColor(hue, 0.7f, 0.9f)
             else -> ColorUtils.healthColor(easingHealth, entity.maxHealth)
@@ -336,6 +481,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         GlStateManager.popMatrix()
     }
+
     private fun renderWaveHUD(x: Float, y: Float) {
         val entity = target ?: return
         val width = 160F
@@ -360,7 +506,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         Fonts.font40.drawString(entity.name, 50F, 8F, Color.WHITE.rgb)
 
         // 波浪健康条
-        val healthPercent = easingHealth / entity.maxHealth
+        easingHealth / entity.maxHealth
         val waveHeight = 12F
         val waveAmplitude = 2F
         val waveFrequency = 0.1F
@@ -375,7 +521,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         glBegin(GL_TRIANGLE_STRIP)
         val barWidth = width - 60F
-        val color = when(waveColor) {
+        val color = when (waveColor) {
             "Health" -> ColorUtils.healthColor(easingHealth, entity.maxHealth)
             "Rainbow" -> Color.getHSBColor((hue * 3) % 1, 0.8f, 0.9f)
             else -> waveCustomColor
@@ -383,10 +529,11 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         for (i in 0..barWidth.toInt()) {
             val progress = i / barWidth
-            val offset = sin((progress * waveFrequency + System.currentTimeMillis() * 0.001) * 2 * PI).toFloat() * waveAmplitude
+            val offset =
+                sin((progress * waveFrequency + System.currentTimeMillis() * 0.001) * 2 * PI).toFloat() * waveAmplitude
             val waveY = 25F + waveHeight + offset
 
-            glColor4f(color.red/255f, color.green/255f, color.blue/255f, 0.8f)
+            glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, 0.8f)
             glVertex2f(50F + i, 25F + waveHeight)
             glVertex2f(50F + i, waveY)
         }
@@ -398,6 +545,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         GlStateManager.popMatrix()
     }
+
     private fun renderArcHUD(x: Float, y: Float) {
         val entity = target ?: lastTarget ?: return
         val size = 50F
@@ -412,19 +560,34 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.translate(-(x + size / 2), -(y + size / 2), 0F)
 
         // Draw Head clipped in a circle
-        RenderUtils.withClipping(
-            { drawCircle(x + size / 2, y + size / 2, size / 2 - 3, Color.WHITE.rgb) },
-            { mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
-                Target().drawHead(it.locationSkin, x.toInt() + 3, y.toInt() + 3, (size - 6).toInt(), (size - 6).toInt(), Color.WHITE)
-            }}
-        )
+        RenderUtils.withClipping({ drawCircle(x + size / 2, y + size / 2, size / 2 - 3, Color.WHITE.rgb) }, {
+            mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+                Target().drawHead(
+                    it.locationSkin,
+                    x.toInt() + 3,
+                    y.toInt() + 3,
+                    (size - 6).toInt(),
+                    (size - 6).toInt(),
+                    Color.WHITE
+                )
+            }
+        })
 
         // Health Arc
         val healthPercent = (easingHealth / entity.maxHealth).coerceIn(0F, 1F)
-        val arcColor = if(arcRainbow) Color.getHSBColor(hue, 0.6f, 1f) else Color(arcColorRed, arcColorGreen, arcColorBlue)
+        val arcColor =
+            if (arcRainbow) Color.getHSBColor(hue, 0.6f, 1f) else Color(arcColorRed, arcColorGreen, arcColorBlue)
 
         // Background Arc
-        drawCircleArc(x + size / 2, y + size / 2, size / 2 - 1.5F, 3F, 0F, 360F, Color(40, 40, 40, (200 * slideIn).toInt()))
+        drawCircleArc(
+            x + size / 2,
+            y + size / 2,
+            size / 2 - 1.5F,
+            3F,
+            0F,
+            360F,
+            Color(40, 40, 40, (200 * slideIn).toInt())
+        )
         // Foreground Arc
         if (healthPercent > 0) {
             drawCircleArc(x + size / 2, y + size / 2, size / 2 - 1.5F, 3F, -90F, 360F * healthPercent, arcColor)
@@ -490,10 +653,17 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         // Text on bar
         val text = "${entity.name} - ${decimalFormat.format(easingHealth)} HP"
-        Fonts.font35.drawCenteredString(text, x + width / 2, y + height / 2 - Fonts.font35.fontHeight / 2 + 1, Color.WHITE.rgb, true)
+        Fonts.font35.drawCenteredString(
+            text,
+            x + width / 2,
+            y + height / 2 - Fonts.font35.fontHeight / 2 + 1,
+            Color.WHITE.rgb,
+            true
+        )
 
         GlStateManager.popMatrix()
     }
+
     private fun renderPulseHUD(x: Float, y: Float) {
         val entity = target ?: return
         val size = 70F
@@ -505,26 +675,46 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.translate(x, y, 0F)
         GlStateManager.scale(pulseScale, pulseScale, 1.0)
 
-        RenderUtils.drawFilledCircle(x + size/2F, y + size/2F, size/2F, Color(20, 20, 20, 200))
+        RenderUtils.drawFilledCircle(x + size / 2F, y + size / 2F, size / 2F, Color(20, 20, 20, 200))
 
         mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
-            Target().drawHead(it.locationSkin, x.toInt() + 5, y.toInt() + 5, (size - 10).toInt(), (size - 10).toInt(), Color.WHITE)
+            Target().drawHead(
+                it.locationSkin,
+                x.toInt() + 5,
+                y.toInt() + 5,
+                (size - 10).toInt(),
+                (size - 10).toInt(),
+                Color.WHITE
+            )
         }
 
         val healthPercent = entity.health / entity.maxHealth
         val ringColor = ColorUtils.healthColor(entity.health, entity.maxHealth)
 
         glPushMatrix()
-        glTranslatef(x + size/2, y + size/2, 0F)
+        glTranslatef(x + size / 2, y + size / 2, 0F)
         for (i in 0..3) {
-            val scale = 1.1f + i * 0.1f
-            val alpha = (200 * (1 - i/3f)).toInt()
-            drawCircleArc(0F, 0F, size/2 + i*3, pulseThickness, -90F, 360F * healthPercent, Color(ringColor.red, ringColor.green, ringColor.blue, alpha))
+            1.1f + i * 0.1f
+            val alpha = (200 * (1 - i / 3f)).toInt()
+            drawCircleArc(
+                0F,
+                0F,
+                size / 2 + i * 3,
+                pulseThickness,
+                -90F,
+                360F * healthPercent,
+                Color(ringColor.red, ringColor.green, ringColor.blue, alpha)
+            )
         }
         glPopMatrix()
 
-        Fonts.font40.drawCenteredString(entity.name, x + size/2, y + size + 5F, Color.WHITE.rgb)
-        Fonts.font35.drawCenteredString("${decimalFormat.format(entity.health)}m", x + size/2, y + size + 20F, Color(200, 200, 200).rgb)
+        Fonts.font40.drawCenteredString(entity.name, x + size / 2, y + size + 5F, Color.WHITE.rgb)
+        Fonts.font35.drawCenteredString(
+            "${decimalFormat.format(entity.health)}m",
+            x + size / 2,
+            y + size + 20F,
+            Color(200, 200, 200).rgb
+        )
 
         GlStateManager.popMatrix()
     }
@@ -541,11 +731,17 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         GlStateManager.scale(slideIn, slideIn, 1F)
         RenderUtils.drawRoundedRect(0F, 0F, width, height, Color(10, 10, 10, 180).rgb, 8F)
 
-        if(neonGlow) {
-            for(i in 1..3) {
+        if (neonGlow) {
+            for (i in 1..3) {
                 val glowSize = i * 2F
-                RenderUtils.drawRoundedRect(-glowSize, -glowSize, width+glowSize, height+glowSize,
-                    Color(neonColor.red, neonColor.green, neonColor.blue, 30/i).rgb, 8F + glowSize)
+                RenderUtils.drawRoundedRect(
+                    -glowSize,
+                    -glowSize,
+                    width + glowSize,
+                    height + glowSize,
+                    Color(neonColor.red, neonColor.green, neonColor.blue, 30 / i).rgb,
+                    8F + glowSize
+                )
             }
         }
 
@@ -568,12 +764,18 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         // 前景条（霓虹效果）
         val gradientWidth = (width - 80F) * healthPercent
-        RenderUtils.drawRoundedRect(barX, barY, barX + gradientWidth, barY + barHeight,
-            neonColor.brighter().rgb, 4F)
+        RenderUtils.drawRoundedRect(
+            barX, barY, barX + gradientWidth, barY + barHeight, neonColor.brighter().rgb, 4F
+        )
 
         // 健康数值
         val healthText = "${decimalFormat.format(easingHealth)} / ${entity.maxHealth}"
-        Fonts.font35.drawString(healthText, width - Fonts.font35.getStringWidth(healthText) - 15F, barY + 2F, neonColor.brighter().rgb)
+        Fonts.font35.drawString(
+            healthText,
+            width - Fonts.font35.getStringWidth(healthText) - 15F,
+            barY + 2F,
+            neonColor.brighter().rgb
+        )
 
         // 距离显示
         val distance = mc.thePlayer.getDistanceToEntity(entity)
@@ -582,8 +784,17 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         GlStateManager.popMatrix()
     }
+
     // Helper function to draw an arc, can be moved to RenderUtils later
-    private fun drawCircleArc(x: Float, y: Float, radius: Float, lineWidth: Float, startAngle: Float, endAngle: Float, color: Color) {
+    private fun drawCircleArc(
+        x: Float,
+        y: Float,
+        radius: Float,
+        lineWidth: Float,
+        startAngle: Float,
+        endAngle: Float,
+        color: Color
+    ) {
         glPushMatrix()
         glEnable(GL_BLEND)
         glDisable(GL_TEXTURE_2D)
@@ -632,7 +843,8 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
     override val tag get() = hudStyle
 
-    private fun lerp(start: Float, end: Float, speed: Float): Float = start + (end - start) * speed * (deltaTime / (1000F / 60F))
+    private fun lerp(start: Float, end: Float, speed: Float): Float =
+        start + (end - start) * speed * (deltaTime / (1000F / 60F))
 
     private fun getRainbowColor(): Color = Color.getHSBColor(hue, 1f, 1f)
 
@@ -666,15 +878,31 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         val wlColor = if (winOrLose == "W") Color(0, 255, 0).rgb else Color(139, 0, 0).rgb
         font.drawStringWithShadow(winOrLose, x + length + hplength + 11.6F, y + 8F, wlColor)
 
-        font.drawStringWithShadow(hp, x + length + 8F, y + 8F, ColorUtils.reAlpha(ColorUtils.healthColor(entity.health, entity.maxHealth), 255).rgb)
+        font.drawStringWithShadow(
+            hp,
+            x + length + 8F,
+            y + 8F,
+            ColorUtils.reAlpha(ColorUtils.healthColor(entity.health, entity.maxHealth), 255).rgb
+        )
 
         GlStateManager.disableAlpha()
         GlStateManager.disableBlend()
-        RenderUtils.drawRoundedRect(x + 5.0F, y + 29.55F, x + length + hplength + 18F, y + 25F, Color(0, 0, 0, 110).rgb, 2F)
+        RenderUtils.drawRoundedRect(
+            x + 5.0F,
+            y + 29.55F,
+            x + length + hplength + 18F,
+            y + 25F,
+            Color(0, 0, 0, 110).rgb,
+            2F
+        )
         RenderUtils.drawRoundedGradientRectCorner(
-            x + 5F, y + 25F,
+            x + 5F,
+            y + 25F,
             x + 5F + (easingHealth / entity.maxHealth) * (length + hplength + 13F),
-            y + 29.5F, 4F, barColor.rgb, barColor.rgb
+            y + 29.5F,
+            4F,
+            barColor.rgb,
+            barColor.rgb
         )
         GlStateManager.popMatrix()
     }
@@ -704,7 +932,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         Fonts.font35.drawString(entity.name, x + 40f, y + 10f, Color.WHITE.rgb)
         Fonts.font32.drawString("Health: ${"%.2f".format(entity.health)}", x + 40f, y + 22f, Color.WHITE.rgb)
-        Fonts.font32.drawString("Distance: ${"%.2f".format(entity.getDistanceToEntity(mc.thePlayer))}", x + 40f, y + 30f, Color.WHITE.rgb)
+        Fonts.font32.drawString(
+            "Distance: ${"%.2f".format(entity.getDistanceToEntity(mc.thePlayer))}",
+            x + 40f,
+            y + 30f,
+            Color.WHITE.rgb
+        )
     }
 
     private fun renderNovolineHUD(sr: ScaledResolution) {
@@ -721,13 +954,30 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         Fonts.font35.drawString(entity.name, x + 34.5f, y + 4f, Color.WHITE.rgb)
         Fonts.font35.drawString("Health: ${"%.1f".format(entity.health)}", x + 34.5f, y + 14f, Color.WHITE.rgb)
-        Fonts.font35.drawString("Distance: ${"%.1f".format(mc.thePlayer.getDistanceToEntity(entity))}m", x + 34.5f, y + 24f, Color.WHITE.rgb)
+        Fonts.font35.drawString(
+            "Distance: ${"%.1f".format(mc.thePlayer.getDistanceToEntity(entity))}m",
+            x + 34.5f,
+            y + 24f,
+            Color.WHITE.rgb
+        )
 
         RenderUtils.drawRect(x + 2.5f, y + 35.5f, x + width + 11.5f, y + 37.5f, Color(0, 0, 0, 200).rgb)
-        RenderUtils.drawRect(x + 3f, y + 36f, x + 3f + (entity.health / entity.maxHealth) * (width + 8f), y + 37f, ColorUtils.healthColor(entity.health, entity.maxHealth))
+        RenderUtils.drawRect(
+            x + 3f,
+            y + 36f,
+            x + 3f + (entity.health / entity.maxHealth) * (width + 8f),
+            y + 37f,
+            ColorUtils.healthColor(entity.health, entity.maxHealth)
+        )
 
         RenderUtils.drawRect(x + 2.5f, y + 39.5f, x + width + 11.5f, y + 41.5f, Color(0, 0, 0, 200).rgb)
-        RenderUtils.drawRect(x + 3f, y + 40f, x + 3f + (entity.totalArmorValue / 20f) * (width + 8f), y + 41f, Color(77, 128, 255).rgb)
+        RenderUtils.drawRect(
+            x + 3f,
+            y + 40f,
+            x + 3f + (entity.totalArmorValue / 20f) * (width + 8f),
+            y + 41f,
+            Color(77, 128, 255).rgb
+        )
     }
 
     private fun renderMyauHUD(sr: ScaledResolution) {
@@ -744,7 +994,11 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             if (hue > 1f) hue = 0f
         }
         val borderColor = if (rainbow) getRainbowColor() else Color(borderRed, borderGreen, borderBlue)
-        val healthBarColor = if (rainbow) getRainbowColor() else Color(maxOf(borderRed - 50, 0), maxOf(borderGreen - 50, 0), maxOf(borderBlue - 50, 0))
+        val healthBarColor = if (rainbow) getRainbowColor() else Color(
+            maxOf(borderRed - 50, 0),
+            maxOf(borderGreen - 50, 0),
+            maxOf(borderBlue - 50, 0)
+        )
 
         val totalWidth = if (showAvatar) hudWidth + avatarSize else hudWidth
 
@@ -764,7 +1018,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         Fonts.font35.drawString(entity.name, textX, y + 1, Color.WHITE.rgb)
         val healthText = String.format("%.1f", entity.health)
         Fonts.font35.drawString(healthText, textX, y + 11, healthBarColor.rgb)
-        Fonts.font35.drawString("\u2764", textX + Fonts.font35.getStringWidth(healthText) + 2, y + 11, healthBarColor.rgb)
+        Fonts.font35.drawString(
+            "\u2764",
+            textX + Fonts.font35.getStringWidth(healthText) + 2,
+            y + 11,
+            healthBarColor.rgb
+        )
 
         val barY = y + 21
         val barWidth = hudWidth - 5f
@@ -788,7 +1047,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             diff < 0 -> Color(255, 0, 0)
             else -> Color(255, 255, 0)
         }
-        Fonts.font35.drawString(diffText, maxOf(x + totalWidth - Fonts.font35.getStringWidth(diffText) - 1, textX), y + 11, diffColor.rgb)
+        Fonts.font35.drawString(
+            diffText,
+            maxOf(x + totalWidth - Fonts.font35.getStringWidth(diffText) - 1, textX),
+            y + 11,
+            diffColor.rgb
+        )
     }
 
     private fun render0x01a4HUD(sr: ScaledResolution) {
@@ -799,7 +1063,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
         RenderUtils.drawRect(x + 11F, y - 15F, x + 150F, y + 90F, Color(30, 30, 30, 200).rgb)
         Fonts.font35.drawString("PLC 全国人口档案查询系统", x + 15f, y - 5f, Color.WHITE.rgb)
         Fonts.font35.drawString("姓名: ${entity.name}", x + 15f, y + 5f, Color.WHITE.rgb)
-        Fonts.font35.drawString("健康: ${entity.health.toInt()}/${entity.maxHealth.toInt()}", x + 15f, y + 25f, Color.WHITE.rgb)
+        Fonts.font35.drawString(
+            "健康: ${entity.health.toInt()}/${entity.maxHealth.toInt()}",
+            x + 15f,
+            y + 25f,
+            Color.WHITE.rgb
+        )
         Fonts.font35.drawString("资产: ${entity.totalArmorValue}", x + 15f, y + 45f, Color.WHITE.rgb)
         Fonts.font35.drawString("身份证: ${entity.entityId}", x + 15f, y + 65f, Color.WHITE.rgb)
     }
@@ -823,6 +1092,12 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         val healthPercent = entity.health / entity.maxHealth
         RenderUtils.drawRect(x + 4F, y + 38F, x + tWidth - 4F, y + 44F, Color.DARK_GRAY.rgb)
-        RenderUtils.drawRect(x + 4F, y + 38F, x + 4F + (tWidth - 8F) * healthPercent, y + 44F, ColorUtils.healthColor(entity.health, entity.maxHealth))
+        RenderUtils.drawRect(
+            x + 4F,
+            y + 38F,
+            x + 4F + (tWidth - 8F) * healthPercent,
+            y + 44F,
+            ColorUtils.healthColor(entity.health, entity.maxHealth)
+        )
     }
 }

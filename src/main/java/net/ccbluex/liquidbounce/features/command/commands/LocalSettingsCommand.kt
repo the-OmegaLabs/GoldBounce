@@ -21,7 +21,7 @@ import java.awt.Desktop
 import java.io.File
 import java.io.IOException
 
-object LocalSettingsCommand : Command("localsettings", "localsetting", "localconfig") {
+object LocalSettingsCommand : Command("localsettings", "localsetting", "localconfig", "config") {
 
     /**
      * Execute commands with provided [args]
@@ -57,6 +57,7 @@ object LocalSettingsCommand : Command("localsettings", "localsetting", "localcon
 
             if (!settingsFile.exists()) {
                 chat("§cSettings file does not exist! §e(Ensure its .txt)")
+                chat("§cIf you want to load the cloud settings, use .cloud instead.")
                 return@withContext
             }
 
