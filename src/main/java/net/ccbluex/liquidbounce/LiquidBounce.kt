@@ -62,7 +62,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.util.ChatComponentText
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.common.network.FMLNetworkEvent
-import op.wawa.opacketfix.features.hytpacket.PacketManager
+import org.spongepowered.asm.mixin.Mixins
 import java.util.concurrent.ExecutorService
 
 object LiquidBounce {
@@ -246,12 +246,10 @@ object LiquidBounce {
                     logger.info("Successfully logged in into known cape token.")
                 }
             }
-
             // Refresh cape service
             CapeService.refreshCapeCarriers {
                 logger.info("Successfully loaded ${CapeService.capeCarriers.size} cape carriers.")
             }
-
             // Load background
             FileManager.loadBackground()
             playStartupSound()
