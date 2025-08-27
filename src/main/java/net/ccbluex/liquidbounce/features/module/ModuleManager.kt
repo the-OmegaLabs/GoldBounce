@@ -279,6 +279,7 @@ object ModuleManager : Listenable {
             PotionEffect,
             AutoL,
             AutoSave,
+            Halo,
             VelocityBalancer
         )
 
