@@ -127,7 +127,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
     // Bypass
     private val swing by _boolean("Swing", true)
-    private val keepSprint by _boolean("KeepSprint", true)
+    val keepSprint by _boolean("KeepSprint", true)
 
     // Targets
     private val attackPlayers by _boolean("Players", true)

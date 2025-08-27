@@ -10,6 +10,7 @@ import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.PacketEvent
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
+import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.combat.SuperKnockback
 import net.ccbluex.liquidbounce.features.module.modules.world.scaffolds.Scaffold
 import net.ccbluex.liquidbounce.utils.RotationUtils.activeSettings
@@ -98,7 +99,9 @@ object Sprint : Module("Sprint", Category.MOVEMENT, gameDetecting = false, hideM
         } else {
             movementInput.moveForward
         }
-
+        if (KillAura.target != null && !KillAura.keepSprint) {
+            return true
+        }
         if (!player.isMoving) {
             return true
         }

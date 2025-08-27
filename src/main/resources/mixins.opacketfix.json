@@ -1,0 +1,20 @@
+{
+    "required": true,
+    "package": "net.ccbluex.liquidbounce.packetfix.mixins",
+    "refmap": "mixins.opacketfix.refmap.json",
+    "minVersion": "0.7.3",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "MixinC08PacketPlayerBlockPlacement",
+        "MixinBlockFarmland",
+        "MixinBlock",
+        "MixinBlockLadder",
+        "MixinBlockPane",
+        "MixinEntity",
+        "MixinEntityLivingBase",
+        "MixinEntityRenderer",
+        "MixinItemBlock",
+        "MixinLilyPad",
+        "MixinGuiScreen"
+    ]
+}

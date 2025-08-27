@@ -20,6 +20,7 @@ import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.client.gui.GuiChat
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.util.EnumChatFormatting.BOLD
@@ -47,6 +48,7 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "RavenB4",
             "Naven",
             "Layer",
+            "Southside",
             "Animated"
         ), "Flux"
     )
@@ -236,10 +238,72 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             "pulse" -> renderPulseHUD(x, y)
             "neon" -> renderNeonHUD(x, y)
             "layer" -> renderLayerHUD()
+            "southside" -> renderSouthsideHUD(x, y)
             "animated" -> renderAnimatedHUD(x, y)
         }
     }
+    private fun renderSouthsideHUD(x: Float, y: Float) {
+        val entity = TargetHUD.target
+            ?: TargetHUD.lastTarget ?: return
 
+        val health = entity.health
+        val maxHealth = entity.maxHealth
+        val healthPercent = (health / maxHealth).coerceIn(0f, 1f)
+
+        // Update easing health
+        TargetHUD.updateSouthsideEasingHealth(health, maxHealth)
+        val easingHealthPercent = (TargetHUD.southsideEasingHealth / maxHealth).coerceIn(0f, 1f)
+
+        val name = entity.name
+        val width = Fonts.font40.getStringWidth(name) + 75f
+        val presentWidth = easingHealthPercent * width
+
+        GlStateManager.pushMatrix()
+
+        // Animation
+        val animOutput = TargetHUD.slideIn
+        GlStateManager.translate((x + width / 2) * (1 - animOutput).toDouble(), (y + 20) * (1 - animOutput).toDouble(), 0.0)
+        GlStateManager.scale(animOutput, animOutput, animOutput)
+
+        // Background
+        RenderUtils.drawRect(x, y, x + width, y + 40, Color(0, 0, 0, 100).rgb)
+        RenderUtils.drawRect(x, y, x + presentWidth, y + 40, Color(230, 230, 230, 100).rgb)
+
+        // Vertical health indicator
+        val healthColor = when {
+            healthPercent > 0.5 -> Color(63, 157, 4, 150)
+            healthPercent > 0.25 -> Color(255, 144, 2, 150)
+            else -> Color(168, 1, 1, 150)
+        }
+        RenderUtils.drawRect(x, y + 12.5f, x + 3, y + 27.5f, healthColor.rgb)
+
+        // Head
+        mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
+            Target().drawHead(it.locationSkin, x.toInt() + 7, y.toInt() + 7, 26, 26, Color.WHITE)
+        } ?: RenderUtils.drawRect(x + 6, y + 6, x + 34, y + 34, Color.BLACK.rgb)
+
+
+        // Text
+        Fonts.font40.drawString(name, x + 40, y + 7, Color(200, 200, 200, 255).rgb)
+        Fonts.font40.drawString("${health.toInt()} HP", x + 40, y + 22, Color(200, 200, 200, 255).rgb)
+
+        // Held Item
+        val itemStack = entity.heldItem
+        val itemX = x + Fonts.font40.getStringWidth(name) + 50
+        if (itemStack != null) {
+            GlStateManager.pushMatrix()
+            GlStateManager.translate(itemX, y + 12, 0f)
+            GlStateManager.scale(1.5f, 1.5f, 1.5f) // Make item bigger
+            RenderHelper.enableGUIStandardItemLighting()
+            mc.renderItem.renderItemAndEffectIntoGUI(itemStack, 0, 0)
+            RenderHelper.disableStandardItemLighting()
+            GlStateManager.popMatrix()
+        } else {
+            Fonts.font40.drawString("?", x + Fonts.font40.getStringWidth(name) + 55, y + 11, Color(200, 200, 200, 255).rgb)
+        }
+
+        GlStateManager.popMatrix()
+    }
     private fun renderAnimatedHUD(x: Float, y: Float) {
         val entity = target ?: lastTarget ?: return
 
