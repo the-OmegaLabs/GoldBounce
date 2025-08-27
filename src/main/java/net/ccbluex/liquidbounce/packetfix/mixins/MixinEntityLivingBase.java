@@ -15,10 +15,4 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(EntityLivingBase.class)
 public abstract class MixinEntityLivingBase extends MixinEntity {
 
-    @ModifyConstant(method = "onLivingUpdate", constant = @Constant(doubleValue = 0.005D))
-    private double refactor1_9MovementThreshold(double constant) {
-        if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= ViaLoadingBase.getInstance().getNativeVersion())
-            return 0.005D;
-        return 0.003D;
-    }
 }
