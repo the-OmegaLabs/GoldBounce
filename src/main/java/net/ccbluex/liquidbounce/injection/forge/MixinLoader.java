@@ -19,7 +19,6 @@ public class MixinLoader implements IFMLLoadingPlugin {
     public MixinLoader() {
         MixinBootstrap.init();
         Mixins.addConfiguration("liquidbounce.forge.mixins.json");
-        Mixins.addConfiguration("mixins.opacketfix.json");
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
