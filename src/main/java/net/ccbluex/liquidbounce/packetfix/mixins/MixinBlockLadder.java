@@ -24,30 +24,5 @@ public abstract class MixinBlockLadder extends MixinBlock {
     @Final
     public static PropertyDirection FACING;
 
-    /**
-     * /@author CCBlueX
-     */
-    @Overwrite
-    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos) {
-        final IBlockState iblockstate = worldIn.getBlockState(pos);
-
-        if(iblockstate.getBlock() instanceof BlockLadder) {
-            final float f = ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= ViaLoadingBase.getInstance().getNativeVersion() ? 0.125f : 0.1875f;
-            switch(iblockstate.getValue(FACING)) {
-                case NORTH:
-                    this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
-                    break;
-                case SOUTH:
-                    this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, f);
-                    break;
-                case WEST:
-                    this.setBlockBounds(1.0F - f, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
-                    break;
-                case EAST:
-                default:
-                    this.setBlockBounds(0.0F, 0.0F, 0.0F, f, 1.0F, 1.0F);
-            }
-        }
-    }
     
 }
