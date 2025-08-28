@@ -103,7 +103,7 @@ object ChestAura : Module("ChestAura", Category.WORLD) {
 
     @EventTarget
     fun onRotationUpdate(event: RotationUpdateEvent) {
-        if (handleEvents() || KillAura.blockStatus|| !timer.hasTimePassed(delay))
+        if (KillAura.blockStatus|| !timer.hasTimePassed(delay))
             return
 
         val thePlayer = mc.thePlayer ?: return

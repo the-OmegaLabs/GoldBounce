@@ -19,10 +19,11 @@ import kotlin.math.sin
 
 object MoveFix : Module("MoveFix", Category.MOVEMENT) {
     @JvmStatic
-    val mode = ListValue("Mode", arrayOf("Grim", "Bloxd"), "Grim")
+    val mode = ListValue("Mode", arrayOf("Bloxd"), "Bloxd")
     private val silentFixValue = BoolValue("Silent", true) { mode.get() == "Grim" }
 
     private val spiderValue = BoolValue("Spider", true) { mode.get() == "Bloxd" }
+    private var knockbackTime: Long = 0
 
     private var jumpfunny = 0
     private var jumpticks: Long = 0
@@ -90,6 +91,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
             is S12PacketEntityVelocity -> {
                 if (packet.entityID == player.entityId) {
                     jumpticks = System.currentTimeMillis() + 1300
+                    knockbackTime = System.currentTimeMillis() + 1300
                 }
             }
 
@@ -149,13 +151,13 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
 
             event.cancelEvent()
 
-            player.motionX = moveDir.x
-            player.motionZ = moveDir.z
-            player.motionY = if (mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
+            val velY = if (mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
                 bloxdPhysics.getMotionForTick().y * (1.0 / 30.0)
             } else {
                 0.0
             }
+            player.setVelocity(moveDir.x, velY, moveDir.z)
+
 
             if (!mc.theWorld.isBlockLoaded(player.position) || player.posY <= 0) {
                 player.motionX = 0.0
@@ -168,7 +170,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
     private fun getBloxdSpeed(): Double {
         val player = mc.thePlayer ?: return 0.0
 
-        if (System.currentTimeMillis() < jumpticks) {
+        if (System.currentTimeMillis() < knockbackTime) {
             return 1.0
         }
 
@@ -182,6 +184,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         }
         return finalSpeed
     }
+
 
     private fun getBloxdMoveVec(forwardIn: Float, strafeIn: Float, speed: Double): Vec3d {
         val player = mc.thePlayer ?: return Vec3d(0.0, 0.0, 0.0)

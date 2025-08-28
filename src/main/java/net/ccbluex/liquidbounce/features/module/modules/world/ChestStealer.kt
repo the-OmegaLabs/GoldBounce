@@ -2,7 +2,6 @@
  * OpaiBounce Hacked Client
  * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
  */
-@file:Suppress("unused")
 
 package net.ccbluex.liquidbounce.features.module.modules.world
 
@@ -60,9 +59,9 @@ object ChestStealer : Module("ChestStealer", Category.WORLD) {
 
     private val simulateShortStop by _boolean("SimulateShortStop", false)
 
-    private val delay by intRange("Delay", 50..50, 0..500) { !smartDelay }
-    private val startDelay by intRange("StartDelay", 50..100, 0..500)
-    private val closeDelay by intRange("CloseDelay", 50..100, 0..500)
+    private val delay by IntegerValue("Delay", 50, 0..500) { !smartDelay }
+    private val startDelay by IntegerValue("StartDelay", 50, 0..500)
+    private val closeDelay by IntegerValue("CloseDelay", 50, 0..500)
 
     private val noMove by InventoryManager.noMoveValue
     private val noMoveAir by InventoryManager.noMoveAirValue
@@ -153,7 +152,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD) {
 
         progress = 0f
 
-        delay(startDelay.random().toLong())
+        delay(startDelay.toLong())
 
         debug("Stealing items..")
 
@@ -195,7 +194,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD) {
                         val trueDelay = sqrt(dist.toDouble()) * multiplier
                         randomDelay(trueDelay.toInt(), trueDelay.toInt() + 20)
                     } else {
-                        delay.random()
+                        delay
                     }
 
                     if (itemStolenDebug) debug("item: ${stack.displayName.lowercase()} | slot: $slot | delay: ${stealingDelay}ms")
@@ -240,7 +239,7 @@ object ChestStealer : Module("ChestStealer", Category.WORLD) {
             // If no clicks were sent in the last loop stop searching
             if (!hasTaken) {
                 progress = 1f
-                delay(closeDelay.random().toLong())
+                delay(closeDelay.toLong())
 
                 nextTick { SilentHotbar.resetSlot() }
                 break

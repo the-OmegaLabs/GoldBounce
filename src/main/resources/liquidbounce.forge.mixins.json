@@ -9,7 +9,6 @@
     "block.MixinBlockLadder",
     "block.MixinBlockLiquid",
     "block.MixinBlockModelRenderer",
-    "block.MixinBlockPane",
     "block.MixinBlockSoulSand",
     "block.MixinLilyPad",
     "client.MixinGameSettings",
