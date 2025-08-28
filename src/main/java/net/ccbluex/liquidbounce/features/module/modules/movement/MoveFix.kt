@@ -31,6 +31,8 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
     private var groundTicksLocal = 0
     private var lastMotionY = 0.0
     private var wasClimbing = false
+    
+    private var lastResyncTime: Long = 0L
 
     var silentFix = false
     var doFix = false
@@ -54,6 +56,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
         groundTicksLocal = 0
         lastMotionY = 0.0
         wasClimbing = false
+        lastResyncTime = 0L
     }
 
     @EventTarget
@@ -92,6 +95,7 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
                 if (packet.entityID == player.entityId) {
                     jumpticks = System.currentTimeMillis() + 1300
                     knockbackTime = System.currentTimeMillis() + 1300
+                    lastResyncTime = System.currentTimeMillis() + 1300
                 }
             }
 
@@ -100,15 +104,15 @@ object MoveFix : Module("MoveFix", Category.MOVEMENT) {
                     try {
                         val data: PacketBuffer = packet.bufferData
                         jumpfunny = 0
+                        groundTicksLocal = 0
                         bloxdPhysics.impulseVector.set(0.0, 0.0, 0.0)
                         bloxdPhysics.forceVector.set(0.0, 0.0, 0.0)
-                        bloxdPhysics.velocityVector.set(
-                            data.readFloat().toDouble(),
-                            data.readFloat().toDouble(),
-                            data.readFloat().toDouble()
-                        )
+                        val vx = data.readFloat().toDouble()
+                        val vy = data.readFloat().toDouble()
+                        val vz = data.readFloat().toDouble()
+                        bloxdPhysics.velocityVector.set(vx, vy, vz)
+                        lastResyncTime = System.currentTimeMillis() + 1300
                     } catch (e: Exception) {
-                        // Handle exception
                     }
                 }
             }
