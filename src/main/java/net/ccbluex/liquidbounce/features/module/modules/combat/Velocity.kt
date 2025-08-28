@@ -34,18 +34,25 @@ import net.minecraft.block.BlockAir
 import net.minecraft.block.BlockSoulSand
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGameOver
+import net.minecraft.client.network.NetHandlerPlayClient
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.network.NetHandlerPlayServer
 import net.minecraft.network.Packet
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK
 import net.minecraft.network.play.client.C0BPacketEntityAction.Action.*
+import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.network.play.server.S12PacketEntityVelocity
 import net.minecraft.network.play.server.S27PacketExplosion
 import net.minecraft.network.play.server.S32PacketConfirmTransaction
+import net.minecraft.network.play.server.S3BPacketScoreboardObjective
+import net.minecraft.network.play.server.S3CPacketUpdateScore
+import net.minecraft.network.play.server.S3DPacketDisplayScoreboard
 import net.minecraft.util.*
 import net.minecraft.util.EnumFacing.DOWN
 import net.minecraft.world.WorldSettings
+import scala.sys.BooleanProp
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -162,7 +169,6 @@ object Velocity : Module("Velocity", Category.COMBAT) {
      */
     private val velocityTimer = MSTimer()
     private var hasReceivedVelocity = false
-    private var predictionVelocity: S12PacketEntityVelocity? = null // MODIFIED: Added state variable
 
     // SmoothReverse
     private var reverseHurt = false
@@ -192,6 +198,16 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
     // Pause On Explosion
     private var pauseTicks = 0
+
+    // Prediction
+    var buffering = false
+    var releasing = false
+    var bufferedPackets : MutableList<Packet<*>> = mutableListOf()
+    var kbYawDeg : Float = 0.0F
+    var kbX : Double = 0.0
+    var kbZ : Double = 0.0
+    var forceJumpOnce = false
+    var ticksSinceBufferStart : Int = 0
 
     //    Grim
     var velocityInput: Boolean = false
@@ -228,33 +244,6 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             return
 
         when (mode.lowercase()) {
-            "prediction" -> {
-                val packet = predictionVelocity
-                if (packet != null && packet.entityID == thePlayer.entityId) {
-                    // Convert integer velocity to double
-                    val motionX = packet.motionX / 8000.0
-                    val motionZ = packet.motionZ / 8000.0
-
-                    // Check for valid horizontal knockback
-                    if (motionX != 0.0 || motionZ != 0.0) {
-                        // Calculate the opposite yaw to the knockback vector
-                        // We want to move towards (-motionX, -motionZ)
-                        // The yaw angle in Minecraft can be calculated with atan2(z, x)
-                        val oppositeYaw = Math.toDegrees(atan2(-motionX, -motionZ)).toFloat()
-                        // Set player rotation using RotationUtils
-                        // We only need to change the Yaw, pitch can remain the same
-                        RotationUtils.setRotation(Rotation(oppositeYaw, thePlayer.rotationPitch))
-
-                        // If on ground, jump to add vertical velocity
-                        if (thePlayer.onGround) {
-                            thePlayer.jump()
-                        }
-                    }
-
-                    // Reset the packet variable to prevent re-execution
-                    predictionVelocity = null
-                }
-            }
 
             "glitch" -> {
                 thePlayer.noClip = hasReceivedVelocity
@@ -489,7 +478,35 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             lastAttackTime = System.currentTimeMillis()
         }
         mc.theWorld ?: return
+        when (mode) {
+            "prediction" -> {
+                if (!buffering) {
+                    ticksSinceBufferStart = 0
+                    return
+                }
 
+                ticksSinceBufferStart++
+
+                val playerYaw = wrapTo180(mc.thePlayer.rotationYaw.toDouble())
+                val diff = abs(playerYaw - kbYawDeg)
+
+                if ((diff <= 20 || diff >= 340) || mc.thePlayer.onGround || ticksSinceBufferStart > 25){
+                    releasing = true
+                    buffering = false
+
+                    for (packet in bufferedPackets){
+                        if (!isStatusPacket(packet)) {
+                            // 操你妈傻逼Kotlin
+                            @Suppress("UNCHECKED_CAST")
+                            (packet as Packet<NetHandlerPlayClient>).processPacket(mc.netHandler)
+                        }
+                    }
+                    bufferedPackets.clear()
+                    releasing = false
+                    ticksSinceBufferStart = 0
+                }
+            }
+        }
         if (mode != "Click" || thePlayer.hurtTime != hurtTimeToClick || ignoreBlocking && (thePlayer.isBlocking || KillAura.blockStatus))
             return
 
@@ -625,6 +642,40 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
         if (event.isCancelled)
             return
+
+        if (event.eventType.stateName == "RECEIVE") {
+            if (releasing) {
+                return
+            }
+
+            if (packet is S12PacketEntityVelocity && packet.entityID == mc.thePlayer.entityId) {
+                if (packet.motionY > 0 || mc.thePlayer.fallDistance <= 14 || mc.thePlayer.hurtTime <= 1) {
+                    forceJumpOnce = true
+                }
+
+                if (!mc.thePlayer.onGround && mc.thePlayer.hurtTime > 4){
+                    buffering = true
+                    ticksSinceBufferStart = 0
+                    kbX = packet.motionX / 8000.0
+                    kbZ = packet.motionZ / 8000.0
+                    kbYawDeg = wrapTo180(atan2deg(kbZ, kbX)).toFloat()
+
+                    event.cancelEvent()
+                    bufferedPackets.add(packet)
+                    return
+                }
+            }
+
+            if (buffering && (packet is S27PacketExplosion || packet is S08PacketPlayerPosLook)) {
+                event.cancelEvent()
+                bufferedPackets.add(packet)
+                return
+            }
+            if (buffering && packet is NetHandlerPlayServer && !excludedSpecial(packet)) {
+                event.cancelEvent()
+                bufferedPackets.add(packet)
+            }
+        }
         // Also from Phantom Injection
         // 感谢dev发我的src。我爱你。
         if (mode == "Block") {
@@ -838,9 +889,6 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 }
                 
                 "prediction" -> {
-                    if (packet is S12PacketEntityVelocity && packet.entityID == thePlayer.entityId) {
-                        predictionVelocity = packet
-                    }
                 }
 
             }
@@ -1060,7 +1108,16 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             }
         }
     }
-
+    @EventTarget
+    fun onMovementInput(event: MovementInputEvent) {
+        if (forceJumpOnce) {
+            event.originalInput.jump = true
+            forceJumpOnce = false
+        }
+        if (buffering || releasing) {
+            forceJumpOnce = false
+        }
+    }
     private fun shouldJump() = when (jumpCooldownMode.lowercase()) {
         "ticks" -> limitUntilJump >= ticksUntilJump
         "receivedhits" -> limitUntilJump >= hitsUntilJump
@@ -1215,4 +1272,22 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         }
         return false
     }
+}
+
+fun atan2deg(y: Double, x: Double): Double {
+    return Math.toDegrees(atan2(y, x))
+}
+fun wrapTo180(angle: Double): Double {
+    var a = angle % 360.0
+    if (a >= 180.0) a -= 360.0
+    if (a < -180.0) a += 360.0
+    return a
+}
+fun excludedSpecial(packet: Packet<*>): Boolean{
+    if (packet is S3BPacketScoreboardObjective || packet is S3CPacketUpdateScore || packet is S3DPacketDisplayScoreboard) return false
+    return true
+}
+fun isStatusPacket(packet: Packet<*>): Boolean {
+    val className = packet.javaClass.name
+    return className.startsWith("net.minecraft.network.status.server.")
 }

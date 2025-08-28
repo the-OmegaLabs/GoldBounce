@@ -1,0 +1,93 @@
+class VelocityWatchdogPrediction {
+
+    // === 状态字段 ===
+    bool buffering = false      // 是否正在吞包
+    bool releasing = false      // 是否正在回放（防止重入）
+    list bufferedPackets        // 已缓存的服务端包
+
+    float kbYawDeg              // 计算出来的击退方向角（度）
+    double kbX, kbZ             // 击退水平分量
+    bool forceJumpOnce = false  // 下一tick是否强跳
+    int ticksSinceBufferStart   // 缓冲开始后的计时器
+
+    // === 收到服务端包事件 ===
+    onPacketReceive(event):
+        if releasing:
+            return
+
+        if packet is VelocityPacket and packet.entityId == player.id:
+            // 符合条件时，标记下一tick强跳
+            if (packet.motionY > 0 OR player.lowFall OR player.lowHurtTime):
+                forceJumpOnce = true
+
+            // 条件满足 → 进入缓冲模式
+            if (NOT player.onGround AND player.hurtTime > 4):
+                buffering = true
+                ticksSinceBufferStart = 0
+
+                // 计算击退方向角
+                kbX = packet.motionX / 8000.0
+                kbZ = packet.motionZ / 8000.0
+                kbYawDeg = atan2deg(kbZ, kbX) wrapped to [-180,180]
+
+                cancel(event)                   // 吞掉原包
+                bufferedPackets.add(packet)     // 放入缓存
+                return
+
+        // 缓冲中 → 也吞掉并缓存以下关键包
+        if buffering AND (packet is Explosion OR packet is PositionLook):
+            cancel(event)
+            bufferedPackets.add(packet)
+            return
+
+        // 缓冲中 → 其他 play.server.* 包也一并吞下
+        if buffering AND packet is PlayServerPacket AND NOT excludedSpecial(packet):
+            cancel(event)
+            bufferedPackets.add(packet)
+
+    // === 每tick事件 ===
+    onUpdate(event):
+        if NOT buffering:
+            ticksSinceBufferStart = 0
+            return
+
+        ticksSinceBufferStart++
+
+        playerYaw = wrapTo180(player.yaw)
+        diff = abs(playerYaw - kbYawDeg)
+
+        // 释放条件：
+        if (diff <= 20 OR diff >= 340) OR player.onGround OR ticksSinceBufferStart > 25:
+            releasing = true
+            buffering = false
+
+            // 回放缓存（排除 status 包）
+            for packet in bufferedPackets:
+                if NOT isStatusPacket(packet):
+                    processInbound(packet)
+
+            bufferedPackets.clear()
+            releasing = false
+            ticksSinceBufferStart = 0
+
+    // === 输入事件 ===
+    onInputUpdate(event):
+        if forceJumpOnce:
+            event.jump = true
+            forceJumpOnce = false
+
+        if buffering OR releasing:
+            forceJumpOnce = false
+
+    // === 工具函数 ===
+    wrapTo180(yaw):  // 把角度规范到 [-180,180]
+    atan2deg(z,x):   // atan2(z,x) → 度
+    excludedSpecial(packet):  // 原版排除了 bn/bo/bq 三类包
+    isStatusPacket(packet):   // status.server.* 的不回放
+    processInbound(packet):   // 把包交还给客户端处理
+}
+
+补充：
+bn：S3BPacketScoreboardObjective
+bo：S3CPacketUpdateScore
+bq：S3DPacketDisplayScoreboard
