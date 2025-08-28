@@ -277,7 +277,8 @@ object ModuleManager : Listenable {
             Interface,
             Logo,
             PotionEffect,
-            VelocityBalancer
+            VelocityBalancer,
+            CollideFix
         )
 
         InventoryManager.startCoroutine()

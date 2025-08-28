@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.ccbluex.liquidbounce.api.loadSettings
 import net.ccbluex.liquidbounce.api.messageOfTheDay
+import net.ccbluex.liquidbounce.bzym.GlobalFeatures
 import net.ccbluex.liquidbounce.cape.CapeService
 import net.ccbluex.liquidbounce.event.ClientShutdownEvent
 import net.ccbluex.liquidbounce.event.EventManager
@@ -78,6 +79,7 @@ object LiquidBounce {
     const val CLIENT_WEBSITE = "bzym.fun"
 
     const val MINECRAFT_VERSION = "1.8.9"
+    val gf = GlobalFeatures()
     val clientVersionText = "b11"
     val clientBigVersionText = "Prev6"
     val clientVersionNumber = clientVersionText.substring(1).toIntOrNull() ?: 0 // version format: "b<VERSION>" on legacy

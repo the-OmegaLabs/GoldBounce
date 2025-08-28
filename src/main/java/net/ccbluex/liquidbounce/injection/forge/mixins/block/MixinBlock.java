@@ -20,6 +20,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -40,6 +41,18 @@ import java.util.List;
 @Mixin(Block.class)
 @SideOnly(Side.CLIENT)
 public abstract class MixinBlock {
+    @Shadow
+    protected double minX;
+    @Shadow
+    protected double minY;
+    @Shadow
+    protected double minZ;
+    @Shadow
+    protected double maxX;
+    @Shadow
+    protected double maxY;
+    @Shadow
+    protected double maxZ;
 
     @Shadow
     @Final
@@ -66,7 +79,6 @@ public abstract class MixinBlock {
         AxisAlignedBB axisalignedbb = getCollisionBoundingBox(worldIn, pos, state);
         BlockBBEvent blockBBEvent = new BlockBBEvent(pos, blockState.getBlock(), axisalignedbb);
         EventManager.INSTANCE.callEvent(blockBBEvent);
-
         axisalignedbb = blockBBEvent.getBoundingBox();
 
         if (axisalignedbb != null && mask.intersectsWith(axisalignedbb)) list.add(axisalignedbb);

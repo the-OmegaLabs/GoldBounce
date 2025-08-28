@@ -12,6 +12,8 @@ import net.ccbluex.liquidbounce.features.module.modules.exploit.AntiExploit;
 import net.ccbluex.liquidbounce.features.module.modules.misc.NoRotateSet;
 import net.ccbluex.liquidbounce.features.module.modules.player.Blink;
 import net.ccbluex.liquidbounce.features.special.ClientFixes;
+import net.ccbluex.liquidbounce.hytpacket.CustomPacket;
+import net.ccbluex.liquidbounce.hytpacket.PacketManager;
 import net.ccbluex.liquidbounce.ui.client.hud.HUD;
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notification;
 import net.ccbluex.liquidbounce.ui.client.hud.element.elements.Notifications;
@@ -24,29 +26,40 @@ import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiDownloadTerrain;
+import net.minecraft.client.gui.GuiMerchant;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiScreenBook;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.IMerchant;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.PacketThreadUtil;
+import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.network.play.client.C19PacketResourcePackStatus;
 import net.minecraft.network.play.server.*;
 import net.minecraft.util.MathHelper;
+import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.WorldSettings;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 import static net.ccbluex.liquidbounce.utils.ClientUtilsKt.chat;
 import static net.ccbluex.liquidbounce.utils.MinecraftInstance.mc;
@@ -54,7 +67,7 @@ import static net.ccbluex.liquidbounce.utils.extensions.PlayerExtensionKt.getRot
 import static net.minecraft.network.play.client.C19PacketResourcePackStatus.Action.FAILED_DOWNLOAD;
 
 @Mixin(NetHandlerPlayClient.class)
-public abstract class MixinNetHandlerPlayClient {
+public abstract class MixinNetHandlerPlayClient implements INetHandlerPlayClient {
 
     @Shadow
     public int currentServerMaxPlayers;
@@ -180,7 +193,46 @@ public abstract class MixinNetHandlerPlayClient {
         }
         return packet.getType();
     }
+    @Overwrite
+    public void handleCustomPayload(S3FPacketCustomPayload p_handleCustomPayload_1_) {
+        // Minecraft Code
+        PacketThreadUtil.checkThreadAndEnqueue(p_handleCustomPayload_1_, this, this.gameController);
 
+        // HuaYuTing Packet
+        for (CustomPacket packet : new PacketManager().packets) {
+            if (Objects.equals(packet.getChannel(), p_handleCustomPayload_1_.getChannelName())) {
+                packet.process(p_handleCustomPayload_1_.getBufferData());
+                return;
+            }
+        }
+
+        // Minecraft Code
+        if ("MC|TrList".equals(p_handleCustomPayload_1_.getChannelName())) {
+            PacketBuffer packetbuffer = p_handleCustomPayload_1_.getBufferData();
+
+            try {
+                int i = packetbuffer.readInt();
+                GuiScreen guiscreen = this.gameController.currentScreen;
+                if (guiscreen instanceof GuiMerchant && i == this.gameController.thePlayer.openContainer.windowId) {
+                    IMerchant imerchant = ((GuiMerchant)guiscreen).getMerchant();
+                    MerchantRecipeList merchantrecipelist = MerchantRecipeList.readFromBuf(packetbuffer);
+                    imerchant.setRecipes(merchantrecipelist);
+                }
+            } catch (IOException var10) {
+                chat("Couldn't load trade info" + var10.toString());
+            } finally {
+                packetbuffer.release();
+            }
+        } else if ("MC|Brand".equals(p_handleCustomPayload_1_.getChannelName())) {
+            this.gameController.thePlayer.setClientBrand(p_handleCustomPayload_1_.getBufferData().readStringFromBuffer(32767));
+        } else if ("MC|BOpen".equals(p_handleCustomPayload_1_.getChannelName())) {
+            ItemStack itemstack = this.gameController.thePlayer.getCurrentEquippedItem();
+            if (itemstack != null && itemstack.getItem() == Items.written_book) {
+                this.gameController.displayGuiScreen(new GuiScreenBook(this.gameController.thePlayer, itemstack, false));
+            }
+        }
+
+    }
     @Redirect(method = "handleChangeGameState", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/play/server/S2BPacketChangeGameState;getGameState()I"))
     private int onChangeGameState(S2BPacketChangeGameState packet) {
         if (AntiExploit.INSTANCE.handleEvents() && AntiExploit.INSTANCE.getCancelDemo() && packet.getGameState() == 5) {

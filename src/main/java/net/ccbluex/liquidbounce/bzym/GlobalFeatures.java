@@ -5,6 +5,7 @@ import kotlin.Pair;
 import kotlin.io.TextStreamsKt;
 import kotlin.jvm.internal.Intrinsics;
 import lombok.Setter;
+import net.ccbluex.liquidbounce.features.module.modules.player.CollideFix;
 import net.ccbluex.liquidbounce.utils.extensions.PlayerExtensionKt;
 import net.ccbluex.liquidbounce.utils.reflection.ReflectionUtil;
 import net.minecraft.client.Minecraft;
@@ -38,7 +39,13 @@ public final class GlobalFeatures {
 		clientWalkStatus = !clientWalkStatus;
 		Minecraft.getMinecraft().gameSettings.keyBindForward.pressed = clientWalkStatus;
 	}
-
+	public static boolean 逼() {
+		if (CollideFix.INSTANCE.handleEvents()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	/**
 	 * 检测玩家的视线是否指向指定实体的碰撞箱。
 	 *

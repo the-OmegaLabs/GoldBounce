@@ -23,6 +23,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItemFrame;
@@ -44,6 +45,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static net.ccbluex.liquidbounce.bzym.GlobalFeatures.逼;
+
 @Mixin(EntityRenderer.class)
 @SideOnly(Side.CLIENT)
 public abstract class MixinEntityRenderer {
@@ -62,6 +65,31 @@ public abstract class MixinEntityRenderer {
 
     private boolean cloudFog;
 
+    protected MixinEntityRenderer(int[] lightmapColors, DynamicTexture lightmapTexture, float torchFlickerX, float bossColorModifier, float bossColorModifierPrev, Minecraft mc, float thirdPersonDistanceTemp, float thirdPersonDistance) {
+        this.lightmapColors = lightmapColors;
+        this.lightmapTexture = lightmapTexture;
+        this.torchFlickerX = torchFlickerX;
+        this.bossColorModifier = bossColorModifier;
+        this.bossColorModifierPrev = bossColorModifierPrev;
+        this.mc = mc;
+        this.thirdPersonDistanceTemp = thirdPersonDistanceTemp;
+        this.thirdPersonDistance = thirdPersonDistance;
+    }
+
+    @Shadow
+    private final int[] lightmapColors;
+
+    @Shadow
+    private final DynamicTexture lightmapTexture;
+
+    @Shadow
+    private float torchFlickerX;
+
+    @Shadow
+    private float bossColorModifier;
+
+    @Shadow
+    private float bossColorModifierPrev;
 
     @Inject(method = "renderWorldPass", at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/EntityRenderer;renderHand:Z", shift = At.Shift.BEFORE))
     private void renderWorldPass(int pass, float partialTicks, long finishTimeNano, CallbackInfo callbackInfo) {
@@ -286,8 +314,13 @@ public abstract class MixinEntityRenderer {
                     }
                 }
             }
-
-            if (pointedEntity != null && flag && vec3.distanceTo(vec33) > (reach.handleEvents() ? reach.getCombatReach() : 3)) {
+            double combatReach = 3.0D;
+            if (reach.handleEvents()) {
+                combatReach = reach.getCombatReach();
+            } else if (逼()) {
+                combatReach = 2.9D;
+            }
+            if (pointedEntity != null && flag && vec3.distanceTo(vec33) > combatReach) {
                 pointedEntity = null;
                 mc.objectMouseOver = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, Objects.requireNonNull(vec33), null, new BlockPos(vec33));
             }
