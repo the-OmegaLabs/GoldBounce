@@ -17,11 +17,4 @@ import static net.ccbluex.liquidbounce.bzym.GlobalFeatures.逼;
 
 @Mixin(BlockLilyPad.class)
 public abstract class MixinLilyPad extends MixinBlock {
-    @Overwrite
-    public AxisAlignedBB getCollisionBoundingBox(World p_getCollisionBoundingBox_1_, BlockPos p_getCollisionBoundingBox_2_, IBlockState p_getCollisionBoundingBox_3_) {
-        if (!逼()) {
-            return new AxisAlignedBB((double)p_getCollisionBoundingBox_2_.getX() + this.minX, (double)p_getCollisionBoundingBox_2_.getY() + this.minY, (double)p_getCollisionBoundingBox_2_.getZ() + this.minZ, (double)p_getCollisionBoundingBox_2_.getX() + this.maxX, (double)p_getCollisionBoundingBox_2_.getY() + this.maxY, (double)p_getCollisionBoundingBox_2_.getZ() + this.maxZ);
-        }
-        return new AxisAlignedBB((double)p_getCollisionBoundingBox_2_.getX() + 0.0625, p_getCollisionBoundingBox_2_.getY(), (double)p_getCollisionBoundingBox_2_.getZ() + 0.0625, (double)p_getCollisionBoundingBox_2_.getX() + 0.9375, (double)p_getCollisionBoundingBox_2_.getY() + 0.09375, (double)p_getCollisionBoundingBox_2_.getZ() + 0.9375);
-    }
 }

@@ -13,11 +13,4 @@ import static net.ccbluex.liquidbounce.bzym.GlobalFeatures.逼;
 
 @Mixin(BlockFarmland.class)
 public abstract class MixinBlockFarmland extends MixinBlock{
-    @Overwrite
-    public AxisAlignedBB getCollisionBoundingBox(World p_getCollisionBoundingBox_1_, BlockPos p_getCollisionBoundingBox_2_, IBlockState p_getCollisionBoundingBox_3_) {
-        double f = !逼() ? 1.0 : 0.9375;
-        return new AxisAlignedBB(p_getCollisionBoundingBox_2_.getX(), p_getCollisionBoundingBox_2_.getY(), p_getCollisionBoundingBox_2_.getZ(), p_getCollisionBoundingBox_2_.getX() + 1, (double)p_getCollisionBoundingBox_2_.getY() + f, p_getCollisionBoundingBox_2_.getZ() + 1);
-
-
-    }
 }

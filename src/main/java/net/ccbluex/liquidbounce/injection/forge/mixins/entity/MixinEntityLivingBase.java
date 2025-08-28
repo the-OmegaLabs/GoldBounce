@@ -142,12 +142,6 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
         if (((EntityLivingBase) (Object) this) instanceof EntityPlayerSP)
             callbackInfoReturnable.setReturnValue(getVectorForRotation(rotationPitch, rotationYaw));
     }
-    @ModifyConstant(method = "onLivingUpdate", constant = @Constant(doubleValue = 0.005D))
-    private double refactor1_9MovementThreshold(double constant) {
-        if (逼())
-            return 0.005D;
-        return 0.003D;
-    }
     /**
      * Inject head yaw rotation modification
      */
