@@ -22,6 +22,7 @@ import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
 import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils
+import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
@@ -628,6 +629,9 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     }
     @EventTarget
     fun onPacket(event: PacketEvent) {
+        if (mc.theWorld == null || mc.netHandler == null) {
+            return
+        }
         val thePlayer = mc.thePlayer ?: return
 
         val packet = event.packet

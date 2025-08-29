@@ -35,6 +35,7 @@ import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
+import net.ccbluex.liquidbounce.utils.inventory.hotBarSlot
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -128,6 +129,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Bypass
     private val swing by _boolean("Swing", true)
     val keepSprint by _boolean("KeepSprint", true)
+    private val watchdogKeepSprint by BoolValue("WatchdogKeepSprint", false) { autoBlock == "Watchdog Predict 1.20" }
 
     // Targets
     private val attackPlayers by _boolean("Players", true)
@@ -142,7 +144,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock
     val autoBlock by choices(
         "AutoBlock",
-        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "NCP", "Watchdog"),
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "NCP", "Watchdog Predict 1.20"),
         "Packet"
     )
 
@@ -159,7 +161,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         )
     }
     val forceBlockRender by _boolean("ForceBlockRender", true) {
@@ -167,7 +169,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         ) && releaseAutoBlock
     }
     private val ignoreTickRule by _boolean("IgnoreTickRule", false) {
@@ -175,7 +177,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         ) && releaseAutoBlock
     }
     private val blockRate by intValue("BlockRate", 100, 1..100) {
@@ -183,7 +185,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         ) && releaseAutoBlock
     }
     private val switchStartBlock by _boolean("SwitchStartBlock", false) {
@@ -191,7 +193,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         )
     }
     private val interactAutoBlock by _boolean("InteractAutoBlock", true) {
@@ -199,7 +201,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         )
     }
     val blinkAutoBlock by _boolean("BlinkAutoBlock", false) {
@@ -207,7 +209,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         )
     }
 
@@ -216,7 +218,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "Off",
             "Fake",
             "BlocksMC",
-            "Watchdog"
+            "Watchdog Predict 1.20"
         ) && blinkAutoBlock
     }
 
@@ -383,6 +385,9 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var nursultanAnimationAlpha = 0f
     private var lastNursultanTarget: EntityLivingBase? = null
 
+    // Watchdog Predict 1.20
+    private var recentAttackTicks = 0
+
     /**
      * CORE FUNCTIONS
      */
@@ -398,6 +403,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
         blinkedPackets.clear()
     }
+
     /**
      * Checks if the current autoblock mode is set to "Fake"
      * Used to prevent slowdown when using fake blocking
@@ -405,6 +411,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     fun isFakeBlocking(): Boolean {
         return autoBlock == "Fake"
     }
+
     private fun reset() {
         target = null
         clickRangeTarget = null
@@ -418,6 +425,17 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (autoBlock == "BlocksMC" && blockStatus) {
             sendPacket(C09PacketHeldItemChange((mc.thePlayer.inventory.currentItem + 2) % 8))
             sendPacket(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+        }
+
+        if (autoBlock == "Watchdog Predict 1.20" && blockStatus) {
+            val oldSlot = mc.thePlayer.inventory.currentItem
+            var newSlot = (0..8).random()
+            while (newSlot == oldSlot) newSlot = (0..8).random()
+            sendPacket(C09PacketHeldItemChange(newSlot))
+            mc.thePlayer.inventory.currentItem = newSlot
+            sendPacket(C09PacketHeldItemChange(oldSlot))
+            mc.thePlayer.inventory.currentItem = oldSlot
+            blockStatus = false
         }
 
         // Reset all mode-specific states
@@ -445,6 +463,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         synchronized(swingFails) {
             swingFails.clear()
         }
+
+        recentAttackTicks = 0
     }
 
     @EventTarget
@@ -499,7 +519,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         if (target == null && clickRangeTarget == null) {
-            if (autoBlock == "Watchdog") {
+            if (autoBlock == "Watchdog" || autoBlock == "Watchdog Predict 1.20") {
                 watchdogBlinkTick = 0
                 if(blinking) releaseBlinkedPackets()
             }
@@ -524,6 +544,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             "BlocksMC" -> {
                 handleBlocksMC()
                 return // Prevent default attack logic from running
+            }
+            "Watchdog Predict 1.20" -> {
+                handleWatchdogPredict()
+                return
             }
             "Watchdog" -> {
                 if (target == null) {
@@ -608,6 +632,44 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (wasBlocking && !blockStatus && (releaseAutoBlock && !ignoreTickRule || autoBlock == "Off")) {
                 return
             }
+        }
+
+        if (recentAttackTicks > 0) recentAttackTicks--
+    }
+
+    private fun handleWatchdogPredict() {
+        val player = mc.thePlayer ?: return
+        val currentTarget = target ?: return
+
+        updateHittable()
+
+        if (!hittable) return
+
+        if (simulateCooldown && getAttackCooldownProgress() < 1f) return
+
+        // Unblock with slot switch if blocking
+        if (blockStatus) {
+            stopBlocking()
+        }
+
+        // Set canAttack
+        var canAttack = true
+        if (watchdogKeepSprint && player.ticksExisted % 2 != 1) {
+            canAttack = false
+        }
+
+        if (canAttack) {
+            recentAttackTicks = 2
+        }
+
+        if (!canAttack) return
+
+        // Attack
+        runAttack(true, true)
+
+        // Start blocking if canBlock
+        if (canBlock) {
+            startBlocking(currentTarget, interactAutoBlock, false)
         }
     }
 
@@ -1016,11 +1078,28 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         CPSCounter.registerClick(CPSCounter.MouseButton.RIGHT)
     }
 
-    private fun stopBlocking(forceStop: Boolean = false) {
+    fun stopBlocking(forceStop: Boolean = false) {
         if (autoBlock == "HypixelFull" && (hypixelBlinking || BlinkUtils.isBlinking)) {
             BlinkUtils.unblink()
             hypixelBlinking = false
             sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+        }
+
+        if (autoBlock == "Watchdog Predict 1.20") {
+            if (blockStatus) {
+                val oldSlot = mc.thePlayer.inventory.currentItem
+                var newSlot = (0..8).random()
+                while (newSlot == oldSlot) newSlot = (0..8).random()
+                if (!serverOpenInventory) {
+                    sendPacket(C09PacketHeldItemChange(newSlot))
+                    mc.thePlayer.inventory.currentItem = newSlot
+                    sendPacket(C09PacketHeldItemChange(oldSlot))
+                    mc.thePlayer.inventory.currentItem = oldSlot
+                }
+                blockStatus = false
+                renderBlocking = false
+            }
+            return
         }
 
         if (blockStatus && (!mc.thePlayer.isBlocking || forceStop)) {
@@ -1064,6 +1143,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             } finally {
                 BlinkUtils.isProcessing = false
             }
+        }
+
+        if (autoBlock == "Watchdog Predict 1.20" && watchdogKeepSprint && mc.thePlayer.ticksExisted % 2 == 0 && blockStatus && packet is C0BPacketEntityAction && (packet.action == C0BPacketEntityAction.Action.START_SPRINTING || packet.action == C0BPacketEntityAction.Action.STOP_SPRINTING) && !event.isCancelled) {
+            event.cancelEvent()
         }
 
         if (autoBlock == "Off" || !blinkAutoBlock || !blinked || Blink.blinkingSend() || Blink.blinkingReceive() || mc.thePlayer.isDead || mc.thePlayer.ticksExisted < 20) {
@@ -1387,6 +1470,10 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 syncEntity = null
             } else if (System.currentTimeMillis() - startTime > 3000) {
                 syncEntity = null // Timeout
+            }
+
+            if (autoBlock == "Watchdog Predict 1.20" && watchdogKeepSprint && mc.thePlayer.ticksExisted % 2 == 0 && recentAttackTicks > 0 && (!mc.thePlayer.onGround || mc.thePlayer.isUsingItem) && mc.thePlayer.hurtTime >= 7) {
+                mc.thePlayer.isSprinting = false
             }
         }
 

@@ -1,8 +1,8 @@
 /*
- * GoldBounce Hacked Client
- * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
- * https://github.com/bzym2/GoldBounce/
- */
+* GoldBounce Hacked Client
+* A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
+* https://github.com/bzym2/GoldBounce/
+*/
 package net.ccbluex.liquidbounce.features.module.modules.movement
 
 import io.netty.buffer.Unpooled
@@ -57,7 +57,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
             "GrimAC",
             "BlocksMC",
             "HYTBW32",
-            "Hypixel"
+            "UpdatedWatchdog"
         ),
         "None"
     )
@@ -70,7 +70,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val consumeMode by choices(
         "ConsumeMode",
-        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "Hypixel", "BlocksMC"),
+        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "BlocksMC", "UpdatedWatchdog"),
         "None"
     )
 
@@ -87,7 +87,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val bowPacket by choices(
         "BowMode",
-        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08"),
+        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "UpdatedWatchdog"),
         "None"
     )
 
@@ -108,6 +108,10 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     private var slow = false
     private var randomFactor = 0f
     private var sent = false
+
+    private var slowTicks = 0
+    private var isSlowing = false
+
     @EventTarget
     fun onMotion(event: MotionEvent) {
         val player = mc.thePlayer ?: return
@@ -188,6 +192,12 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                             }
                         }
                     }
+
+                    "UpdatedWatchdog" -> {
+                        if (event.eventState == EventState.PRE && slowTicks > 5) {
+                            mc.thePlayer.isSprinting = true
+                        }
+                    }
                 }
             }
         }else {
@@ -218,6 +228,12 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                             if (player.ticksExisted % 3 == 0)
                                 sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 1, null, 0f, 0f, 0f))
                         }
+                    }
+                }
+
+                "UpdatedWatchdog" -> {
+                    if (event.eventState == EventState.PRE && slowTicks > 5) {
+                        mc.thePlayer.isSprinting = true
                     }
                 }
             }
@@ -348,6 +364,12 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                             mc.getNetHandler()
                                 .addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()))
                         }
+                    }
+                }
+
+                "UpdatedWatchdog" -> {
+                    if (event.eventState == EventState.PRE && slowTicks > 5) {
+                        mc.thePlayer.isSprinting = true
                     }
                 }
             }
@@ -500,6 +522,20 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                 }
             }
         }
+
+        if ((swordMode == "UpdatedWatchdog" && player.heldItem?.item is ItemSword && player.isUsingItem) ||
+            (consumeMode == "UpdatedWatchdog" && (player.heldItem?.item is ItemFood || player.heldItem?.item is ItemPotion || player.heldItem?.item is ItemBucketMilk) && player.isUsingItem && slowTicks > 8) ||
+            (bowPacket == "UpdatedWatchdog" && player.heldItem?.item is ItemBow && player.isUsingItem && slowTicks > 8)) {
+            if (packet is S2FPacketSetSlot && packet.func_149173_d() == 36 + player.inventory.currentItem) {
+                event.cancelEvent()
+                player.inventory.mainInventory[player.inventory.currentItem] = packet.func_149174_e()
+                if (swordMode == "UpdatedWatchdog" && player.heldItem?.item is ItemSword && player.isUsingItem) {
+                    sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                    BlinkUtils.unblink()
+                    sendPacket(C08PacketPlayerBlockPlacement(BlockPos(-1, -1, -1), 255, player.heldItem, 0f, 0f, 0f))
+                }
+            }
+        }
     }
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
@@ -516,6 +552,28 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         }
         if (!mc.gameSettings.keyBindUseItem.isKeyDown) {
             slow = false
+        }
+
+        val isRelevant = (swordMode == "UpdatedWatchdog" && player.heldItem?.item is ItemSword && player.isUsingItem) ||
+                (consumeMode == "UpdatedWatchdog" && (player.heldItem?.item is ItemFood || player.heldItem?.item is ItemPotion || player.heldItem?.item is ItemBucketMilk) && player.isUsingItem) ||
+                (bowPacket == "UpdatedWatchdog" && player.heldItem?.item is ItemBow && player.isUsingItem)
+        if (isRelevant) {
+            isSlowing = true
+            slowTicks++
+            if (slowTicks > 5) {
+                player.isSprinting = true
+            }
+            if (slowTicks > 26) {
+                if (KillAura.handleEvents()) KillAura.stopBlocking()
+            }
+        } else if (isSlowing) {
+            slowTicks = 0
+            isSlowing = false
+            BlinkUtils.unblink()
+        }
+
+        if (player.isUsingItem && hasMotion) {
+            player.isSprinting = true
         }
     }
     @EventTarget
@@ -573,4 +631,3 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     override val tag
         get() = "$swordMode $consumeMode $bowPacket"
 }
-
