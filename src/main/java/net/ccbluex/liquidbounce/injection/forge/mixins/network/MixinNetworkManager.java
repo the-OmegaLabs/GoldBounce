@@ -14,10 +14,6 @@ import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.connection.UserConnectionImpl;
 import com.viaversion.viaversion.protocol.ProtocolPipelineImpl;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
-import de.florianmichael.vialoadingbase.ViaLoadingBase;
-import de.florianmichael.vialoadingbase.netty.event.CompressionReorderEvent;
-import de.florianmichael.viamcp.MCPVLBPipeline;
-import de.florianmichael.viamcp.ViaMCP;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
@@ -81,13 +77,6 @@ public class MixinNetworkManager {
             }
         }
 
-        if (packet instanceof C0APacketAnimation && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_12_2)) {
-            UserConnection connection = Via.getManager().getConnectionManager().getConnections().stream().findFirst().orElse(null);
-            PacketWrapper offHand = PacketWrapper.create(ServerboundPackets1_9.SWING, connection);
-            offHand.write(Types.VAR_INT, 1);
-            offHand.sendToServer(Protocol1_9To1_8.class);
-            callback.cancel();
-        }
     }
 
     @Inject(method = "channelRead0", at = @At("HEAD"), cancellable = true)
@@ -130,11 +119,6 @@ public class MixinNetworkManager {
                                 .addLast("prepender", new MessageSerializer2())
                                 .addLast("encoder", new MessageSerializer(EnumPacketDirection.SERVERBOUND))
                                 .addLast("packet_handler", networkmanager);
-                        if (p_initChannel_1_ instanceof SocketChannel && ViaLoadingBase.getInstance().getTargetVersion().getVersion() != ViaMCP.NATIVE_VERSION) {
-                            UserConnection user = new UserConnectionImpl(p_initChannel_1_, true);
-                            new ProtocolPipelineImpl(user);
-                            p_initChannel_1_.pipeline().addLast(new MCPVLBPipeline(user));
-                        }
                     }
                 })
                 .channel(oclass)
@@ -142,9 +126,5 @@ public class MixinNetworkManager {
                 .syncUninterruptibly();
 
         cir.setReturnValue(networkmanager);
-    }
-    @Inject(method = "setCompressionTreshold", at = @At("TAIL"))
-    private void fireCompression(int p_setCompressionTreshold_1_, CallbackInfo ci) {
-        channel.pipeline().fireUserEventTriggered(new CompressionReorderEvent());
     }
 }

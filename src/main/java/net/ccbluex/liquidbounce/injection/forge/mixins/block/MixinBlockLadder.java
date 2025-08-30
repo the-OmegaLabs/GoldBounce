@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.block;
 
-import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.ccbluex.liquidbounce.bzym.GlobalFeatures;
 import net.ccbluex.liquidbounce.features.module.modules.movement.FastClimb;
 import net.minecraft.block.BlockLadder;

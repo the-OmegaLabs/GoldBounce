@@ -5,7 +5,6 @@
  */
 package net.ccbluex.liquidbounce.injection.forge.mixins.gui;
 
-import de.florianmichael.viamcp.gui.GuiProtocolSelector;
 import net.ccbluex.liquidbounce.features.special.BungeeCordSpoof;
 import net.ccbluex.liquidbounce.file.FileManager;
 import net.ccbluex.liquidbounce.lang.LanguageKt;
@@ -45,7 +44,6 @@ public abstract class MixinGuiMultiplayer extends MixinGuiScreen {
         buttonList.add(bungeeCordSpoofButton = new GuiButton(998, 55 + increase, yPosition, 98, 20, "BungeeCord Spoof: " + (BungeeCordSpoof.INSTANCE.getEnabled() ? "On" : "Off")));
         buttonList.add(new GuiButton(996, width - 120, yPosition, 62, 20, LanguageKt.translationMenu("altManager")));
         buttonList.add(new GuiButton(999, width - 52, yPosition, 46, 20, "Tools"));
-        buttonList.add(new GuiButton(699, 5, yPosition, 90, 20, "Version"));
     }
 
     @Inject(method = "actionPerformed", at = @At("HEAD"))
@@ -64,9 +62,6 @@ public abstract class MixinGuiMultiplayer extends MixinGuiScreen {
                 break;
             case 999:
                 mc.displayGuiScreen(new GuiTools((GuiScreen) (Object) this));
-                break;
-            case 699:
-                mc.displayGuiScreen(new GuiProtocolSelector((GuiScreen) (Object) this));
                 break;
         }
     }

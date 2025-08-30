@@ -5,8 +5,6 @@
  */
 package net.ccbluex.liquidbounce.features.module.modules.combat
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion
-import de.florianmichael.vialoadingbase.ViaLoadingBase
 import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
@@ -398,22 +396,11 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
             "grimcombat" -> {
                 if (attacked) {
-                    if (ViaLoadingBase.getInstance().getTargetVersion().version > 47) {
-                        mc.thePlayer.motionX = velX * reduceXZ / 8000.0
-                        mc.thePlayer.motionY = velY / 8000.0
-                        mc.thePlayer.motionZ = velZ * reduceXZ / 8000.0
-                        attacked = false
-                        reduceXZ = 1.00000
-                        if (mc.thePlayer.hurtTime === 0) {
-                            velocityInput = false
-                        }
-                    } else {
                         //The velocity mode 1.8.9 ok!
                         if (mc.thePlayer.hurtTime > 0 && mc.thePlayer.onGround) {
                             mc.thePlayer.addVelocity(-1.3E-10, -1.3E-10, -1.3E-10)
                             mc.thePlayer.isSprinting = false
                         }
-                    }
                 }
 
             }
@@ -567,7 +554,6 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
             "grimcombat" -> {
                 if (attacked) {
-                    if (ViaLoadingBase.getInstance().targetVersion == (ProtocolVersion.v1_8)) {
                         mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
                         mc.netHandler.networkManager.sendPacket(
                             C02PacketUseEntity(
@@ -575,15 +561,6 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                                 C02PacketUseEntity.Action.ATTACK
                             )
                         )
-                    } else {
-                        mc.netHandler.networkManager.sendPacket(
-                            C02PacketUseEntity(
-                                event.targetEntity,
-                                C02PacketUseEntity.Action.ATTACK
-                            )
-                        )
-                        mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
-                    }
                 }
             }
         }
@@ -752,14 +729,8 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     }
                     val count = attackCountValue
                     for (i in 1..count) {
-                        if (ViaLoadingBase.getInstance().targetVersion == (ProtocolVersion.v1_8)) {
                             mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
                             mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
-                        } else {
-                            mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
-                            mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
-                            reduceXZ *= 0.6
-                        }
                     }
                     if (!state) {
                         sendPackets(C0BPacketEntityAction(mc.thePlayer, STOP_SPRINTING))
