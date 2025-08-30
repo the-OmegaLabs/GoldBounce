@@ -193,7 +193,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                         }
                     }
 
-                    "UpdatedWatchdog" -> {
+                    "updatedwatchdog" -> {
                         if (event.eventState == EventState.PRE && slowTicks > 5) {
                             mc.thePlayer.isSprinting = true
                         }
@@ -231,7 +231,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                     }
                 }
 
-                "UpdatedWatchdog" -> {
+                "updatedwatchdog" -> {
                     if (event.eventState == EventState.PRE && slowTicks > 5) {
                         mc.thePlayer.isSprinting = true
                     }
@@ -367,7 +367,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
                     }
                 }
 
-                "UpdatedWatchdog" -> {
+                "updatedwatchdog" -> {
                     if (event.eventState == EventState.PRE && slowTicks > 5) {
                         mc.thePlayer.isSprinting = true
                     }
@@ -627,7 +627,4 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
         SilentHotbar.selectSlotSilently(this, (SilentHotbar.currentSlot + 1) % 9, immediate = true)
         SilentHotbar.resetSlot(this, true)
     }
-
-    override val tag
-        get() = "$swordMode $consumeMode $bowPacket"
 }

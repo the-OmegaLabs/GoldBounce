@@ -480,7 +480,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         }
         mc.theWorld ?: return
         when (mode) {
-            "prediction" -> {
+            "Prediction" -> {
                 if (!buffering) {
                     ticksSinceBufferStart = 0
                     return
