@@ -108,21 +108,6 @@ class GuiMainMenu : GuiScreen() {
             val logoTop = height/8f
             val logoHt = 58f
             val centerY = logoTop + logoHt/2f
-            val yL = (centerY - lancerH/2f).toInt()
-            drawImage(
-                ResourceLocation("liquidbounce/icons/lancer/${frameIndex()}.png"),
-                xPos.toInt(), yL, lancerW.toInt(), lancerH.toInt()
-            )
-            if (expOn && expFrame in 1..expFrames) {
-                val ew = 71f
-                val eh = 98f
-                val yE = (centerY - eh/2f).toInt()
-                val xE = (width/2f - ew/2f).toInt()
-                drawImage(
-                    ResourceLocation("liquidbounce/icons/explosion/$expFrame.png"),
-                    xE, yE, ew.toInt(), eh.toInt()
-                )
-            }
             if (expOn && expFrame>expFrames) {
                 done = true
                 played = true
@@ -132,20 +117,8 @@ class GuiMainMenu : GuiScreen() {
             val bw = 92
             val bh = 120
             val y0 = (height/8f - 10f).toInt()
-            drawImage(
-                ResourceLocation("liquidbounce/icons/Berdly.png"),
-                (width/2f - bw/2f).toInt(), y0, bw, bh
-            )
         } else if ((!running && delayPassed && !doExchange) || done) {
-            drawImage(
-                ResourceLocation("liquidbounce/logo_large.png"),
-                width/2-100, height/8, 199, 58
-            )
         } else if (!played) {
-            drawImage(
-                ResourceLocation("liquidbounce/logo_large.png"),
-                width/2-100, height/8, 199, 58
-            )
         }
         drawRoundedBorderRect(width/2f-115, height/4f+35, width/2f+115, height/4f+175, 2f, Integer.MIN_VALUE, Integer.MIN_VALUE, 3f)
         GlowUtils.drawGlow(width/2f-115, height/4f+35, 230f, 140f, 20, Color.BLACK)

@@ -109,10 +109,8 @@ open class Module(
             if (!isStarting) {
                     if(value){
                         WaterMark.showToggleNotification("Module Toggled", "$name has been Enabled!", true,1000)
-                        Sounds.playEnableSound()
                     }else{
                         WaterMark.showToggleNotification("Module Toggled", "$name has been Disabled!", false,1000)
-                        Sounds.playDisableSound()
                     }
 
                     addNotification(
