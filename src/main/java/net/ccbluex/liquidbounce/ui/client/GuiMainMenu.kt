@@ -1,109 +1,177 @@
 package net.ccbluex.liquidbounce.ui.client
 
 import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
-import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.NewUi
 import net.ccbluex.liquidbounce.ui.font.Fonts
+import net.ccbluex.liquidbounce.utils.GlowUtils
 import net.ccbluex.liquidbounce.utils.playMP3
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawImage
-import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRect
-import net.minecraft.client.gui.*
+import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawRoundedBorderRect
+import net.minecraft.client.gui.GuiButton
+import net.minecraft.client.gui.GuiOptions
+import net.minecraft.client.gui.GuiScreen
+import net.minecraft.client.gui.GuiSelectWorld
+import net.minecraft.client.gui.GuiMultiplayer
 import net.minecraft.util.ResourceLocation
 import java.awt.Color
 
 class GuiMainMenu : GuiScreen() {
 
-    private val buttonsList = mutableListOf<ValorantButton>()
+    companion object {
+        private var played = false
+    }
 
+    private val lancerW = 74f
+    private val lancerH = 62f
+    private var xPos = -lancerW
+    private var vx = 100f
+    private var ax = 200f
+    private var lastTime = 0L
+
+    private val expFrames = 17
+    private var expOn = false
+    private var expFrame = 1
+    private var lastExpTime = 0L
+    private val expInterval = 80L
+
+    private var running = false
+    private var done = false
+    private var delayStart = 0L
+    private val delayMs = 1000L
+    private var delayPassed = false
+    private var doExchange = false
     override fun initGui() {
         super.initGui()
-        buttonsList.clear()
-
-        val btnWidth = 260
-        val btnHeight = 45
-        val startX = 30
-        var startY = this.height / 5
-
-        // 爽磕语法糖 kotlin我爱你
-        listOf("SinglePlayer", "MultiPlayer", "Settings", "AltManager", "Hack Settings", "Exit").forEach { text ->
-            buttonsList.add(ValorantButton(text, startX, startY, btnWidth, btnHeight))
-            startY += 45
+        val h0 = height / 4 + 48
+        val bw = 98
+        val bh = 20
+        val sp = 24
+        buttonList.run {
+            add(GuiButton(1, width/2-100, h0, bw, bh, "Singleplayer"))
+            add(GuiButton(2, width/2+2, h0, bw, bh, "Multiplayer"))
+            add(GuiButton(100, width/2-100, h0+sp, bw, bh, "AltManager"))
+            add(GuiButton(103, width/2+2, h0+sp, bw, bh, "Mods"))
+            add(GuiButton(101, width/2-100, h0+sp*2, bw*2+4, bh, "Server"))
+            add(GuiButton(102, width/2-100, h0+sp*3, bw*2+4, bh, "Hack"))
+            add(GuiButton(0, width/2-100, h0+sp*4, bw, bh, "Settings"))
+            add(GuiButton(4, width/2+2, h0+sp*4, bw, bh, "Exit"))
+        }
+        if (!played) {
+            running = false
+            done = false
+            delayPassed = false
+            delayStart = System.currentTimeMillis()
+            xPos = -lancerW
+            vx = 100f
+            ax = 200f
+            lastTime = 0L
+            expOn = false
+            expFrame = 1
+            lastExpTime = 0L
         }
     }
 
-    override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-        drawImage(ResourceLocation("liquidbounce/background.png"), 0, 0, width, height)
-
-        // 右侧大立绘
-        val heroineW = (width / 2.2f).toInt()
-        val heroineH = height
-        drawImage(
-            ResourceLocation("liquidbounce/heroine.png"),
-            width - heroineW, height - heroineH,
-            heroineW, heroineH
-        )
-
-        // 在这里直接foreach
-        buttonsList.forEach { it.draw(mouseX, mouseY) }
-
-        super.drawScreen(mouseX, mouseY, partialTicks)
-    }
-
-    override fun mouseClicked(mouseX: Int, mouseY: Int, mouseButton: Int) {
-        buttonsList.forEach { btn ->
-            if (btn.isMouseOver(mouseX, mouseY)) {
-                playMP3("/assets/minecraft/liquidbounce/sounds/select.mp3")
-                btn.onClick()
+    override fun drawScreen(mx: Int, my: Int, pt: Float) {
+        drawImage(ResourceLocation("liquidbounce/background.png"), -mx, -my, width*2, height*2)
+        val now = System.currentTimeMillis()
+        if (!played && !delayPassed) {
+            if (now - delayStart >= delayMs) {
+                delayPassed = true
+                running = true
+                lastTime = now
             }
         }
-        super.mouseClicked(mouseX, mouseY, mouseButton)
-    }
-
-    override fun handleMouseInput() {
-        super.handleMouseInput()
-        val mouseX = org.lwjgl.input.Mouse.getEventX() * this.width / mc.displayWidth
-        val mouseY = this.height - org.lwjgl.input.Mouse.getEventY() * this.height / mc.displayHeight - 1
-
-        buttonsList.forEach { btn ->
-            val hovering = btn.isMouseOver(mouseX, mouseY)
-            if (hovering && !btn.hoveredLastTick) {
-                playMP3("/assets/minecraft/liquidbounce/sounds/hover.mp3")
-                btn.hoveredLastTick = true
-            } else if (!hovering && btn.hoveredLastTick) {
-                btn.hoveredLastTick = false
+        if (running && !done) {
+            val dt = ((now - lastTime).coerceAtLeast(0L)) / 1000f
+            if (!expOn) {
+                vx += ax*dt
+                xPos += vx*dt
+                val collideX = width/2f - 100f
+                if (xPos + lancerW >= collideX) {
+                    expOn = true
+                    playMP3("/assets/minecraft/liquidbounce/sounds/explosion.mp3")
+                    doExchange = true
+                    lastExpTime = now
+                    vx += 150f
+                }
+            } else {
+                vx += ax*dt
+                xPos += vx*dt
+            }
+            lastTime = now
+            if (expOn && expFrame<=expFrames) {
+                if (lastExpTime==0L) lastExpTime=now
+                if (now - lastExpTime >= expInterval) {
+                    expFrame++
+                    lastExpTime = now
+                }
+            }
+            val logoTop = height/8f
+            val logoHt = 58f
+            val centerY = logoTop + logoHt/2f
+            val yL = (centerY - lancerH/2f).toInt()
+            drawImage(
+                ResourceLocation("liquidbounce/icons/lancer/${frameIndex()}.png"),
+                xPos.toInt(), yL, lancerW.toInt(), lancerH.toInt()
+            )
+            if (expOn && expFrame in 1..expFrames) {
+                val ew = 71f
+                val eh = 98f
+                val yE = (centerY - eh/2f).toInt()
+                val xE = (width/2f - ew/2f).toInt()
+                drawImage(
+                    ResourceLocation("liquidbounce/icons/explosion/$expFrame.png"),
+                    xE, yE, ew.toInt(), eh.toInt()
+                )
+            }
+            if (expOn && expFrame>expFrames) {
+                done = true
+                played = true
             }
         }
+        if (played) {
+            val bw = 92
+            val bh = 120
+            val y0 = (height/8f - 10f).toInt()
+            drawImage(
+                ResourceLocation("liquidbounce/icons/Berdly.png"),
+                (width/2f - bw/2f).toInt(), y0, bw, bh
+            )
+        } else if ((!running && delayPassed && !doExchange) || done) {
+            drawImage(
+                ResourceLocation("liquidbounce/logo_large.png"),
+                width/2-100, height/8, 199, 58
+            )
+        } else if (!played) {
+            drawImage(
+                ResourceLocation("liquidbounce/logo_large.png"),
+                width/2-100, height/8, 199, 58
+            )
+        }
+        drawRoundedBorderRect(width/2f-115, height/4f+35, width/2f+115, height/4f+175, 2f, Integer.MIN_VALUE, Integer.MIN_VALUE, 3f)
+        GlowUtils.drawGlow(width/2f-115, height/4f+35, 230f, 140f, 20, Color.BLACK)
+        Fonts.fontNoto35.drawCenteredString("b10", width/2f+148f, height/8f+Fonts.font35.fontHeight, 0xffffff, true)
+        super.drawScreen(mx, my, pt)
     }
 
-    inner class ValorantButton(
-        val text: String,
-        val x: Int,
-        val y: Int,
-        val width: Int,
-        val height: Int
-    ) {
-        var hoveredLastTick = false
-        val clickSound = ResourceLocation("liquidbounce/sounds/click.ogg")
+    private fun frameIndex(): Int {
+        val step = lancerW/6f
+        val moved = xPos + lancerW
+        if (moved<=0f) return 1
+        return ((moved/step).toInt()%6 + 1).coerceIn(1,6)
+    }
 
-        fun draw(mouseX: Int, mouseY: Int) {
-            val hovered = isMouseOver(mouseX, mouseY)
-            val color = if (hovered) Color(255, 0, 0).rgb else Color(255, 255, 255).rgb
-            Fonts.font72.drawCenteredString( text, x + width / 2F, y + (height - 8) / 2F, color)
-        }
+    override fun mouseClicked(mx: Int, my: Int, btn: Int) = super.mouseClicked(mx, my, btn)
 
-        fun isMouseOver(mouseX: Int, mouseY: Int) =
-            mouseX in x..(x + width) && mouseY in y..(y + height)
-
-        fun onClick() {
-            when (text) {
-                "SinglePlayer" -> mc.displayGuiScreen(GuiSelectWorld(this@GuiMainMenu))
-                "MultiPlayer" -> mc.displayGuiScreen(GuiMultiplayer(this@GuiMainMenu))
-                "Settings" -> mc.displayGuiScreen(GuiOptions(this@GuiMainMenu, mc.gameSettings))
-                "AltManager" -> mc.displayGuiScreen(GuiAltManager(this@GuiMainMenu))
-                "Hack Settings" -> mc.displayGuiScreen(GuiClientConfiguration(this@GuiMainMenu))
-                // ClickGUI主菜单无法调用 暂时弃用
-                "ClickGUI" -> mc.displayGuiScreen(NewUi.getInstance())
-                "Exit" -> mc.shutdown()
-            }
+    override fun actionPerformed(b: GuiButton) {
+        when (b.id) {
+            0 -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
+            1 -> mc.displayGuiScreen(GuiSelectWorld(this))
+            2 -> mc.displayGuiScreen(GuiMultiplayer(this))
+            4 -> mc.shutdown()
+            100 -> mc.displayGuiScreen(GuiAltManager(this))
+            101 -> mc.displayGuiScreen(GuiServerStatus(this))
+            102 -> mc.displayGuiScreen(GuiClientConfiguration(this))
+            103 -> mc.displayGuiScreen(GuiModsMenu(this))
         }
     }
 }
