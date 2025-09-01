@@ -156,7 +156,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             val padding = (getHeight() - iconSize) / 2f
 
             // Draw Icon
-            RenderUtils.drawRoundedRect(x + padding - 3, y + padding - 3, x + padding + iconSize + 3, y + padding + iconSize + 3, Color(70, 120, 255, alpha).rgb, 5f)
+            RenderUtils.drawRoundedRect(x + padding - 3, y + padding - 3, x + padding + iconSize + 3, y + padding + iconSize + 3, Color(textColorR.get(), textColorG.get(), textColorB.get(), alpha).rgb, 5f)
             RenderUtils.drawImage(icon, (x + padding).toInt(), (y + padding).toInt(), iconSize.toInt(), iconSize.toInt(), Color(255, 255, 255, alpha))
 
             // Draw Text

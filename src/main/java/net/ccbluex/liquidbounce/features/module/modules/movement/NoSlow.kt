@@ -15,6 +15,7 @@ import net.ccbluex.liquidbounce.utils.MovementUtils.hasMotion
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.reflection.ReflectionUtil
 import net.ccbluex.liquidbounce.utils.SilentHotbar
+import net.ccbluex.liquidbounce.utils.chat
 import net.ccbluex.liquidbounce.utils.extensions.isMoving
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem
@@ -70,7 +71,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
 
     private val consumeMode by choices(
         "ConsumeMode",
-        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "BlocksMC", "UpdatedWatchdog"),
+        arrayOf("None", "UpdatedNCP", "AAC5", "SwitchItem", "InvalidC08", "Intave", "Drop", "HYTSW", "HYTBW32", "BlocksMC", "UpdatedWatchdog", "Hypixel 16Ticks"),
         "None"
     )
 
@@ -97,7 +98,7 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     // Blocks
     val soulSand by _boolean("SoulSand", true)
     val liquidPush by _boolean("LiquidPush", true)
-
+    var grim26InBlinking = false
     private var shouldSwap = false
     private var shouldBlink = true
     private var shouldNoSlow = false
@@ -380,7 +381,10 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     fun onPacket(event: PacketEvent) {
         val packet = event.packet
         val player = mc.thePlayer ?: return
-
+        if (consumeMode == "Hypixel 16Ticks" && grim26InBlinking && packet is C03PacketPlayer) {
+            BlinkUtils.blink(packet, event)
+            return // Stop further processing of this packet
+        }
         if (event.isCancelled || shouldSwap)
             return
         if (hyp()){
@@ -540,6 +544,28 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         val player = mc.thePlayer ?: return
+        if (consumeMode == "Hypixel 16Ticks") {
+            val isConsuming = player.isUsingItem && (
+                    player.heldItem?.item is ItemFood ||
+                            player.heldItem?.item is ItemPotion ||
+                            player.heldItem?.item is ItemBucketMilk
+                    )
+
+            val remain = player.itemInUseCount // 32 -> 0
+
+            if (isConsuming && remain in 1..16) {
+                if (!grim26InBlinking) {
+                    grim26InBlinking = true
+                    chat("Blink Started (last 16 ticks).")
+                }
+            } else if (grim26InBlinking) {
+                // 停手或吃完 (remain == 0) 再释放
+                grim26InBlinking = false
+                BlinkUtils.unblink()
+                chat("Blink Released.")
+            }
+        }
+
         if (hyp()) {
             if (player.isUsingItem && player.ticksExisted % 3 == 0) {
                 sendPacket(C08PacketPlayerBlockPlacement(
@@ -579,14 +605,29 @@ object NoSlow : Module("NoSlow", Category.MOVEMENT, gameDetecting = false) {
     @EventTarget
     fun onSlowDown(event: SlowDownEvent) {
         val heldItem = mc.thePlayer.heldItem?.item
+        if (consumeMode == "Hypixel 16Ticks") {
+            val isConsuming = mc.thePlayer.isUsingItem && (heldItem is ItemFood || heldItem is ItemPotion || heldItem is ItemBucketMilk)
 
+            if (isConsuming) {
+                val remain = mc.thePlayer.itemInUseCount
+                // 前半段（剩余 >16）保持原版慢速：直接 return，不改倍率
+                if (remain > 16) return
+
+                // 后半段（剩余 <=16）且我们在 blinking：放满速
+                if (grim26InBlinking) {
+                    event.forward = 1.0f
+                    event.strafe  = 1.0f
+                }
+                return
+            }
+
+        }
         if (heldItem !is ItemSword) {
             if (!consumeFoodOnly && heldItem is ItemFood ||
                 !consumeDrinkOnly && (heldItem is ItemPotion || heldItem is ItemBucketMilk)
             ) {
                 return
             }
-
             if (consumeMode == "Drop" && !shouldNoSlow)
                 return
             if (hyp()) {
