@@ -23,7 +23,7 @@ import net.ccbluex.liquidbounce.value.intValue
 import net.minecraft.network.play.server.S2EPacketCloseWindow
 import java.awt.Color
 
-object ClickGUI : Module("OldClickGUI", Category.RENDER) {
+object ClickGUI : Module("OldClickGUI", Category.RENDER, canBeEnabled = false) {
     private val style by
     object : ListValue("Style", arrayOf("LiquidBounce", "Null", "Slowly", "Black"), "LiquidBounce") {
         override fun onChanged(oldValue: String, newValue: String) = updateStyle()

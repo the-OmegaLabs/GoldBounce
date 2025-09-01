@@ -26,7 +26,7 @@ object FastClimb : Module("FastClimb", Category.MOVEMENT) {
 
     val mode by choices(
         "Mode",
-        arrayOf("Vanilla", "Delay", "Clip", "AAC3.0.0", "AAC3.0.5", "SAAC3.1.2", "AAC3.1.2"), "Vanilla"
+        arrayOf("Vanilla", "Delay", "Clip", "AAC3.0.5", "SAAC3.1.2", "AAC3.1.2"), "Vanilla"
     )
     private val speed by floatValue("Speed", 1F, 0.01F..5F) { mode == "Vanilla" }
 

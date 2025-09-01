@@ -307,11 +307,11 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
     private fun renderAnimatedHUD(x: Float, y: Float) {
         val entity = target ?: lastTarget ?: return
 
-        // Size and layout
-        val width = 210f
-        val height = 62f
-        val padding = 10f
-        val avatarSize = 46f
+        // Size and layout - 调整以实现更紧凑的设计
+        val width = 190f
+        val height = 52f
+        val padding = 8f
+        val avatarSize = 36f
         val left = x
         val top = y
 
@@ -380,7 +380,10 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
 
         GlStateManager.pushMatrix()
         GlStateManager.translate(ax, ay, 0f)
+        // Apply scaling from the center of the avatar
+        GlStateManager.translate(avatarSize / 2f, avatarSize / 2f, 0f)
         GlStateManager.scale(avatarScale, avatarScale, 1f)
+        GlStateManager.translate(-avatarSize / 2f, -avatarSize / 2f, 0f)
 
         mc.netHandler.getPlayerInfo(entity.uniqueID)?.let {
             Target().drawHead(it.locationSkin, 0, 0, avatarSize.toInt(), avatarSize.toInt(), Color.WHITE)
@@ -393,19 +396,24 @@ object TargetHUD : Module("TargetHUD", Category.HUD, hideModule = false) {
             RenderUtils.drawRoundedRect(ax, ay, ax + avatarSize, ay + avatarSize, tint.rgb, 6f)
         }
 
+        // --- Repositioned Name and Health Bar for compact layout ---
+        val nameX = ax + avatarSize + 10f // 减小头像和文字之间的间距
+        val barH = 10f // 略微减小生命条的高度
+        val nameFontHeight = Fonts.font40.FONT_HEIGHT.toFloat() // 获取字体高度
+        val contentBlockHeight = nameFontHeight + 4f + barH // 计算文字+间隙+血条的总高度
+        val contentBlockY = (height - contentBlockHeight) / 2f // 计算该内容块的垂直居中起始Y坐标
+
         // Name above health bar
-        val nameX = ax + avatarSize + 12f
-        val nameY = 12f
+        val nameY = contentBlockY
         Fonts.font40.drawString(entity.name, nameX, nameY, Color(30, 30, 30).rgb)
 
         // Health bar (rounded)
         val barX = nameX
-        val barY = height - 22f
+        val barY = nameY + nameFontHeight + 4f // 将生命条紧跟在名字下方，并保留一个小的间隙
         val barW = width - barX - padding
-        val barH = 12f
 
         // Background of bar (light)
-        RenderUtils.drawRoundedRect(barX, barY, barX + barW, barY + barH, Color(230, 230, 230).rgb, 6f)
+        RenderUtils.drawRoundedRect(barX, barY, barX + barW, barY + barH, Color(0, 0, 0, 70).rgb, 6f)
 
         // Foreground: eased health
         val healthPercent = (easingHealth / entity.maxHealth).coerceIn(0f, 1f)
