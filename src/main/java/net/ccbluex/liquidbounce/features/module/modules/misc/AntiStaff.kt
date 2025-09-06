@@ -27,21 +27,26 @@ import net.minecraft.network.Packet
 import net.minecraft.network.play.server.*
 import java.util.concurrent.ConcurrentHashMap
 
-object AntiStaff : Module("AntiStaff",Category.MISC) {
-    private val staffMode = object : ListValue("StaffMode", arrayOf("BlocksMC", "CubeCraft", "Gamster",
-        "AgeraPvP", "HypeMC", "Hypixel", "SuperCraft", "PikaNetwork", "GommeHD","KKCraft"), "BlocksMC") {
+object AntiStaff : Module("AntiStaff", Category.MISC) {
+    private val staffMode = object : ListValue(
+        "StaffMode",
+        arrayOf(
+            "BlocksMC", "CubeCraft", "Gamster",
+            "AgeraPvP", "HypeMC", "Hypixel", "SuperCraft", "PikaNetwork", "GommeHD", "KKCraft"
+        ), "BlocksMC"
+    ) {
     }
 
     private val tab1 = BoolValue("TAB", true)
     private val packet = BoolValue("Packet", true)
     private val velocity = BoolValue("Velocity", false)
 
-    private val autoLeave = ListValue("AutoLeave", arrayOf("Off", "Leave", "Lobby", "Quit"), "Off"){ tab1.get() || packet.get() }
+    private val autoLeave = ListValue("AutoLeave", arrayOf("Off", "Leave", "Lobby", "Quit"), "Off") { tab1.get() || packet.get() }
 
-    private val spectator = BoolValue("StaffSpectator", false){ tab1.get() || packet.get() }
-    private val otherSpectator = BoolValue("OtherSpectator", false){ tab1.get() || packet.get() }
+    private val spectator = BoolValue("StaffSpectator", false) { tab1.get() || packet.get() }
+    private val otherSpectator = BoolValue("OtherSpectator", false) { tab1.get() || packet.get() }
 
-    private val inGame = BoolValue("InGame", true){ autoLeave.get() != "Off" }
+    private val inGame = BoolValue("InGame", true) { autoLeave.get() != "Off" }
     private val warn = ListValue("Warn", arrayOf("Chat", "Notification"), "Chat")
 
     private val checkedStaff = ConcurrentHashMap.newKeySet<String>()
@@ -50,7 +55,8 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
 
     private var attemptLeave = false
 
-    private var staffList: String = ""
+    // staff set used for checks (BlocksMC local or parsed from StaffList constants)
+    private var staffSet: Set<String> = emptySet()
     private var serverIp = ""
 
     private val moduleJob = SupervisorJob()
@@ -63,6 +69,74 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
         checkedSpectator.clear()
         playersInSpectatorMode.clear()
         attemptLeave = false
+    }
+
+    /**
+     * Local BlocksMC staff list (copied from StaffDetector)
+     * Converted to a HashSet for fast membership checks.
+     */
+    private val LOCAL_BLOCKSMC_STAFF: Set<String> = setOf(
+        "iDhoom","BasselFTW","7sO","1Sweet","Jinaaan","Ev2n","Eissaa","mohmad_q8","1Daykel","xImTaiG_",
+        "Nshme","comsterr","e9_","1MeKo","1LaB","MK_F16","loovq","_sadeq","nv0ola","xMz7","Harbi",
+        "xiDayzer","Firas","EyesO_Diamond","1Rana","DeFiCeNcY","DouglasF15","1HeyImHasson_","devilsvul",
+        "Meedo_qb","Ahm2d","LuxRosea","Casteret","curiousmyths","420kinaka","1flyn","_NonameIsHere_",
+        "Bunkrat","n8al3lomblocks","Aymann_","unusunusunus","1ZEYAD","i7ilin","Zerokame44","ss3ed","akthem",
+        "Postme","3Mmr","Iv2a","Y2men","quinque0quinque","RamboKinq","1Ahmd","bogdanpvp1","1Elyy","rR3L",
+        "R1tanium","Sanfoor_J","A2boD","Jrx7","Hunter47","0hFault","xL2d","xfahadq","1Abdllah",
+        "7rBe_8aAad7","Mr_1990","lt1x","vxom","zChangerr","Mzad","Wyssap","GsOMAR","BeastToggled",
+        "CigsAfterBeer","Miyxmura","Endersent","Exhaustr","1S3oD","iKubca","Werthly","_R3","StrongesT0ne",
+        "Ventz_","938awy","Xd3M_","1SPEEDO_","7be","6nabh","N0uf","alk52","qLaith","zixgamer","xz7a",
+        "Bnmv123","zSwift","ITsMo7amed_","Watchdog","FexoraNEP","MVP11","akash1004","Neeres","TheOldDays_",
+        "Time98","Vhagardracarys","khaled12341234","0RyZe","1Reyleigh","ohhhhQls","Nshmee","_Revoox_",
+        "Rieus","ToxicLayer","Mr3nb_","1NotForMaster","1Lzye","Pynifical","Sexyz","M7mmqd","OnlySpam",
+        "UnderTest","1hry","M_7B","Blzxer","Escoco","smckingweed","SweetyAlice","1S4L","1Alii_","DarkVzd",
+        "uxvv","DrW2rden","ilerz_","Dr_Kratos1","Raqxklps","_1HypersX_","Vanitas_0","HDZT","Rma7o",
+        "3bdooooooo","420WaFFLe","Wacros","EmpatheticEyes","Yarin","Yawelkm","Lordui","rivsci","kingpvp90",
+        "izLORDeX","DreadPirateR0B","OpGaming2009","Pipars6","Mvjed","LovelyLayan","savobabo","GlowDown_",
+        "_i_b","_odex","sh59","Luffy404","Io2n","ixd7vl","Laarcii","0hQxmar_","1Ashu","Rayqquaza",
+        "Zaytook","Krejums","Razen555","1Mostyy","iMizuki","Mohvm3d","N13M_","Refolt","3zal","1F5aMH___3oo",
+        "hnxrr","ammaradi1","xDiaa","yas0","EmeraldEyex","LuvDark","Xiaolv_FIX","GeorgeBeingReal","rukia_1",
+        "Alxii","4Click_","i6iicv","xiiHerox","1ScarFace","deficency","us9","werfault","CyVD","toriset",
+        "AbuMeshal","Negotiatorr","epicmines33","J7aa","Woipa","1Lefan","KinderBueno__","Reflxctively",
+        "NotriousAsser","uhtori_","deqressing","Exvqlt","In4_n","BotsisDunatos","moesh21","PrimeRiseNan",
+        "ChairmanSteve","echoofeteinty","1Bl0oD_","Tvrki","2mtm","1M7mmD","AquixSucralos","IlyasDePoot",
+        "qEGYPT","qHadz","Hotrixe","IRealMohammad","YousefXOfficial","1Shnider","runiedoll","502x","3rfu",
+        "Y2sF","Zywolt","A_ns","IV0lT_","Kasprov","Veeep","Valyard","1_Tamim_1","shuacu","robglr",
+        "0HqSon_","0Lefan","0PvP_","0fRanddy","0ylq","1GokuBlack","1LaB_","1Meran","1Mukhtar","1N3xus",
+        "1Nabulsi","1Retired","1Y2sR","1Yossry","1flyn","3ayb","420zero","4Fl1ckz_","ADHMG3AN",
+        "Abo_Jmal","AbuHmD","AbuTariq","AlOwAgamer_YT","Andyiraqi","Angels0fFear","Arbazzz","BokiX__",
+        "Bunkrat","Cukkyy_","Emadd","Ev2n","Exvqlt","EyesO_Diamond","FastRank","Firas","GlowDown_","GsOMAR",
+        "GymIsTherapy","ILoveDcT","ILoveLGN","ItzDitto","Iv2a","Jinaaan","JustRois_","K1ngHO","KinderBueno__",
+        "Lyrnxx","M4_4","MH0D","MHNDG3AN","MILG511","MSavege","MVP11","Magdi_Moslih","Morninng","Mwl4",
+        "Neeres","NotriousAsser","OnlyK1nq","OtuerBanks","Pipars6","Pixerrr","Postme","Pynifical","RYSnya",
+        "Reflxctively","Revolu1ion_","Rma7","SJOD","SKILLEN","Sanziro","Schneider01","SenpaiB7r","Teqches",
+        "TheDestroyer24","Tugcee","Unavailabl7","Werthly","Y27X","Y2sF","Yarin","YousefXOfficial","_Ka5",
+        "_LMY","_iMuslim_","_sadeq","comsterr","decaliis","deqressing","dragon_hma","e9_","fallenintosleep",
+        "hox4o","hussee862","i6iicv","iDhoom","iNERO0","iidouble","im3losh","isfa7_","mitsichu","mohmad_q8",
+        "osm2","qHadz","rqom","scarletsolider","snowpieces","swhq","tHeViZi","teddynicelol","uBarbie","vS1nT",
+        "xKh2l3d","xiDayzer","younes_dz_xx_","yzed","z1HypersXz","z47z","LordFisk","t6q","iEusKid","7yrx",
+        "KWZ","SiSalahh","_Kian97","0_0","0Tired","solviera","XkawaiiHinoiiri","anass","b2ssam","BanaPeel",
+        "__SKYWALKER","__ChippedBlade__","0viq","ugass","ImadeThisAcc","Werlthy","IMADEVIEL11","Fqvies",
+        "CroSsUser1Fdx0F9","ICrusader","Killua_7y","RealALY","jonas2246","sorryfull","bedoisdead","1Meran"
+    ).toHashSet()
+
+    private fun parseStaffConstant(constant: String?): Set<String> {
+        if (constant.isNullOrBlank()) return emptySet()
+        // Split on newlines, commas or semicolons, trim and filter blanks
+        return constant.split(Regex("\\r?\\n|,|;"))
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .toHashSet()
+    }
+
+    private fun isStaff(name: String?): Boolean {
+        if (name.isNullOrBlank()) return false
+        val n = name.trim()
+        // First check exact ignore-case match
+        if (staffSet.any { it.equals(n, ignoreCase = true) }) return true
+        // Then check contains (ignore-case) either direction for robustness
+        if (staffSet.any { s -> n.contains(s, ignoreCase = true) || s.contains(n, ignoreCase = true) }) return true
+        return false
     }
 
     /**
@@ -85,19 +159,21 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
-        staffList = when (staffMode.get().lowercase()) {
-            "cubecraft" -> StaffList.CUBECRAFT
-            "kkcraft" -> StaffList.KKCRAFT
-            "hypixel" -> StaffList.HYPIXEL
-            "pikanetwork" -> StaffList.PIKA
-            "blocksmc" -> StaffList.BMC
-            "agerapvp" -> StaffList.ARERAPVP
-            "hypemc" -> StaffList.HYPEMC
-            "supercraft" -> StaffList.SUERPCRAFT
-            "gommehd" -> StaffList.GOMMA
-            "gamster" -> StaffList.GAMSTER
-            "vimemc" -> StaffList.VIMEMC
-            else -> ""
+        // Update staffSet every tick based on selected server mode.
+        // BlocksMC -> use local set; otherwise parse the StaffList constants.
+        staffSet = when (staffMode.get().lowercase()) {
+            "cubecraft" -> parseStaffConstant(StaffList.CUBECRAFT)
+            "kkcraft" -> parseStaffConstant(StaffList.KKCRAFT)
+            "hypixel" -> parseStaffConstant(StaffList.HYPIXEL)
+            "pikanetwork" -> parseStaffConstant(StaffList.PIKA)
+            "blocksmc" -> LOCAL_BLOCKSMC_STAFF
+            "agerapvp" -> parseStaffConstant(StaffList.ARERAPVP)
+            "hypemc" -> parseStaffConstant(StaffList.HYPEMC)
+            "supercraft" -> parseStaffConstant(StaffList.SUERPCRAFT)
+            "gommehd" -> parseStaffConstant(StaffList.GOMMA)
+            "gamster" -> parseStaffConstant(StaffList.GAMSTER)
+            "vimemc" -> parseStaffConstant(StaffList.VIMEMC)
+            else -> emptySet()
         }
     }
 
@@ -122,24 +198,24 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
                 if (teamName.equals("Z_Spectator", true)) {
                     val players = packet.players ?: return
 
-                    val staffSpectateList = players.filter { it in staffList } - checkedSpectator
-                    val nonStaffSpectateList = players.filter { it !in staffList } - checkedSpectator
+                    val staffSpectateList = players.filter { it !in checkedSpectator && isStaff(it) }
+                    val nonStaffSpectateList = players.filter { it !in checkedSpectator && !isStaff(it) }
 
                     // Check for players who are using spectator menu
                     val miscSpectatorList = playersInSpectatorMode - players.toSet()
 
                     staffSpectateList.forEach { player ->
-                        notifySpectators(player!!)
+                        notifySpectators(player)
                     }
 
                     nonStaffSpectateList.forEach { player ->
                         if (otherSpectator.get()) {
-                            notifySpectators(player!!)
+                            notifySpectators(player)
                         }
                     }
 
                     miscSpectatorList.forEach { player ->
-                        val isStaff = player in staffList
+                        val isStaff = isStaff(player)
 
                         if (isStaff && spectator.get()) {
                             Chat.print("§c[STAFF] §d${player} §3is using the spectator menu §e(compass/left)")
@@ -176,7 +252,7 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
                     if (warn.get() == "Chat") {
                         Chat.print("§3Staff is Watching")
                     } else {
-                        hud.addNotification(Notification("[AntiStaff] Staff is Watching",5000F))
+                        hud.addNotification(Notification("[AntiStaff] Staff is Watching", 5000F))
                     }
                 }
             }
@@ -188,13 +264,13 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
             return
         }
 
-        val isStaff: Boolean = staffList.contains(player)
+        val isStaff: Boolean = isStaff(player)
 
         if (isStaff && spectator.get()) {
             if (warn.get() == "Chat") {
                 Chat.print("§c[STAFF] §d${player} §3is a spectators")
             } else {
-                hud.addNotification(Notification("[STAFF] §d${player} §3is a spectators",5000F))
+                hud.addNotification(Notification("[STAFF] §d${player} §3is a spectators", 5000F))
             }
         }
 
@@ -202,7 +278,7 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
             if (warn.get() == "Chat") {
                 Chat.print("§d${player} §3is a spectators")
             } else {
-                hud.addNotification(Notification("[Non-STAFF] §d${player} §3is a spectators",5000F))
+                hud.addNotification(Notification("[Non-STAFF] §d${player} §3is a spectators", 5000F))
             }
         }
 
@@ -236,7 +312,7 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
         }
 
         playerInfos.forEach { (player, responseTime) ->
-            val isStaff : Boolean = staffList.contains(player)
+            val isStaff: Boolean = isStaff(player)
 
             val condition = when {
                 responseTime > 0 -> "§e(${responseTime}ms)"
@@ -251,7 +327,7 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
                     if (warn.get() == "Chat") {
                         Chat.print(warnings)
                     } else {
-                        hud.addNotification(Notification(warnings,5000F))
+                        hud.addNotification(Notification(warnings, 5000F))
                     }
 
                     attemptLeave = false
@@ -276,8 +352,7 @@ object AntiStaff : Module("AntiStaff",Category.MISC) {
 
         val isStaff: Boolean = if (staff is EntityPlayer) {
             val playerName = staff.gameProfile.name
-
-            staffList.contains(playerName)
+            isStaff(playerName)
         } else {
             false
         }
