@@ -9,27 +9,20 @@ import net.ccbluex.liquidbounce.event.*
 import net.ccbluex.liquidbounce.features.module.Category
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.modules.exploit.Disabler
+import net.ccbluex.liquidbounce.utils.*
 import net.ccbluex.liquidbounce.utils.MovementUtils.isOnGround
 import net.ccbluex.liquidbounce.utils.MovementUtils.speed
-import net.ccbluex.liquidbounce.utils.PacketUtils
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPacket
 import net.ccbluex.liquidbounce.utils.PacketUtils.sendPackets
-import net.ccbluex.liquidbounce.utils.RaycastUtils
-import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils.currentRotation
-import net.ccbluex.liquidbounce.utils.SilentHotbar
 import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils
 import net.ccbluex.liquidbounce.utils.kotlin.RandomUtils.nextInt
-import net.ccbluex.liquidbounce.utils.realMotionX
-import net.ccbluex.liquidbounce.utils.realMotionY
-import net.ccbluex.liquidbounce.utils.realMotionZ
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.value.*
 import net.minecraft.block.BlockAir
 import net.minecraft.block.BlockSoulSand
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGameOver
 import net.minecraft.client.network.NetHandlerPlayClient
 import net.minecraft.entity.Entity
@@ -38,13 +31,7 @@ import net.minecraft.network.Packet
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.client.C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK
 import net.minecraft.network.play.client.C0BPacketEntityAction.Action.*
-import net.minecraft.network.play.server.S08PacketPlayerPosLook
-import net.minecraft.network.play.server.S12PacketEntityVelocity
-import net.minecraft.network.play.server.S27PacketExplosion
-import net.minecraft.network.play.server.S32PacketConfirmTransaction
-import net.minecraft.network.play.server.S3BPacketScoreboardObjective
-import net.minecraft.network.play.server.S3CPacketUpdateScore
-import net.minecraft.network.play.server.S3DPacketDisplayScoreboard
+import net.minecraft.network.play.server.*
 import net.minecraft.util.*
 import net.minecraft.util.EnumFacing.DOWN
 import net.minecraft.world.WorldSettings
@@ -59,11 +46,34 @@ object Velocity : Module("Velocity", Category.COMBAT) {
      */
     private val mode by choices(
         "Mode", arrayOf(
-            "Simple", "Advanced", "AAC", "AACPush", "AACZero", "AACv4",
-            "Reverse", "SmoothReverse", "Jump", "Glitch", "Legit",
-            "GhostBlock", "Vulcan", "S32Packet", "MatrixReduce",
-            "IntaveReduce", "Delay", "GrimC03", "GrimCombat", "Hypixel", "HypixelAir",
-            "Click", "BlocksMC", "IntaveA", "IntaveB", "Polar", "Block", "Prediction"
+            "Simple",
+            "Advanced",
+            "AAC",
+            "AACPush",
+            "AACZero",
+            "AACv4",
+            "Reverse",
+            "SmoothReverse",
+            "Jump",
+            "Glitch",
+            "Legit",
+            "GhostBlock",
+            "Vulcan",
+            "S32Packet",
+            "MatrixReduce",
+            "IntaveReduce",
+            "Delay",
+            "GrimC03",
+            "GrimCombat",
+            "Hypixel",
+            "HypixelAir",
+            "Click",
+            "BlocksMC",
+            "IntaveA",
+            "IntaveB",
+            "Polar",
+            "Block",
+            "Prediction"
         ), "Simple"
     )
     private val horizontal by floatValue("Horizontal", 0F, -1F..1F) { mode in arrayOf("Simple", "AAC", "Legit") }
@@ -101,9 +111,17 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     private val chance by intValue("Chance", 100, 0..100) { mode == "Jump" || mode == "Legit" }
 
     // Jump
-    private val jumpCooldownMode by choices("JumpCooldownMode", arrayOf("Ticks", "ReceivedHits"), "Ticks") { mode == "Jump" }
+    private val jumpCooldownMode by choices(
+        "JumpCooldownMode",
+        arrayOf("Ticks", "ReceivedHits"),
+        "Ticks"
+    ) { mode == "Jump" }
     private val ticksUntilJump by intValue("TicksUntilJump", 4, 0..20) { jumpCooldownMode == "Ticks" && mode == "Jump" }
-    private val hitsUntilJump by intValue("ReceivedHitsUntilJump", 2, 0..5) { jumpCooldownMode == "ReceivedHits" && mode == "Jump" }
+    private val hitsUntilJump by intValue(
+        "ReceivedHitsUntilJump",
+        2,
+        0..5
+    ) { jumpCooldownMode == "ReceivedHits" && mode == "Jump" }
 
     // Ghost Block
     private val hurtTimeRange by intRange("HurtTime", 1..9, 1..10) { mode == "GhostBlock" }
@@ -201,11 +219,16 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 val verticalPercentage = (vertical * 100).toInt()
                 "$horizontalPercentage% $verticalPercentage%"
             }
+
             else -> mode
         }
 
     override fun onDisable() {
         mc.thePlayer?.speedInAir = 0.02F
+        reset()
+    }
+
+    override fun onEnable() {
         reset()
     }
 
@@ -228,15 +251,13 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     fun onUpdate(event: UpdateEvent) {
         val thePlayer = mc.thePlayer ?: return
 
-        if (thePlayer.isInLiquid || thePlayer.isInWeb || thePlayer.isDead || !handleEvents())
-            return
+        if (thePlayer.isInLiquid || thePlayer.isInWeb || thePlayer.isDead || !handleEvents()) return
 
         when (mode.lowercase()) {
             "glitch" -> {
                 thePlayer.noClip = hasReceivedVelocity
 
-                if (thePlayer.hurtTime == 7)
-                    thePlayer.motionY = 0.4
+                if (thePlayer.hurtTime == 7) thePlayer.motionY = 0.4
 
                 hasReceivedVelocity = false
             }
@@ -261,7 +282,11 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 if (!hasReceivedVelocity) return
 
                 val nearbyEntity = getNearestEntityInRange()
-                if (nearbyEntity == null || (onLook && !EntityUtils.isLookingOnEntities(nearbyEntity, maxAngleDifference.toDouble()))) {
+                if (nearbyEntity == null || (onLook && !EntityUtils.isLookingOnEntities(
+                        nearbyEntity,
+                        maxAngleDifference.toDouble()
+                    ))
+                ) {
                     hasReceivedVelocity = false
                     thePlayer.speedInAir = 0.02F
                     reverseHurt = false
@@ -297,12 +322,11 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     if (thePlayer.onGround) jump = false
                 } else {
                     // Strafe
-                    if (thePlayer.hurtTime > 0 && thePlayer.motionX != 0.0 && thePlayer.motionZ != 0.0)
-                        thePlayer.onGround = true
+                    if (thePlayer.hurtTime > 0 && thePlayer.motionX != 0.0 && thePlayer.motionZ != 0.0) thePlayer.onGround =
+                        true
 
                     // Reduce Y
-                    if (thePlayer.hurtResistantTime > 0 && aacPushYReducer)
-                        thePlayer.motionY -= 0.014999993
+                    if (thePlayer.hurtResistantTime > 0 && aacPushYReducer) thePlayer.motionY -= 0.014999993
                 }
 
                 // Reduce XZ
@@ -314,8 +338,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             }
 
             "aaczero" -> if (thePlayer.hurtTime > 0) {
-                if (!hasReceivedVelocity || thePlayer.onGround || thePlayer.fallDistance > 2F)
-                    return
+                if (!hasReceivedVelocity || thePlayer.onGround || thePlayer.fallDistance > 2F) return
 
                 thePlayer.motionY -= 1.0
                 thePlayer.isAirBorne = true
@@ -325,11 +348,9 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             }
 
             "legit" -> {
-                if (legitDisableInAir && !isOnGround(0.5))
-                    return
+                if (legitDisableInAir && !isOnGround(0.5)) return
 
-                if (mc.thePlayer.maxHurtResistantTime != mc.thePlayer.hurtResistantTime || mc.thePlayer.maxHurtResistantTime == 0)
-                    return
+                if (mc.thePlayer.maxHurtResistantTime != mc.thePlayer.hurtResistantTime || mc.thePlayer.maxHurtResistantTime == 0) return
 
                 if (nextInt(endExclusive = 100) < chance) {
                     thePlayer.motionX *= (horizontal / 100f).toDouble()
@@ -398,7 +419,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     @EventTarget
     fun onGameTick(event: GameTickEvent) {
         val thePlayer = mc.thePlayer ?: return
-        val theWorld = mc.theWorld ?: return
+        mc.theWorld ?: return
 
 
         // Prediction Mode Logic
@@ -418,8 +439,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 buffering = false
                 for (packet in bufferedPackets) {
                     if (!isStatusPacket(packet)) {
-                        @Suppress("UNCHECKED_CAST")
-                        (packet as Packet<NetHandlerPlayClient>).processPacket(mc.netHandler)
+                        @Suppress("UNCHECKED_CAST") (packet as Packet<NetHandlerPlayClient>).processPacket(mc.netHandler)
                     }
                 }
                 bufferedPackets.clear()
@@ -430,15 +450,18 @@ object Velocity : Module("Velocity", Category.COMBAT) {
 
         // Click Mode Logic
         if (mode == "Click") {
-            if (thePlayer.hurtTime != hurtTimeToClick || (ignoreBlocking && (thePlayer.isBlocking || KillAura.blockStatus)))
-                return
+            if (thePlayer.hurtTime != hurtTimeToClick || (ignoreBlocking && (thePlayer.isBlocking || KillAura.blockStatus))) return
 
             var entity = mc.objectMouseOver?.entityHit
 
             if (entity == null) {
                 if (whenFacingEnemyOnly) {
                     var result: Entity? = null
-                    RaycastUtils.runWithModifiedRaycastResult(currentRotation ?: thePlayer.rotation, clickRange.toDouble(), 0.0) {
+                    RaycastUtils.runWithModifiedRaycastResult(
+                        currentRotation ?: thePlayer.rotation,
+                        clickRange.toDouble(),
+                        0.0
+                    ) {
                         result = it.entityHit?.takeIf { EntityUtils.isSelected(it, true) }
                     }
                     entity = result
@@ -505,7 +528,10 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         // --- PREDICTION MODE BUFFERING ---
         if (mode == "Prediction" && buffering) {
             // Buffer incoming packets while waiting to counter knockback
-            if (packet is S12PacketEntityVelocity || packet is S27PacketExplosion || packet is S08PacketPlayerPosLook || !excludedSpecial(packet)) {
+            if (packet is S12PacketEntityVelocity || packet is S27PacketExplosion || packet is S08PacketPlayerPosLook || !excludedSpecial(
+                    packet
+                )
+            ) {
                 bufferedPackets.add(packet)
                 event.cancelEvent()
                 return
@@ -518,14 +544,22 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 if (Disabler.verusCombat && (!Disabler.onlyCombat || Disabler.isOnCombat)) return
                 if (packet is S32PacketConfirmTransaction) {
                     event.cancelEvent()
-                    sendPacket(C0FPacketConfirmTransaction(if (transaction) 1 else -1, if (transaction) -1 else 1, transaction), false)
+                    sendPacket(
+                        C0FPacketConfirmTransaction(
+                            if (transaction) 1 else -1,
+                            if (transaction) -1 else 1,
+                            transaction
+                        ), false
+                    )
                     transaction = !transaction
                 }
             }
+
             "s32packet" -> if (packet is S32PacketConfirmTransaction && hasReceivedVelocity) {
                 event.cancelEvent()
                 hasReceivedVelocity = false
             }
+
             "blocksmc" -> if (packet is C0BPacketEntityAction && hasReceivedVelocity) {
                 hasReceivedVelocity = false
                 event.cancelEvent()
@@ -544,9 +578,11 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         event.cancelEvent()
                     }
                 }
+
                 "aac", "reverse", "smoothreverse", "aaczero", "ghostblock", "intavereduce", "hypixel", "hypixelair", "s32packet" -> {
                     hasReceivedVelocity = true
                 }
+
                 "prediction" -> {
                     if (packet.motionY > 0 || thePlayer.fallDistance <= 14 || thePlayer.hurtTime <= 1) {
                         forceJumpOnce = true
@@ -563,6 +599,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         event.cancelEvent()
                     }
                 }
+
                 "grimcombat" -> {
                     if (thePlayer.isDead || mc.currentScreen is GuiGameOver || mc.playerController.currentGameType === WorldSettings.GameType.SPECTATOR) return
                     if (thePlayer.isOnLadder || (thePlayer.isBurning && fireCheckValue) || (thePlayer.isInWater && waterCheckValue) || (thePlayer.fallDistance > 1.5 && fallCheckValue) || (thePlayer.isEating && consumecheck) || soulSandCheck()) return
@@ -571,7 +608,12 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     if (horizontalStrength <= 1000) return
 
                     velocityInput = true
-                    var entity: Entity? = RaycastUtils.raycastEntity(grimrange.toDouble()) { it is EntityLivingBase && EntityUtils.isSelected(it, true) }
+                    var entity: Entity? = RaycastUtils.raycastEntity(grimrange.toDouble()) {
+                        it is EntityLivingBase && EntityUtils.isSelected(
+                            it,
+                            true
+                        )
+                    }
                     if (entity == null && !raycastValue) {
                         entity = KillAura.target?.takeIf { thePlayer.getDistanceToEntityBox(it) <= grimrange }
                     }
@@ -581,7 +623,12 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         if (!wasSprinting) sendPacket(C0BPacketEntityAction(thePlayer, START_SPRINTING))
                         repeat(attackCountValue) {
                             mc.netHandler.networkManager.sendPacket(C0APacketAnimation())
-                            mc.netHandler.networkManager.sendPacket(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
+                            mc.netHandler.networkManager.sendPacket(
+                                C02PacketUseEntity(
+                                    entity,
+                                    C02PacketUseEntity.Action.ATTACK
+                                )
+                            )
                         }
                         if (!wasSprinting) sendPacket(C0BPacketEntityAction(thePlayer, STOP_SPRINTING))
                         velX = packet.motionX
@@ -591,21 +638,25 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         event.cancelEvent()
                     }
                 }
+
                 "matrixreduce" -> {
                     val factor = if (thePlayer.onGround) 0.86 else 0.33
                     packet.motionX = (packet.motionX * factor).toInt()
                     packet.motionZ = (packet.motionZ * factor).toInt()
                 }
+
                 "blocksmc" -> {
                     hasReceivedVelocity = true
                     event.cancelEvent()
                     sendPacket(C0BPacketEntityAction(thePlayer, START_SNEAKING))
                     sendPacket(C0BPacketEntityAction(thePlayer, STOP_SNEAKING))
                 }
+
                 "grimc03" -> if (thePlayer.isMoving) {
                     hasReceivedVelocity = true
                     event.cancelEvent()
                 }
+
                 "vulcan", "hypixel", "hypixelair" -> {
                     event.cancelEvent()
                     if (mode.lowercase() == "hypixel" && !thePlayer.onGround && !absorbedVelocity) {
@@ -614,6 +665,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         hasReceivedVelocity = true
                     }
                 }
+
                 "block" -> {
                     val x = packet.motionX / 8000.0
                     val y = packet.motionY / 8000.0
@@ -622,6 +674,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     val vec2 = RotationUtils.aimToPoint(thePlayer.getPositionEyes(mc.timer.renderPartialTicks), vec3)
                     thePlayer.rotationYaw = RotationUtils.shortestYaw(thePlayer.rotationYaw, vec2.x)
                 }
+
                 "jump" -> {
                     // Jump direction check
                     val packetDirection = atan2(packet.motionX.toDouble(), packet.motionZ.toDouble())
@@ -664,13 +717,26 @@ object Velocity : Module("Velocity", Category.COMBAT) {
         when (mode.lowercase()) {
             "block" -> if (mc.thePlayer.hurtTime > 5) {
                 InventoryUtils.findBlockInHotbar()?.let { blockSlot ->
-                    SilentHotbar.selectSlotSilently(this, blockSlot, immediate = true, render = renderSlot, resetManually = true)
+                    SilentHotbar.selectSlotSilently(
+                        this,
+                        blockSlot,
+                        immediate = true,
+                        render = renderSlot,
+                        resetManually = true
+                    )
                 }
                 for (i in 60 downTo 45 step 5) {
                     mc.thePlayer.rotationPitch = i.toFloat()
                     val mop = mc.objectMouseOver
                     if (mop?.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                        mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.heldItem, mop.blockPos, mop.sideHit, mop.hitVec)
+                        mc.playerController.onPlayerRightClick(
+                            mc.thePlayer,
+                            mc.theWorld,
+                            mc.thePlayer.heldItem,
+                            mop.blockPos,
+                            mop.sideHit,
+                            mop.hitVec
+                        )
                     }
                 }
             } else {
@@ -736,6 +802,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 jump = true
                 if (!thePlayer.isCollidedVertically) event.cancelEvent()
             }
+
             "aaczero" -> if (thePlayer.hurtTime > 0) event.cancelEvent()
         }
     }
@@ -767,7 +834,14 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             if (player.hurtTime in hurtTimeRange) {
                 // Check if there is air exactly 1 level above the player's Y position
                 if (event.block is BlockAir && event.y == player.posY.toInt() + 1) {
-                    event.boundingBox = AxisAlignedBB(event.x.toDouble(), event.y.toDouble(), event.z.toDouble(), event.x + 1.0, event.y + 1.0, event.z + 1.0)
+                    event.boundingBox = AxisAlignedBB(
+                        event.x.toDouble(),
+                        event.y.toDouble(),
+                        event.z.toDouble(),
+                        event.x + 1.0,
+                        event.y + 1.0,
+                        event.z + 1.0
+                    )
                 }
             } else if (player.hurtTime == 0) {
                 hasReceivedVelocity = false
@@ -828,6 +902,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         thePlayer.motionY = motionY * vertical
                     }
                 }
+
                 "Advanced" -> {
                     if (thePlayer.onGround) {
                         if (horizontalGround == 0 && verticalGround == 0) return
@@ -865,7 +940,8 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                     packet.field_149159_h *= horizontal // motionZ
 
                     if (limitMaxMotionValue.get()) {
-                        val distXZ = sqrt(packet.field_149152_f * packet.field_149152_f + packet.field_149159_h * packet.field_149159_h)
+                        val distXZ =
+                            sqrt(packet.field_149152_f * packet.field_149152_f + packet.field_149159_h * packet.field_149159_h)
                         val distY = packet.field_149153_g
                         val effectiveMaxYMotion = maxYMotion + 0.00075f
 

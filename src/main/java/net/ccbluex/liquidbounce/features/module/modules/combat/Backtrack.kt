@@ -16,11 +16,13 @@ import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.misc.StringUtils.contains
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
 import net.ccbluex.liquidbounce.utils.render.ColorUtils.rainbow
+import net.ccbluex.liquidbounce.utils.render.RenderUtils
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.drawBacktrackBox
 import net.ccbluex.liquidbounce.utils.render.RenderUtils.glColor
 import net.ccbluex.liquidbounce.utils.timing.MSTimer
 import net.ccbluex.liquidbounce.utils.timing.TimeUtils.randomDelay
 import net.ccbluex.liquidbounce.value.*
+import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager.color
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -37,14 +39,16 @@ import java.awt.Color
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.math.max
+import kotlin.math.min
 
 object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
 
     private val nextBacktrackDelay by intValue("NextBacktrackDelay", 0, 0..2000) { mode == "Modern" }
-    private val maxDelay: IntegerValue = object : IntegerValue("MaxDelay", 80, 0..700) {
+    private val maxDelay: IntegerValue = object : IntegerValue("MaxDelay", 80, 0..2000) {
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtLeast(minDelay.get())
     }
-    private val minDelay: IntegerValue = object : IntegerValue("MinDelay", 80, 0..700) {
+    private val minDelay: IntegerValue = object : IntegerValue("MinDelay", 80, 0..2000) {
         override fun onChange(oldValue: Int, newValue: Int) = newValue.coerceAtMost(maxDelay.get())
         override fun isSupported() = mode == "Modern"
     }
@@ -66,7 +70,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
     // Modern
     private val style by choices("Style", arrayOf("Pulse", "Smooth"), "Smooth") { mode == "Modern" }
 
-    private val maxDistanceValue: FloatValue = object : FloatValue("MaxDistance", 3.0f, 0.0f..3.5f) {
+    private val maxDistanceValue: FloatValue = object : FloatValue("MaxDistance", 3.0f, 0.0f..6f) {
         override fun onChange(oldValue: Float, newValue: Float) = newValue.coerceAtLeast(minDistance)
         override fun isSupported() = mode == "Modern"
     }
@@ -91,6 +95,12 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
     private val espColor = ColorSettingsInteger(this, "ESP", withAlpha = false)
     { espColorMode == "Custom" && espMode != "Model" && mode == "Modern" }.with(0, 255, 0)
 
+    // Progress
+    private val showProgress by _boolean("ShowProgress", true) { mode == "Modern" }
+    private val progressAnimationSpeed by floatValue("ProgressAnimationSpeed", 0.1F, 0.01F..1F) { mode == "Modern" && showProgress }
+    private val progressColor = ColorSettingsInteger(this, "Progress", withAlpha = true)
+    { mode == "Modern" && showProgress }.with(0, 150, 255)
+
     private val packetQueue = ConcurrentLinkedQueue<QueueData>()
     private val positions = mutableListOf<Pair<Vec3, Long>>()
 
@@ -105,6 +115,9 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
     private var delayForNextBacktrack = 0L
 
     private var modernDelay = randomDelay(minDelay.get(), maxDelay.get()) to false
+
+    private var trackingProgress = 0F
+    private var isTracking = false
 
     private val supposedDelay
         get() = if (mode == "Modern") modernDelay.first else maxDelay.get()
@@ -268,6 +281,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
         val targetMixin = target as? IMixinEntity
 
         if (mode == "Modern") {
+            isTracking = false
             if (targetMixin != null) {
                 if (!Blink.blinkingReceive() && shouldBacktrack() && targetMixin.truePos) {
                     val trueDist = mc.thePlayer.getDistance(targetMixin.trueX, targetMixin.trueY, targetMixin.trueZ)
@@ -278,6 +292,7 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
                         ))
                     ) {
                         shouldRender = true
+                        isTracking = true
 
                         if (mc.thePlayer.getDistanceToEntityBox(target) in minDistance..maxDistance) {
                             handlePackets()
@@ -329,6 +344,60 @@ object Backtrack : Module("Backtrack", Category.COMBAT, hideModule = false) {
         if (event.targetEntity is EntityLivingBase) {
             target = event.targetEntity
         }
+    }
+    @EventTarget
+    fun onRender2D(event: Render2DEvent) {
+        if (mode != "Modern" || !showProgress) {
+            trackingProgress = 0F
+            return
+        }
+
+        val targetProgress = if (isTracking && !isPacketQueueEmpty) 1F else 0F
+        val animationSpeed = progressAnimationSpeed
+
+        // Animate progress
+        trackingProgress += (targetProgress - trackingProgress) * animationSpeed
+
+        // Clamp to avoid floating point errors
+        if (trackingProgress < 0.01F && targetProgress == 0F) {
+            trackingProgress = 0F
+        }
+        if (trackingProgress > 0.99F && targetProgress == 1F) {
+            trackingProgress = 1F
+        }
+
+        val sr = ScaledResolution(mc)
+        val width = 80F
+        val halfWidth = width / 2F
+        val x = sr.scaledWidth / 2F - halfWidth
+        val y = sr.scaledHeight / 2F + 20F
+        val height = 4F
+
+        // Draw progress bar background
+        RenderUtils.drawRect(x, y, x + width, y + height, Color(0, 0, 0, 100).rgb)
+        // Draw progress bar
+        RenderUtils.drawRect(x, y, x + (width * trackingProgress), y + height, progressColor.color().rgb)
+
+        // Determine status text and color based on current state
+        val statusText = when {
+            target == null -> "No Target"
+            !isTracking -> "Waiting: ${supposedDelay}ms"
+            else -> "Tracking: ${trackingProgress * 100f.toInt()}%"
+        }
+
+        val textColor = when {
+            target == null -> Color.RED
+            !isTracking -> Color.YELLOW
+            else -> Color.GREEN
+        }.rgb
+
+        // Calculate text position (centered above bar)
+        val textWidth = mc.fontRendererObj.getStringWidth(statusText)
+        val textX = x + (width - textWidth) / 2F
+        val textY = y - 15
+
+        // Draw status text
+        mc.fontRendererObj.drawString(statusText, textX, textY, textColor, true)
     }
 
     @EventTarget
