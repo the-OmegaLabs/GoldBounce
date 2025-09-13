@@ -72,54 +72,6 @@ class GuiMainMenu : GuiScreen() {
 
     override fun drawScreen(mx: Int, my: Int, pt: Float) {
         drawImage(ResourceLocation("liquidbounce/background.png"), -mx, -my, width*2, height*2)
-        val now = System.currentTimeMillis()
-        if (!played && !delayPassed) {
-            if (now - delayStart >= delayMs) {
-                delayPassed = true
-                running = true
-                lastTime = now
-            }
-        }
-        if (running && !done) {
-            val dt = ((now - lastTime).coerceAtLeast(0L)) / 1000f
-            if (!expOn) {
-                vx += ax*dt
-                xPos += vx*dt
-                val collideX = width/2f - 100f
-                if (xPos + lancerW >= collideX) {
-                    expOn = true
-                    playMP3("/assets/minecraft/liquidbounce/sounds/explosion.mp3")
-                    doExchange = true
-                    lastExpTime = now
-                    vx += 150f
-                }
-            } else {
-                vx += ax*dt
-                xPos += vx*dt
-            }
-            lastTime = now
-            if (expOn && expFrame<=expFrames) {
-                if (lastExpTime==0L) lastExpTime=now
-                if (now - lastExpTime >= expInterval) {
-                    expFrame++
-                    lastExpTime = now
-                }
-            }
-            val logoTop = height/8f
-            val logoHt = 58f
-            val centerY = logoTop + logoHt/2f
-            if (expOn && expFrame>expFrames) {
-                done = true
-                played = true
-            }
-        }
-        if (played) {
-            val bw = 92
-            val bh = 120
-            val y0 = (height/8f - 10f).toInt()
-        } else if ((!running && delayPassed && !doExchange) || done) {
-        } else if (!played) {
-        }
         drawRoundedBorderRect(width/2f-115, height/4f+35, width/2f+115, height/4f+175, 2f, Integer.MIN_VALUE, Integer.MIN_VALUE, 3f)
         GlowUtils.drawGlow(width/2f-115, height/4f+35, 230f, 140f, 20, Color.BLACK)
         Fonts.fontNoto35.drawCenteredString("b10", width/2f+148f, height/8f+Fonts.font35.fontHeight, 0xffffff, true)
