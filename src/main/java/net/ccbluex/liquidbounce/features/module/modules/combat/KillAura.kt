@@ -35,7 +35,6 @@ import net.ccbluex.liquidbounce.utils.attack.EntityUtils
 import net.ccbluex.liquidbounce.utils.extensions.*
 import net.ccbluex.liquidbounce.utils.inventory.InventoryUtils.serverOpenInventory
 import net.ccbluex.liquidbounce.utils.inventory.ItemUtils.isConsumingItem
-import net.ccbluex.liquidbounce.utils.inventory.hotBarSlot
 import net.ccbluex.liquidbounce.utils.misc.RandomUtils.nextInt
 import net.ccbluex.liquidbounce.utils.packet.sendOffHandUseItem.sendOffHandUseItem
 import net.ccbluex.liquidbounce.utils.render.ColorSettingsInteger
@@ -83,6 +82,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         override fun onChanged(oldValue: Int, newValue: Int) {
             attackDelay = randomClickDelay(minCPS, newValue)
         }
+
         override fun isSupported() = !simulateCooldown
     }
     private val maxCPS by maxCPSValue
@@ -92,6 +92,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         override fun onChanged(oldValue: Int, newValue: Int) {
             attackDelay = randomClickDelay(newValue, maxCPS)
         }
+
         override fun isSupported() = !maxCPSValue.isMinimal() && !simulateCooldown
     }
 
@@ -113,9 +114,18 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Modes
     val priority by choices(
         "Priority", arrayOf(
-            "Health", "Distance", "Direction", "LivingTime", "Armor",
-            "HurtResistance", "HurtTime", "HealthAbsorption", "RegenAmplifier",
-            "OnLadder", "InLiquid", "InWeb"
+            "Health",
+            "Distance",
+            "Direction",
+            "LivingTime",
+            "Armor",
+            "HurtResistance",
+            "HurtTime",
+            "HealthAbsorption",
+            "RegenAmplifier",
+            "OnLadder",
+            "InLiquid",
+            "InWeb"
         ), "Distance"
     )
     private val targetMode by choices("TargetMode", arrayOf("Single", "Switch", "Multi"), "Switch")
@@ -144,81 +154,58 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // AutoBlock
     val autoBlock by choices(
         "AutoBlock",
-        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "NCP", "Watchdog Predict 1.20"),
+        arrayOf("Off", "Packet", "Fake", "QuickMarco", "BlocksMC", "NCP", "Watchdog Predict 1.20", "Watchdog 1.8"),
         "Packet"
     )
-
+    private val watchdog18KeepSprint by BoolValue("Watchdog KeepSprint", false) { autoBlock == "Watchdog 1.8" }
+    private var watchdog18BlockCounter = 0
+    private var watchdog18Blocking = false
     private val maxBlinkPackets by intValue("MaxBlinkPackets", 20, 5..100) { autoBlock == "HypixelFull" }
     private val blockMaxRange by floatValue("BlockMaxRange", 3f, 0f..8f) { autoBlock in listOf("Packet", "QuickMarco") }
     private val unblockMode by choices("UnblockMode", arrayOf("Stop", "Switch", "Empty"), "Stop") {
         autoBlock in listOf(
-            "Packet",
-            "QuickMarco"
+            "Packet", "QuickMarco"
         )
     }
     private val releaseAutoBlock by _boolean("ReleaseAutoBlock", true) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         )
     }
     val forceBlockRender by _boolean("ForceBlockRender", true) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         ) && releaseAutoBlock
     }
     private val ignoreTickRule by _boolean("IgnoreTickRule", false) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         ) && releaseAutoBlock
     }
     private val blockRate by intValue("BlockRate", 100, 1..100) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         ) && releaseAutoBlock
     }
     private val switchStartBlock by _boolean("SwitchStartBlock", false) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         )
     }
     private val interactAutoBlock by _boolean("InteractAutoBlock", true) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         )
     }
     val blinkAutoBlock by _boolean("BlinkAutoBlock", false) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         )
     }
 
     private val blinkBlockTicks by intValue("BlinkBlockTicks", 3, 2..5) {
         autoBlock !in listOf(
-            "Off",
-            "Fake",
-            "BlocksMC",
-            "Watchdog Predict 1.20"
+            "Off", "Fake", "BlocksMC", "Watchdog Predict 1.20", "Watchdog 1.8"
         ) && blinkAutoBlock
     }
 
@@ -241,8 +228,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val raycastValue = _boolean("RayCast", true) { options.rotationsActive }
     private val raycast by raycastValue
     private val raycastIgnored by _boolean(
-        "RayCastIgnored",
-        false
+        "RayCastIgnored", false
     ) { raycastValue.isActive() && options.rotationsActive }
     private val livingRaycast by _boolean("LivingRayCast", true) { raycastValue.isActive() && options.rotationsActive }
 
@@ -292,9 +278,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     // Extra swing
     private val failSwing by _boolean("FailSwing", true) { swing && options.rotationsActive }
     private val maxRotationDifferenceToSwing by floatValue(
-        "MaxRotationDifferenceToSwing",
-        180f,
-        0f..180f
+        "MaxRotationDifferenceToSwing", 180f, 0f..180f
     ) { swing && failSwing && options.rotationsActive }
     private val swingWhenTicksLate = object : BoolValue("SwingWhenTicksLate", false) {
         override fun isSupported() =
@@ -309,10 +293,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private val noInventoryAttack by _boolean("NoInvAttack", false)
     private val noInventoryDelay by intValue("NoInvDelay", 200, 0..500) { noInventoryAttack }
     private val noConsumeAttack by choices(
-        "NoConsumeAttack",
-        arrayOf("Off", "NoHits", "NoRotation"),
-        "Off",
-        subjective = true
+        "NoConsumeAttack", arrayOf("Off", "NoHits", "NoRotation"), "Off", subjective = true
     )
 
     // Visuals
@@ -381,6 +362,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     private var currentRed = 255
     private var currentGreen = 255
     private var currentBlue = 255
+
     // Nursultan animation
     private var nursultanAnimationAlpha = 0f
     private var lastNursultanTarget: EntityLivingBase? = null
@@ -412,6 +394,125 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         return autoBlock == "Fake"
     }
 
+    private fun handleWatchdog18() {
+        val player = mc.thePlayer ?: return
+        val currentTarget = target ?: return
+
+        // Check if player has a sword
+        if (player.heldItem?.item !is ItemSword) {
+            if (watchdog18Blocking) {
+                stopBlocking()
+                watchdog18Blocking = false
+            }
+            return
+        }
+
+        updateHittable()
+        if (!hittable) return
+
+        // Watchdog 1.8 timing logic - alternate every tick
+        val shouldAttackThisTick = if (watchdog18KeepSprint) {
+            player.ticksExisted % 2 == 1
+        } else {
+            true // Always attack if keep sprint is disabled
+        }
+
+        // Calculate delay based on tick timing
+        if (shouldAttackThisTick) {
+            0 // Attack immediately
+        } else {
+            500 // Long delay to skip this tick
+        }
+
+        // Only proceed if we should attack this tick
+        if (!shouldAttackThisTick) {
+            return
+        }
+
+        // Increment block counter
+        watchdog18BlockCounter++
+
+        // Start blinking on specific ticks
+        if (watchdog18BlockCounter % 2 == 0) {
+            blinking = true
+        }
+
+        // Check block hit delay
+        if (mc.playerController.blockHitDelay == 0.0f.toInt() || mc.objectMouseOver?.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+
+            // Unblock before attack
+            if (watchdog18Blocking) {
+                if (blinking) {
+                    // Hold packets while unblocking
+                    blinking = true
+                }
+                stopBlocking()
+                watchdog18Blocking = false
+            }
+
+            // Attack
+            if (simulateCooldown && getAttackCooldownProgress() < 1f) {
+                return
+            }
+
+            runAttack(true, true)
+            clicks = 0
+
+            // Release blinked packets after attack
+            if (blinking) {
+                releaseBlinkedPackets()
+            }
+
+            // Re-block after attack
+            if (canBlock) {
+                startWatchdog18Block(currentTarget)
+            }
+        } else {
+            // Reset counter if conditions not met
+            watchdog18BlockCounter = 0
+        }
+    }
+
+    private fun startWatchdog18Block(entity: Entity) {
+        if (watchdog18Blocking || mc.thePlayer.isBlocking) return
+
+        val player = mc.thePlayer ?: return
+
+        val positionEye = player.eyes
+        val rotation = currentRotation ?: player.rotation
+        val vec = getVectorForRotation(rotation)
+        val lookAt = positionEye.add(vec * 3.0)
+
+        val movingObject = mc.theWorld.rayTraceBlocks(positionEye, lookAt, false, true, false)
+
+        if (movingObject != null && movingObject.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            sendPacket(
+                C08PacketPlayerBlockPlacement(
+                    movingObject.blockPos,
+                    movingObject.sideHit.index,
+                    player.heldItem,
+                    movingObject.hitVec.xCoord.toFloat() - movingObject.blockPos.x,
+                    movingObject.hitVec.yCoord.toFloat() - movingObject.blockPos.y,
+                    movingObject.hitVec.zCoord.toFloat() - movingObject.blockPos.z
+                )
+            )
+        }
+        val entityBox = entity.hitBox
+        val intercept = entityBox.calculateIntercept(positionEye, lookAt)
+        if (intercept != null) {
+            sendPackets(
+                C02PacketUseEntity(entity, intercept.hitVec - entity.positionVector),
+                C02PacketUseEntity(entity, INTERACT)
+            )
+        }
+        sendPacket(C08PacketPlayerBlockPlacement(player.heldItem))
+
+        watchdog18Blocking = true
+        blockStatus = true
+        renderBlocking = true
+    }
+
+
     private fun reset() {
         target = null
         clickRangeTarget = null
@@ -421,7 +522,8 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         attackTimer.reset()
         clickRangeAttackTimer.reset()
         clicks = 0
-
+        watchdog18BlockCounter = 0
+        watchdog18Blocking = false
         if (autoBlock == "BlocksMC" && blockStatus) {
             sendPacket(C09PacketHeldItemChange((mc.thePlayer.inventory.currentItem + 2) % 8))
             sendPacket(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
@@ -521,7 +623,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (target == null && clickRangeTarget == null) {
             if (autoBlock == "Watchdog" || autoBlock == "Watchdog Predict 1.20") {
                 watchdogBlinkTick = 0
-                if(blinking) releaseBlinkedPackets()
+                if (blinking) releaseBlinkedPackets()
             }
             return
         }
@@ -545,10 +647,12 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 handleBlocksMC()
                 return // Prevent default attack logic from running
             }
+
             "Watchdog Predict 1.20" -> {
                 handleWatchdogPredict()
                 return
             }
+
             "Watchdog" -> {
                 if (target == null) {
                     if (blockStatus) stopBlocking()
@@ -566,6 +670,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                             stopBlocking()
                         }
                     }
+
                     2 -> { // Attack and re-block tick
                         if (clicks > 0) {
                             runAttack(isFirstClick = true, isLastClick = true)
@@ -753,13 +858,11 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             // Determine if sprint should be affected. `false` means stop sprinting.
             val affectSprint = !(KeepSprint.handleEvents() || keepSprint)
             thePlayer.attackEntityWithModifiedSprint(
-                entity,
-                if (affectSprint) false else null
+                entity, if (affectSprint) false else null
             ) { if (swing) thePlayer.swingItem() }
 
             if (EnchantmentHelper.getModifierForCreature(
-                    thePlayer.heldItem,
-                    entity.creatureAttribute
+                    thePlayer.heldItem, entity.creatureAttribute
                 ) <= 0F && fakeSharp
             ) {
                 thePlayer.onEnchantmentCritical(entity)
@@ -806,8 +909,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         for (entity in entities) {
             if (entity !is EntityLivingBase || !EntityUtils.isSelected(
-                    entity,
-                    true
+                    entity, true
                 ) || (switchMode && entity.entityId in prevTargetEntities)
             ) continue
 
@@ -834,6 +936,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                     "regenamplifier" -> -(if (entity.isPotionActive(Potion.regeneration)) {
                         (entity.getActivePotionEffect(Potion.regeneration).amplifier + 1).toDouble()
                     } else 0.0)
+
                     "inweb" -> if (entity.isInWeb) -1.0 else Double.MAX_VALUE
                     "onladder" -> if (entity.isOnLadder) -1.0 else Double.MAX_VALUE
                     "inliquid" -> if (entity.isInWater || entity.isInLava) -1.0 else Double.MAX_VALUE
@@ -913,11 +1016,16 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         player.setPosAndPrevPos(pos)
         val searchRange = if (target != null) range + scanRange else clickRange
         val rotation = searchCenter(
-            boundingBox, outborder && !attackTimer.hasTimePassed(attackDelay / 2),
-            randomization, predict = false, lookRange = searchRange, attackRange = range,
+            boundingBox,
+            outborder && !attackTimer.hasTimePassed(attackDelay / 2),
+            randomization,
+            predict = false,
+            lookRange = searchRange,
+            attackRange = range,
             throughWallsRange = throughWallsRange,
             bodyPoints = listOf(highestBodyPointToTarget, lowestBodyPointToTarget),
-            horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(), options
+            horizontalSearch = minHorizontalBodySearch.get()..maxHorizontalBodySearch.get(),
+            options
         )
         player.setPosAndPrevPos(currPos, oldPos)
 
@@ -1005,8 +1113,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         // Recreate raycast logic for final check
         val intercept = targetToCheck.hitBox.calculateIntercept(
-            eyes,
-            eyes + getVectorForRotation(currentRotation) * range.toDouble()
+            eyes, eyes + getVectorForRotation(currentRotation) * range.toDouble()
         )
         hittable =
             intercept != null && (isVisible(intercept.hitVec) || mc.thePlayer.getDistanceToEntityBox(targetToCheck) <= throughWallsRange)
@@ -1022,8 +1129,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         }
 
         val intercept = targetToCheck.hitBox.calculateIntercept(
-            eyes,
-            eyes + getVectorForRotation(currentRotation) * range.toDouble()
+            eyes, eyes + getVectorForRotation(currentRotation) * range.toDouble()
         )
 
         if (intercept != null) {
@@ -1079,6 +1185,16 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     fun stopBlocking(forceStop: Boolean = false) {
+        if (autoBlock == "Watchdog 1.8") {
+            if (watchdog18Blocking || forceStop) {
+                sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                watchdog18Blocking = false
+                blockStatus = false
+                renderBlocking = false
+            }
+            return
+        }
+
         if (autoBlock == "HypixelFull" && (hypixelBlinking || BlinkUtils.isBlinking)) {
             BlinkUtils.unblink()
             hypixelBlinking = false
@@ -1104,8 +1220,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
 
         if (blockStatus && (!mc.thePlayer.isBlocking || forceStop)) {
             if (autoBlock == "NCP" || autoBlock.startsWith("BlocksMC") || forceStop || unblockMode.equals(
-                    "stop",
-                    true
+                    "stop", true
                 )
             ) {
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
@@ -1123,6 +1238,18 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val packet = event.packet
+
+        if (autoBlock == "Watchdog 1.8" && watchdog18KeepSprint) {
+            if (packet is C0BPacketEntityAction) {
+                if (mc.thePlayer.ticksExisted % 2 == 0 && watchdog18Blocking) {
+                    if (packet.action == C0BPacketEntityAction.Action.START_SPRINTING || packet.action == C0BPacketEntityAction.Action.STOP_SPRINTING) {
+                        event.cancelEvent()
+                        return
+                    }
+                }
+            }
+        }
+
         if (blinking && target != null && packet.type == PacketUtils.PacketType.CLIENT) {
             blinkedPackets.add(packet)
             event.cancelEvent()
@@ -1186,6 +1313,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                 blinking = false
                 releaseBlinkedPackets()
             }
+
             2 -> {
                 if (attack % 3 == 0) {
                     blinking = true
@@ -1201,6 +1329,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
                     asw = 0
                 }
             }
+
             3 -> {
                 blinking = true
                 sendPacket(C07PacketPlayerDigging(RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
@@ -1248,12 +1377,26 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         if (renderMode == "Capsule" && currentTarget != null) {
             val color = Color(currentRed, currentGreen, currentBlue, 255)
             drawTargetCapsule(currentTarget, 0.5, true, color)
-        } else if(renderMode == "Nursultan" && nursultanAnimationAlpha > 0f) {
+        } else if (renderMode == "Nursultan" && nursultanAnimationAlpha > 0f) {
             val entityToRender = currentTarget ?: lastNursultanTarget
             if (entityToRender != null && !entityToRender.isDead) {
                 val finalAlpha = (nursultanAlpha * nursultanAnimationAlpha).coerceIn(0f, 255f).toInt()
                 val nursultanColor = Color(nursultanRed, nursultanGreen, nursultanBlue, finalAlpha)
-                drawTextureOnEntity(-24, -24, 48, 48, 48F, 48F, entityToRender, ResourceLocation("liquidbounce/target.png"), true, nursultanColor, nursultanColor, nursultanColor, nursultanColor)
+                drawTextureOnEntity(
+                    -24,
+                    -24,
+                    48,
+                    48,
+                    48F,
+                    48F,
+                    entityToRender,
+                    ResourceLocation("liquidbounce/target.png"),
+                    true,
+                    nursultanColor,
+                    nursultanColor,
+                    nursultanColor,
+                    nursultanColor
+                )
             }
         }
 
@@ -1319,8 +1462,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     private fun handleFailedSwings() {
-        if (!renderBoxOnSwingFail)
-            return
+        if (!renderBoxOnSwingFail) return
 
         val box = AxisAlignedBB(0.0, 0.0, 0.0, 0.05, 0.05, 0.05)
 
@@ -1397,8 +1539,7 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
     }
 
     private fun shouldPrioritize(): Boolean =
-        (!onScaffold && (Scaffold.handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) || Tower.handleEvents() && Tower.isTowering)) ||
-                (!onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()))
+        (!onScaffold && (Scaffold.handleEvents() && (Scaffold.placeRotation != null || currentRotation != null) || Tower.handleEvents() && Tower.isTowering)) || (!onDestroyBlock && (Fucker.handleEvents() && !Fucker.noHit && Fucker.pos != null || Nuker.handleEvents()))
 
     private fun isTargetInRange(target: EntityLivingBase, customRange: Double): Boolean =
         mc.thePlayer.getDistanceToEntityBox(target) <= customRange
@@ -1429,7 +1570,16 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
             if (mc.thePlayer == null || mc.theWorld == null || (mc.netHandler == null && !mc.isSingleplayer)) return
 
             val currentTarget = target ?: clickRangeTarget
-
+            if (autoBlock == "Watchdog 1.8" && watchdog18KeepSprint) {
+                val player = mc.thePlayer ?: return
+                if (player.ticksExisted % 2 == 0 && watchdog18Blocking) {
+                    if (!player.onGround || player.isUsingItem) {
+                        if (player.hurtTime >= 7) {
+                            player.isSprinting = false
+                        }
+                    }
+                }
+            }
             // Handle Nursultan animation state
             if (renderMode == "Nursultan") {
                 if (currentTarget != null) {
@@ -1502,4 +1652,5 @@ object KillAura : Module("KillAura", Category.COMBAT, hideModule = false) {
         CombatListener.handleEvents()
     }
 }
+
 data class SwingFailData(val vec3: Vec3, val startTime: Long)
