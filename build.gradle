@@ -1,7 +1,7 @@
 plugins {
     id "java"
     id "idea"
-    id "org.jetbrains.kotlin.jvm"
+    id "org.jetbrains.kotlin.jvm" version "1.8.0"
     id "com.github.johnrengelman.shadow" version "6.1.0"
     id "net.minecraftforge.gradle.forge" version "2.3-SNAPSHOT"
     id "org.spongepowered.mixin"
@@ -11,6 +11,7 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    google()
     maven { url = "https://maven.minecraftforge.net/" }
     maven { url = "https://maven.aliyun.com/repository/public/"}
     maven { url = "https://repo.spongepowered.org/repository/maven-public/" }

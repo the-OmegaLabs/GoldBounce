@@ -74,7 +74,6 @@ class GuiMainMenu : GuiScreen() {
         drawImage(ResourceLocation("liquidbounce/background.png"), -mx, -my, width*2, height*2)
         drawRoundedBorderRect(width/2f-115, height/4f+35, width/2f+115, height/4f+175, 2f, Integer.MIN_VALUE, Integer.MIN_VALUE, 3f)
         GlowUtils.drawGlow(width/2f-115, height/4f+35, 230f, 140f, 20, Color.BLACK)
-        Fonts.fontNoto35.drawCenteredString("b10", width/2f+148f, height/8f+Fonts.font35.fontHeight, 0xffffff, true)
         super.drawScreen(mx, my, pt)
     }
 

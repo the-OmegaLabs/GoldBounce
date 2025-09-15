@@ -13,6 +13,7 @@ import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.value.i
 import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.value.impl.ListElement
 import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.value.impl.IntElement
 import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.value.impl.FloatElement
+import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.element.module.value.impl.TextElement
 import net.ccbluex.liquidbounce.ui.client.clickgui.newVer.extensions.animSmooth
 import net.ccbluex.liquidbounce.ui.font.Fonts
 import net.ccbluex.liquidbounce.utils.render.BlendUtils
@@ -25,6 +26,7 @@ import net.ccbluex.liquidbounce.value.BoolValue
 import net.ccbluex.liquidbounce.value.ListValue
 import net.ccbluex.liquidbounce.value.FloatValue
 import net.ccbluex.liquidbounce.value.IntegerValue
+import net.ccbluex.liquidbounce.value.TextValue
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.util.ResourceLocation
@@ -58,6 +60,8 @@ class ModuleElement(val module: Module): MinecraftInstance() {
                 valueElements.add(IntElement(value))
             if (value is FloatValue)
                 valueElements.add(FloatElement(value))
+            if (value is TextValue)
+                valueElements.add(TextElement(value))
         }
     }
 
@@ -175,6 +179,7 @@ class ModuleElement(val module: Module): MinecraftInstance() {
             }
             return true
         }
+
         if (expanded)
             for (ve in valueElements)
                 if (ve.isDisplayable() && ve.onKeyPress(typed, code)) return true

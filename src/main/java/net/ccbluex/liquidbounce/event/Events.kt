@@ -154,6 +154,11 @@ class BlockPushEvent : CancellableEvent()
 class Render2DEvent(val partialTicks: Float) : Event()
 
 /**
+ * Called when screen is going to be rendered
+ */
+class AfterHotbarEvent(val partialTicks: Float) : Event()
+
+/**
  * Called when packets sent to client are processed
  */
 class GameLoopEvent : Event()
@@ -162,6 +167,11 @@ class GameLoopEvent : Event()
  * Called when world is going to be rendered
  */
 class Render3DEvent(val partialTicks: Float) : Event()
+
+/**
+ * Called when blur module is open
+ */
+class BlurEvent() : Event()
 
 /**
  * Called when the screen changes

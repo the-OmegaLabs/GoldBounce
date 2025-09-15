@@ -6,6 +6,7 @@
 package net.ccbluex.liquidbounce.ui.client.hud
 
 import net.ccbluex.liquidbounce.features.module.modules.`fun`.AuraZoom
+import net.ccbluex.liquidbounce.features.module.modules.hud.WaterMark
 import net.ccbluex.liquidbounce.features.module.modules.settings.Sounds
 import net.ccbluex.liquidbounce.ui.client.hud.designer.GuiHudDesigner
 import net.ccbluex.liquidbounce.ui.client.hud.element.Element
@@ -15,6 +16,7 @@ import net.ccbluex.liquidbounce.utils.MinecraftInstance
 import net.ccbluex.liquidbounce.utils.extensions.component1
 import net.ccbluex.liquidbounce.utils.extensions.component2
 import net.minecraft.client.gui.ScaledResolution
+import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11.*
 import kotlin.math.max
 import kotlin.math.min
@@ -78,9 +80,7 @@ object HUD : MinecraftInstance() {
     /** Handle mouse click */
     fun handleMouseClick(mouseX: Int, mouseY: Int, button: Int) {
         for (element in elements) element.handleMouseClick(
-            (mouseX / element.scale) - element.renderX,
-            (mouseY / element.scale) - element.renderY,
-            button
+            (mouseX / element.scale) - element.renderX, (mouseY / element.scale) - element.renderY, button
         )
 
         if (button == 0) {
@@ -88,8 +88,7 @@ object HUD : MinecraftInstance() {
                 if (!element.isInBorder(
                         (mouseX / element.scale) - element.renderX, (mouseY / element.scale) - element.renderY
                     )
-                )
-                    continue
+                ) continue
 
                 element.drag = true
                 elements -= element
@@ -136,14 +135,10 @@ object HUD : MinecraftInstance() {
                 val width = scaledWidth / element.scale
                 val height = scaledHeight / element.scale
 
-                if ((element.renderX + minX + moveX >= 0.0 || moveX > 0) &&
-                    (element.renderX + maxX + moveX <= width || moveX < 0)
-                )
-                    element.renderX = moveX.toDouble()
-                if ((element.renderY + minY + moveY >= 0.0 || moveY > 0) &&
-                    (element.renderY + maxY + moveY <= height || moveY < 0)
-                )
-                    element.renderY = moveY.toDouble()
+                if ((element.renderX + minX + moveX >= 0.0 || moveX > 0) && (element.renderX + maxX + moveX <= width || moveX < 0)) element.renderX =
+                    moveX.toDouble()
+                if ((element.renderY + minY + moveY >= 0.0 || moveY > 0) && (element.renderY + maxY + moveY <= height || moveY < 0)) element.renderY =
+                    moveY.toDouble()
             }
         }
     }
@@ -179,13 +174,32 @@ object HUD : MinecraftInstance() {
 
     /** Add [notification] */
     fun addNotification(notification: Notification): Boolean {
-        if (AuraZoom.state && notification.severityType != Notifications.SeverityType.INFO && notification.severityType != Notifications.SeverityType.WARNING){
+        if (AuraZoom.state && notification.severityType != Notifications.SeverityType.INFO && notification.severityType != Notifications.SeverityType.WARNING) {
             return true
         }
         when (notification.severityType) {
             Notifications.SeverityType.SUCCESS -> Sounds.playEnableSound()
             Notifications.SeverityType.RED_SUCCESS -> Sounds.playDisableSound()
-            else -> Sounds.playInfoSound()
+            else -> {
+                when (notification.severityType) {
+                    Notifications.SeverityType.INFO -> WaterMark.showIconNotification(
+                        notification.title,
+                        notification.description,
+                        ResourceLocation("liquidbounce/notification/info_hd.png"),
+                        4000L
+                    )
+
+                    Notifications.SeverityType.WARNING -> WaterMark.showIconNotification(
+                        notification.title,
+                        notification.description,
+                        ResourceLocation("liquidbounce/notification/warn_hd.png"),
+                        4000L
+                    )
+
+                    else -> println("并没有处理")
+                }
+                Sounds.playInfoSound()
+            }
         }
         return elements.any { it is Notifications } && notifications.add(notification)
     }

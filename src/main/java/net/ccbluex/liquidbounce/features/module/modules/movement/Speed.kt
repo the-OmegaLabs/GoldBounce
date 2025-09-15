@@ -79,15 +79,10 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
         MatrixHop,
         MatrixSlowHop,
 
-        // Intave
-        IntaveHop14,
-        IntaveTimer14,
+
 
         // Server specific
-        TeleportCubeCraft,
         HypixelHop,
-        HypixelLowHop,
-        BlocksMCHop,
 
         // Other
         Boost,
@@ -116,7 +111,10 @@ object Speed : Module("Speed", Category.MOVEMENT, hideModule = false) {
 
         NCPBHop, NCPFHop, SNCPBHop, NCPHop, NCPYPort,
 
-        MiJump, Frame
+        MiJump, Frame, BlocksMCHop,
+        // Intave
+        IntaveHop14,
+        IntaveTimer14,
     )
 
     private val showDeprecatedValue = object : BoolValue("DeprecatedMode", true) {

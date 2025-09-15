@@ -1,5 +1,7 @@
 package net.ccbluex.liquidbounce.features.module.modules.hud
 
+import com.materialkolor.contrast.Contrast
+import com.materialkolor.hct.Hct
 import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Render2DEvent
@@ -38,27 +40,24 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     private var lastStateChangeTime = 0L
 
     private enum class State { NONE, Normal, Scaffolding, Notifying }
+
     private var currentState = State.NONE
 
     private val ANIM_DURATION = intValue("AnimationDuration", 300, 0..1000)
-    val normalMode = ListValue("RenderMode", arrayOf("Opai", "Opal"), "Opai")
+    val normalMode = ListValue("RenderMode", arrayOf("Opai", "OpaiNew"), "Opai")
     private val clientName = TextValue("ClientName", "Obai")
     // endregion
 
     // region Normal Mode: Opai
-    val textColorR = intValue("TextColorR", 255, 0..255) { normalMode.get() == "Opai" }
-    private val textColorG = intValue("TextColorG", 255, 0..255) { normalMode.get() == "Opai" }
-    private val textColorB = intValue("TextColorB", 255, 0..255) { normalMode.get() == "Opai" }
+    val textColorR = intValue("TextColorR", 255, 0..255)
+    private val textColorG = intValue("TextColorG", 255, 0..255)
+    private val textColorB = intValue("TextColorB", 255, 0..255)
     val showMemory = _boolean("ShowMemory", false) { normalMode.get() == "Opai" }
     val showLatency = _boolean("ShowLatency", true) { normalMode.get() == "Opai" }
-    private val shadowEnabled = _boolean("Shadow", false) { normalMode.get() == "Opai"}
-    val shadowStrengh = intValue("ShadowStrength", 20, 1..20) { normalMode.get() == "Opai"}
+    private val shadowEnabled = _boolean("Shadow", false)
+    val shadowStrengh = intValue("ShadowStrength", 20, 1..20)
     // endregion
 
-    // region Normal Mode: Opal
-    private val opaiColorR = intValue("Opal-R", 255, 0..255) { normalMode.get() == "Opal" }
-    private val opaiColorG = intValue("Opal-G", 255, 0..255) { normalMode.get() == "Opal" }
-    private val opaiColorB = intValue("Opal-B", 255, 0..255) { normalMode.get() == "Opal" }
     private val opaiShadow = _boolean("Opal-Shadow", false) { normalMode.get() == "Opal" }
     private val opaiShadowStrength = intValue("Opal-ShadowStrength", 1, 1..2) { normalMode.get() == "Opal" }
     private val versionNameUp = LiquidBounce.clientVersionText
@@ -107,13 +106,12 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
     // Notification style with a toggle icon
     private class ToggleNotification(
-        title: String,
-        message: String,
-        duration: Long,
-        val enabled: Boolean
+        title: String, message: String, duration: Long, val enabled: Boolean
     ) : Notification(duration = duration, title = title, message = message) {
-        private val toggleIconOn = ResourceLocation("liquidbounce/notification/toggle_on.png") // TODO: Replace with your path
-        private val toggleIconOff = ResourceLocation("liquidbounce/notification/toggle_off.png") // TODO: Replace with your path
+        private val toggleIconOn =
+            ResourceLocation("liquidbounce/notification/toggle_on.png") // TODO: Replace with your path
+        private val toggleIconOff =
+            ResourceLocation("liquidbounce/notification/toggle_off.png") // TODO: Replace with your path
 
         override fun getHeight(): Float = NOTIFICATION_HEIGHT
         override fun getWidth(): Float = 150f
@@ -122,28 +120,25 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             val alpha = (255 * animationProgress).toInt()
             if (alpha <= 10) return
 
-            val icon = if (enabled) toggleIconOn else toggleIconOff
+            if (enabled) toggleIconOn else toggleIconOff
             val iconSize = 25f
             val padding = (getHeight() - iconSize) / 2f
             val offset = 10F
 
             // Draw Icon
             //RenderUtils.drawImage(icon, (x + padding).toInt(), (y + padding).toInt(), iconSize.toInt(), iconSize.toInt(), Color(255, 255, 255, alpha))
-            drawToggleButton(x,y,35F,enabled)
+            drawToggleButton(x, y, 35F, enabled)
 
             // Draw Text
             val textX = x + iconSize + padding * 2
-            Fonts.font40.drawString(title, textX+offset, y + padding+4, Color(255, 255, 255, alpha).rgb)
-            Fonts.font35.drawString(message, textX+offset, y + padding + 14, Color(200, 200, 200, alpha).rgb)
+            Fonts.font40.drawString(title, textX + offset, y + padding + 4, Color(255, 255, 255, alpha).rgb)
+            Fonts.font35.drawString(message, textX + offset, y + padding + 14, Color(200, 200, 200, alpha).rgb)
         }
     }
 
     // Notification style with a custom icon
     private class IconNotification(
-        title: String,
-        message: String,
-        duration: Long,
-        val icon: ResourceLocation
+        title: String, message: String, duration: Long, val icon: ResourceLocation
     ) : Notification(duration = duration, title = title, message = message) {
         override fun getHeight(): Float = NOTIFICATION_HEIGHT
         override fun getWidth(): Float = 160f // Example width, can be dynamic
@@ -156,8 +151,22 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             val padding = (getHeight() - iconSize) / 2f
 
             // Draw Icon
-            RenderUtils.drawRoundedRect(x + padding - 3, y + padding - 3, x + padding + iconSize + 3, y + padding + iconSize + 3, Color(textColorR.get(), textColorG.get(), textColorB.get(), alpha).rgb, 5f)
-            RenderUtils.drawImage(icon, (x + padding).toInt(), (y + padding).toInt(), iconSize.toInt(), iconSize.toInt(), Color(255, 255, 255, alpha))
+            RenderUtils.drawRoundedRect(
+                x + padding - 3,
+                y + padding - 3,
+                x + padding + iconSize + 3,
+                y + padding + iconSize + 3,
+                Color(textColorR.get(), textColorG.get(), textColorB.get(), alpha).rgb,
+                9.5f
+            )
+            RenderUtils.drawImage(
+                icon,
+                (x + padding).toInt(),
+                (y + padding).toInt(),
+                iconSize.toInt(),
+                iconSize.toInt(),
+                Color(getForeground(Color(textColorR.get(), textColorG.get(), textColorB.get(), alpha).rgb))
+            )
 
             // Draw Text
             val textX = x + iconSize + padding * 2 + 6
@@ -243,7 +252,12 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
     // --- Size Calculation ---
     private fun calculateNormalSize(): Pair<Float, Float> {
-        return if (normalMode.get() == "Opal") calculateOpalNormalSize() else calculateOpaiNormalSize()
+        return when (normalMode.get()) {
+            "Opal" -> calculateOpalNormalSize()
+            "OpaiNew" -> calculateOpaiNewSize()
+            "Opai" -> calculateOpaiNormalSize()
+            else -> Pair(0f, 0f)
+        }
     }
 
     private fun calculateOpaiNormalSize(): Pair<Float, Float> {
@@ -262,10 +276,12 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         val textWidth = Fonts.fontHonor40.getStringWidth(clientName.get())
         val imageLen = 21f
         val uiToUIDistance = 4f
-        val textBar2 = max(Fonts.fontHonor40.getStringWidth(versionNameUp), Fonts.fontHonor35.getStringWidth(versionNameDown))
+        val textBar2 =
+            max(Fonts.fontHonor40.getStringWidth(versionNameUp), Fonts.fontHonor35.getStringWidth(versionNameDown))
         val textBar3 = max(Fonts.fontHonor40.getStringWidth(serverip), Fonts.fontHonor35.getStringWidth(playerPing))
         val lineWidth = 2f
-        val allLen = 2 + imageLen + uiToUIDistance + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance + lineWidth + uiToUIDistance + textBar3 + 2
+        val allLen =
+            2 + imageLen + uiToUIDistance + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance + lineWidth + uiToUIDistance + textBar3 + 2
         return Pair(allLen, 27f)
     }
 
@@ -289,7 +305,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             }
         }
 
-        val padding = if (notifications.size > 1) (notifications.size -1) * NOTIFICATION_PADDING else 0f
+        val padding = if (notifications.size > 1) (notifications.size - 1) * NOTIFICATION_PADDING else 0f
 
         return Pair(maxWidth, totalHeight + padding)
     }
@@ -302,24 +318,28 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         val startX = (screenWidth - animWidth) / 2
 
         if (animWidth <= 0 || animHeight <= 0) return
-
+        val radius: Float = if (normalMode.get() == "Opai") {
+            15F
+        } else if (normalMode.get() == "OpaiNew" && notifications.isEmpty()){
+            9F
+        } else {
+            15F
+        }
         RenderUtils.drawRoundedRect(
-            startX,
-            fixedTopY,
-            startX + animWidth,
-            fixedTopY + animHeight,
-            bgColor.rgb,
-            15f
+            startX, fixedTopY, startX + animWidth, fixedTopY + animHeight, bgColor.rgb, radius
         )
 
         // Shadow System
         when {
-            shadowEnabled.get() && normalMode.get() == "Opai" -> {
+            shadowEnabled.get() && (normalMode.get() == "Opai" || normalMode.get() == "OpaiNew") -> {
                 GlowUtils.drawGlow(startX - 5, fixedTopY, animWidth + 10, animHeight, shadowStrengh.get(), bgColor)
             }
             opaiShadow.get() && normalMode.get() == "Opal" -> {
-                GlowUtils.drawGlow(startX, fixedTopY, animWidth, animHeight, opaiShadowStrength.get() * 13, Color(255, 255, 255, 80))
+                GlowUtils.drawGlow(
+                    startX, fixedTopY, animWidth, animHeight, opaiShadowStrength.get() * 13, Color(255, 255, 255, 80)
+                )
             }
+
             currentState == State.Notifying -> { // Optional: A dedicated shadow for notifications
                 GlowUtils.drawGlow(startX, fixedTopY, animWidth, animHeight, 20, Color(50, 50, 50, 100))
             }
@@ -329,8 +349,10 @@ object WaterMark : Module("WaterMark", Category.HUD) {
     private fun drawNormalUI(sr: ScaledResolution) {
         if (normalMode.get() == "Opal") {
             drawOpalNormalUI(sr, animWidth, animHeight)
-        } else {
+        } else if (normalMode.get() == "Opai") {
             drawOpaiNormalUI(sr, animWidth, animHeight)
+        } else {
+            drawOpaiNewUI(sr, animWidth, animHeight)
         }
     }
 
@@ -354,21 +376,137 @@ object WaterMark : Module("WaterMark", Category.HUD) {
             ResourceLocation("liquidbounce/obai.png"),
             (startX + offsetX).toInt(),
             (startY + height / 2 - 9).toInt(),
-            18, 18, textColor
+            18,
+            18,
+            textColor
         )
 
         var currentX = startX + offsetX + logoWidth + 5
-        Fonts.fontHonor40.drawString(clientName.get(), currentX, startY + height/2 - Fonts.fontHonor40.FONT_HEIGHT/2, textColor.rgb)
+        Fonts.fontHonor40.drawString(
+            clientName.get(), currentX, startY + height / 2 - Fonts.fontHonor40.FONT_HEIGHT / 2, textColor.rgb
+        )
 
         currentX += Fonts.fontHonor40.getStringWidth(clientName.get() + " | ")
         Fonts.fontHonor40.drawString(
-            "| ${mc.session.username} | ${Minecraft.getDebugFPS()}fps" +
-                    (if (showLatency.get()) " | ${mc.thePlayer.getPing()}ms" else "") +
-                    (if (showMemory.get()) " | RAM: ${getUsedMemory()}/${getMaxMemory()}MB" else ""),
+            "| ${mc.session.username} | ${Minecraft.getDebugFPS()}fps" + (if (showLatency.get()) " | ${mc.thePlayer.getPing()}ms" else "") + (if (showMemory.get()) " | RAM: ${getUsedMemory()}/${getMaxMemory()}MB" else ""),
             currentX - 3,
-            startY + height/2 - Fonts.fontHonor40.FONT_HEIGHT/2,
+            startY + height / 2 - Fonts.fontHonor40.FONT_HEIGHT / 2,
             Color.WHITE.rgb
         )
+    }
+
+    private fun drawOpaiNewUI(sr: ScaledResolution, width: Float, height: Float) {
+        val startX = (sr.scaledWidth - width) / 2
+        val startY = sr.scaledHeight / 9f
+        val textColor = Color(textColorR.get(), textColorG.get(), textColorB.get())
+        val separator = " · "
+        val iconSize = 9f
+        val padding = 5f
+        val verticalOffset = (height - iconSize) / 2 // To vertically center everything
+
+        // A running X-coordinate to place elements next to each other
+        var currentX = startX + 10f // Initial padding
+
+        // 1. Draw obai.png and Client Name
+        RenderUtils.drawImage(
+            ResourceLocation("liquidbounce/obai.png"),
+            currentX.toInt(),
+            (startY + verticalOffset).toInt(),
+            iconSize.toInt(),
+            iconSize.toInt(),
+            textColor
+        )
+        currentX += iconSize + padding
+        Fonts.fontHonor35.drawString(
+            clientName.get(), currentX, startY + height / 2 - Fonts.fontHonor35.FONT_HEIGHT / 2 + 1F, textColor.rgb
+        )
+        currentX += Fonts.fontHonor35.getStringWidth(clientName.get() + separator)
+
+        RenderUtils.drawFilledCircle(
+            currentX + 3F, startY + height / 2, 1F, Color.WHITE
+        )
+        currentX += 8F
+        // 2. Draw user.png and Username
+        // Assuming you have a 'user.png' icon in your resources
+        RenderUtils.drawImage(
+            ResourceLocation("liquidbounce/ui/user.png"), // Example path
+            currentX.toInt(),
+            (startY + verticalOffset).toInt(),
+            iconSize.toInt(),
+            iconSize.toInt(),
+            Color.WHITE // White icon
+        )
+        currentX += iconSize + padding
+        Fonts.fontHonor35.drawString(
+            mc.session.username, currentX, startY + height / 2 - Fonts.fontHonor35.FONT_HEIGHT / 2 + 1F, Color.WHITE.rgb
+        )
+        currentX += Fonts.fontHonor35.getStringWidth(mc.session.username + separator)
+        RenderUtils.drawFilledCircle(
+            currentX + 1F, startY + height / 2, 1F, Color.WHITE
+        )
+
+        val ping = mc.thePlayer.getPing()
+        val latencyColor = when {
+            ping < 200 -> Color(85, 255, 85)   // Green
+            ping < 400 -> Color(255, 255, 85)  // Yellow
+            else -> Color(255, 85, 85)        // Red
+        }
+        currentX += 8F
+        // Assuming you have a 'latency.png' icon
+        RenderUtils.drawImage(
+            ResourceLocation("liquidbounce/ui/latency.png"), // Example path
+            currentX.toInt(),
+            (startY + verticalOffset).toInt(),
+            iconSize.toInt(),
+            iconSize.toInt(),
+            latencyColor
+        )
+        currentX += iconSize + padding
+        Fonts.fontHonor35.drawString(
+            "${ping}ms", currentX, startY + height / 2 - Fonts.fontHonor35.FONT_HEIGHT / 2 + 1F, latencyColor.rgb
+        )
+
+        currentX += Fonts.fontHonor35.getStringWidth("${ping}ms" + separator)
+        RenderUtils.drawFilledCircle(
+            currentX + 1F, startY + height / 2, 1F, Color.WHITE
+        )
+        currentX += 8F
+        RenderUtils.drawImage(
+            ResourceLocation("liquidbounce/ui/sync.png"), // Example path
+            currentX.toInt(),
+            (startY + verticalOffset).toInt(),
+            iconSize.toInt(),
+            iconSize.toInt(),
+            Color.WHITE
+        )
+        currentX += iconSize + padding
+        Fonts.fontHonor35.drawString(
+            "${Minecraft.getDebugFPS()}fps", currentX, startY + height / 2 - Fonts.fontHonor35.FONT_HEIGHT / 2 + 1F, Color.WHITE.rgb
+        )
+    }
+    private fun calculateOpaiNewSize(): Pair<Float, Float> {
+        val separator = " · "
+        val iconSize = 9f
+        val padding = 5f
+        var totalWidth = 20f // Initial and final padding
+
+        // Obai icon and client name
+        totalWidth += iconSize + padding + Fonts.fontHonor35.getStringWidth(clientName.get() + separator)
+
+        // User icon and username
+        totalWidth += iconSize + padding + Fonts.fontHonor35.getStringWidth(mc.session.username + separator)
+
+        // Latency icon and text
+        totalWidth += iconSize + padding + Fonts.fontHonor35.getStringWidth("${mc.thePlayer.getPing()}ms" + separator)
+
+        // Sync icon and FPS
+        totalWidth += iconSize + padding + Fonts.fontHonor35.getStringWidth("${Minecraft.getDebugFPS()}fps")
+
+        // The aspect ratio is roughly 64:5, so height would be (totalWidth / 64) * 5
+        // For a simpler approach, a fixed height often looks better.
+        val height = 18f
+
+        return Pair(totalWidth+22F, height)
     }
 
     private fun drawOpalNormalUI(sr: ScaledResolution, width: Float, height: Float) {
@@ -379,23 +517,58 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         val playerPing = "${mc.thePlayer.getPing()}ms"
         val textWidth = Fonts.fontHonor40.getStringWidth(clientName.get())
 
-        val colorAL = Color(opaiColorR.get(), opaiColorG.get(), opaiColorB.get(), 255)
+        val colorAL = Color(textColorR.get(), textColorG.get(), textColorB.get(), 255)
         val imageLen = 21F
         val containerToUiDistance = 2F
         val uiToUIDistance = 4F
-        val textBar2 = max(Fonts.fontHonor40.getStringWidth(versionNameUp), Fonts.fontHonor35.getStringWidth(versionNameDown))
-        val textBar3 = max(Fonts.fontHonor40.getStringWidth(serverip), Fonts.fontHonor35.getStringWidth(playerPing))
+        val textBar2 =
+            max(Fonts.fontHonor40.getStringWidth(versionNameUp), Fonts.fontHonor35.getStringWidth(versionNameDown))
+        max(Fonts.fontHonor40.getStringWidth(serverip), Fonts.fontHonor35.getStringWidth(playerPing))
         val lineWidth = 2F
         val fastLen1 = containerToUiDistance + imageLen + uiToUIDistance
 
-        RenderUtils.drawImage(ResourceLocation("liquidbounce/obai.png"), (startX + containerToUiDistance + 2).toInt(), (startY + 4).toInt(), 19, 19, colorAL)
+        RenderUtils.drawImage(
+            ResourceLocation("liquidbounce/obai.png"),
+            (startX + containerToUiDistance + 2).toInt(),
+            (startY + 4).toInt(),
+            19,
+            19,
+            colorAL
+        )
         Fonts.fontHonor40.drawString(clientName.get(), startX + fastLen1, startY + 9F, colorAL.rgb)
-        Fonts.fontHonor40.drawString("|", startX + fastLen1 + textWidth + uiToUIDistance - 1F, startY + 9F, Color(120, 120, 120, 250).rgb)
-        Fonts.fontHonor40.drawString(versionNameUp, startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance, startY + 4.5F, Color.WHITE.rgb)
-        Fonts.fontHonor35.drawString(versionNameDown, startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance, startY + 14F, Color(170, 170, 170, 170).rgb)
-        Fonts.fontHonor40.drawString("|", startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance - 1F, startY + 9F, Color(120, 120, 120, 250).rgb)
-        Fonts.fontHonor40.drawString(serverip, startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance + lineWidth + uiToUIDistance, startY + 4.5F, Color.WHITE.rgb)
-        Fonts.fontHonor35.drawString(playerPing, startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance + lineWidth + uiToUIDistance, startY + 14F, Color(170, 170, 170, 170).rgb)
+        Fonts.fontHonor40.drawString(
+            "|", startX + fastLen1 + textWidth + uiToUIDistance - 1F, startY + 9F, Color(120, 120, 120, 250).rgb
+        )
+        Fonts.fontHonor40.drawString(
+            versionNameUp,
+            startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance,
+            startY + 4.5F,
+            Color.WHITE.rgb
+        )
+        Fonts.fontHonor35.drawString(
+            versionNameDown,
+            startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance,
+            startY + 14F,
+            Color(170, 170, 170, 170).rgb
+        )
+        Fonts.fontHonor40.drawString(
+            "|",
+            startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance - 1F,
+            startY + 9F,
+            Color(120, 120, 120, 250).rgb
+        )
+        Fonts.fontHonor40.drawString(
+            serverip,
+            startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance + lineWidth + uiToUIDistance,
+            startY + 4.5F,
+            Color.WHITE.rgb
+        )
+        Fonts.fontHonor35.drawString(
+            playerPing,
+            startX + fastLen1 + textWidth + uiToUIDistance + lineWidth + uiToUIDistance + textBar2 + uiToUIDistance + lineWidth + uiToUIDistance,
+            startY + 14F,
+            Color(170, 170, 170, 170).rgb
+        )
     }
 
     private fun drawScaffoldUI(sr: ScaledResolution) {
@@ -420,23 +593,44 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         if (stack?.item is ItemBlock) {
             glPushMatrix()
             RenderHelper.enableGUIStandardItemLighting()
-            mc.renderItem.renderItemAndEffectIntoGUI(stack, (startX + containerPadding).toInt(), (startY + (height - 16) / 2).toInt())
+            mc.renderItem.renderItemAndEffectIntoGUI(
+                stack, (startX + containerPadding).toInt(), (startY + (height - 16) / 2).toInt()
+            )
             RenderHelper.disableStandardItemLighting()
             glPopMatrix()
         }
 
         // Progress Bar BG
         val progressBarY = startY + height / 2 - 2
-        RenderUtils.drawRoundedRect(startX + containerPadding + iconSize + elementSpacing, progressBarY, startX + containerPadding + iconSize + elementSpacing + progressWidth, progressBarY + 4f, Color(0, 0, 0, 100).rgb, 2f)
+        RenderUtils.drawRoundedRect(
+            startX + containerPadding + iconSize + elementSpacing,
+            progressBarY,
+            startX + containerPadding + iconSize + elementSpacing + progressWidth,
+            progressBarY + 4f,
+            Color(0, 0, 0, 100).rgb,
+            2f
+        )
 
         // Progress Bar FG
         val targetProgress = blockAmount / 64f
         animatedBlocks += (targetProgress - animatedBlocks) * 0.15f
         val animatedWidth = progressWidth * animatedBlocks
-        RenderUtils.drawRoundedRect(startX + containerPadding + iconSize + elementSpacing, progressBarY, startX + containerPadding + iconSize + elementSpacing + animatedWidth, progressBarY + 4f, Color(255, 255, 255, 200).rgb, 2f)
+        RenderUtils.drawRoundedRect(
+            startX + containerPadding + iconSize + elementSpacing,
+            progressBarY,
+            startX + containerPadding + iconSize + elementSpacing + animatedWidth,
+            progressBarY + 4f,
+            Color(255, 255, 255, 200).rgb,
+            2f
+        )
 
         // Text
-        Fonts.font40.drawString(countText, startX + width - rightPadding - textWidth, startY + height / 2 - Fonts.font40.FONT_HEIGHT / 2, Color.WHITE.rgb)
+        Fonts.font40.drawString(
+            countText,
+            startX + width - rightPadding - textWidth,
+            startY + height / 2 - Fonts.font40.FONT_HEIGHT / 2,
+            Color.WHITE.rgb
+        )
     }
 
     private fun drawNotificationsUI(sr: ScaledResolution) {
@@ -464,42 +658,100 @@ object WaterMark : Module("WaterMark", Category.HUD) {
 
         glDisable(GL_SCISSOR_TEST)
     }
-    private fun drawToggleButton(StartX:Float, StartY: Float, BigBoardHeight: Float, ModuleState: Boolean){
+
+    private fun drawToggleButton(StartX: Float, StartY: Float, BigBoardHeight: Float, ModuleState: Boolean) {
         val buttonHeight = 19F
         val buttonWidth = 32F
-        val buttonRounded = buttonHeight/2
+        val buttonRounded = buttonHeight / 2
         val buttonToButtonDistance = 4F
-        val smallButtonHeight = buttonHeight-buttonToButtonDistance*2
-        val smallButtonRounded = smallButtonHeight/2
+        val smallButtonHeight = buttonHeight - buttonToButtonDistance * 2
+        val smallButtonRounded = smallButtonHeight / 2
+
         val smallButtonWidth = smallButtonHeight
         val toBigBorderLen = 6F
-        val ButtonStartX = BigBoardHeight/2 - buttonHeight/2
+        val ButtonStartX = BigBoardHeight / 2 - buttonHeight / 2
         var smallButtonStartX = 0F
+        val awtColorChanges = if (ModuleState) {
+            Color(safeColor(textColorR.get() - 120), safeColor(textColorG.get() - 120), safeColor(textColorB.get() - 120), 255).rgb
+        } else {
+            Color(120, 120, 120, 255).rgb
+        }
         if (ModuleState) {
             smallButtonStartX = StartX + toBigBorderLen + buttonWidth - buttonToButtonDistance - smallButtonWidth
-        }else{
-            smallButtonStartX= StartX + toBigBorderLen + buttonToButtonDistance
+        } else {
+            smallButtonStartX = StartX + toBigBorderLen + buttonToButtonDistance
         }
-        if (ModuleState){
-            drawRoundedBorderRect(StartX+toBigBorderLen,StartY+ButtonStartX,StartX+toBigBorderLen+buttonWidth,StartY+ButtonStartX+buttonHeight,1F,Color(opaiColorR.get(),opaiColorG.get(),opaiColorB.get(),255).rgb,Color(opaiColorR.get(),opaiColorG.get(),opaiColorB.get(),255).rgb,buttonRounded)
-        }else{
-            drawRoundedBorderRect(StartX+toBigBorderLen,StartY+ButtonStartX,StartX+toBigBorderLen+buttonWidth,StartY+ButtonStartX+buttonHeight,color1 = Color(10,10,10,255).rgb,color2 = Color(120,120,120,255).rgb, radius = buttonRounded, width = 3F)
+        if (ModuleState) {
+            drawRoundedBorderRect(
+                StartX + toBigBorderLen,
+                StartY + ButtonStartX,
+                StartX + toBigBorderLen + buttonWidth,
+                StartY + ButtonStartX + buttonHeight,
+                1F,
+                Color(textColorR.get(), textColorG.get(), textColorB.get(), 255).rgb,
+                Color(textColorR.get(), textColorG.get(), textColorB.get(), 255).rgb,
+                buttonRounded
+            )
+        } else {
+            drawRoundedBorderRect(
+                StartX + toBigBorderLen,
+                StartY + ButtonStartX,
+                StartX + toBigBorderLen + buttonWidth,
+                StartY + ButtonStartX + buttonHeight,
+                color1 = Color(10, 10, 10, 255).rgb,
+                color2 = Color(120, 120, 120, 255).rgb,
+                radius = buttonRounded,
+                width = 3F
+            )
         }
-        val awtColorChanges = if (ModuleState){
-            Color(safeColor(opaiColorR.get()-120),safeColor(opaiColorG.get()-120),safeColor(opaiColorB.get()-120),255).rgb
-        }else{
-            Color(120,120,120,255).rgb
+        if (ModuleState) {
+            Color(
+                safeColor(textColorR.get() - 120), safeColor(textColorG.get() - 120), safeColor(textColorB.get() - 120), 255
+            ).rgb
+        } else {
+            Color(120, 120, 120, 255).rgb
         }
-        drawRoundedBorderRect(smallButtonStartX,StartY+ButtonStartX+buttonToButtonDistance,smallButtonStartX+smallButtonWidth,StartY+ButtonStartX+buttonToButtonDistance+smallButtonHeight,1F,
-            awtColorChanges,awtColorChanges,smallButtonRounded)
-        //抗锯齿
+        drawRoundedBorderRect(
+            smallButtonStartX,
+            StartY + ButtonStartX + buttonToButtonDistance,
+            smallButtonStartX + smallButtonWidth,
+            StartY + ButtonStartX + buttonToButtonDistance + smallButtonHeight,
+            1F,
+            awtColorChanges,
+            awtColorChanges,
+            smallButtonRounded
+        )
     }
-    private fun safeColor(ColorA: Int) : Int{
-        if (ColorA>255) return 255
-        else if (ColorA<0) return 0
+
+
+    private fun safeColor(ColorA: Int): Int {
+        if (ColorA > 255) return 255
+        else if (ColorA < 0) return 0
         else return ColorA
     }
+
+    fun getForeground(bgColor: Int, minContrast: Double = 4.5): Int {
+        val bgHct = Hct.fromInt(bgColor)
+        val bgTone = bgHct.tone
+        var targetTone = if (bgTone > 50) 10.0 else 90.0
+        var fg = Hct.from(bgHct.hue, bgHct.chroma, targetTone)
+        while (Contrast.ratioOfTones(fg.tone, bgTone) < minContrast) {
+            if (bgTone > 50) targetTone -= 1 else targetTone += 1
+            if (targetTone !in 0.0..100.0) break
+            fg = Hct.from(bgHct.hue, bgHct.chroma, targetTone)
+        }
+        return if (Contrast.ratioOfTones(fg.tone, bgTone) >= minContrast) {
+            fg.toInt()
+        } else {
+            val whiteContrast = Contrast.ratioOfTones(100.0, bgTone)
+            val blackContrast = Contrast.ratioOfTones(0.0, bgTone)
+            if (whiteContrast >= blackContrast) 0xFFFFFFFF.toInt() else 0xFF000000.toInt()
+        }
+    }
+
     // --- Utility ---
-    private fun getUsedMemory() = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)
+    private fun getUsedMemory() =
+        (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)
+
     private fun getMaxMemory() = Runtime.getRuntime().maxMemory() / (1024 * 1024)
 }
