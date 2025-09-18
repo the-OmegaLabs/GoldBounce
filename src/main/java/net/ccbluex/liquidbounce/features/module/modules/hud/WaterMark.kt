@@ -321,7 +321,7 @@ object WaterMark : Module("WaterMark", Category.HUD) {
         val radius: Float = if (normalMode.get() == "Opai") {
             15F
         } else if (normalMode.get() == "OpaiNew" && notifications.isEmpty()){
-            9F
+            8F
         } else {
             15F
         }
