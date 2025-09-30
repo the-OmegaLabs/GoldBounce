@@ -277,6 +277,10 @@ object ModuleManager : Listenable {
             Interface,
             Logo,
             PotionEffect,
+            AutoL,
+            AutoSave,
+            Halo,
+            ScaffoldHelper,
             VelocityBalancer
         )
 
