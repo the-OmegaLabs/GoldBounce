@@ -14,6 +14,7 @@ import net.ccbluex.liquidbounce.utils.extensions.stopXZ
 import net.ccbluex.liquidbounce.utils.extensions.toDegreesF
 import net.ccbluex.liquidbounce.utils.extensions.toRadiansD
 import net.minecraft.entity.EntityLivingBase
+import net.minecraft.entity.item.EntityBoat
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.potion.Potion
 import net.minecraft.util.Vec3
@@ -93,7 +94,35 @@ object MovementUtils : MinecraftInstance(), Listenable {
             motionX = x
             motionZ = z
         }
+    @JvmOverloads
+    fun strafeBoat(
+        speed: Float = this.speed, stopWhenNoInput: Boolean = false, boat: EntityBoat? = null,
+        strength: Double = 1.0,
+    ) =
+        mc.thePlayer?.run {
+            if (!mc.thePlayer.isMoving) {
+                if (stopWhenNoInput) {
+                    boat?.motionX = 0.0
+                    boat?.motionZ = 0.0
+                    stopXZ()
+                }
 
+                return@run
+            }
+
+            val prevX = motionX * (1.0 - strength)
+            val prevZ = motionZ * (1.0 - strength)
+            val useSpeed = speed * strength
+
+            val yaw = direction
+            val x = (-sin(yaw) * useSpeed) + prevX
+            val z = (cos(yaw) * useSpeed) + prevZ
+
+            boat?.let { it.motionX = x }
+            boat?.let { it.motionZ = z }
+            motionX = x
+            motionZ = z
+        }
     fun Vec3.strafe(
         yaw: Float = direction.toDegreesF(), speed: Double = sqrt(xCoord * xCoord + zCoord * zCoord),
         strength: Double = 1.0,

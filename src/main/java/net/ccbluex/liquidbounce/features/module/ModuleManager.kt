@@ -280,7 +280,6 @@ object ModuleManager : Listenable {
             AutoL,
             AutoSave,
             Halo,
-            ScaffoldHelper,
             VelocityBalancer
         )
 

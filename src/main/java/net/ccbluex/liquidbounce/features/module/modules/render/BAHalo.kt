@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11
 import kotlin.math.sin
 
-object Halo : Module("Halo", Category.RENDER) {
+object Halo : Module("BigCirclesOnYourHead", Category.RENDER) {
 
     private val characterChoices = arrayOf(
         "alice", "shiroko", "reisa", "hoshino", "azusa", "iori", "izuna", "kayoko","shengya","sunzheng"
