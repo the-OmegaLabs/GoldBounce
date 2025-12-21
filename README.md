@@ -1,4 +1,11 @@
 <div align="center">
+  <h1>紧急通知！>jin'
+  我们被拥有两个nametags 两个velocity 三个killaura 两个wallclimb 11个timer相关的 三个gapple 两个nofall 两个watermark 三个scaffold的客户端抄袭了!
+  <br>
+  老冯信息：
+  <br>
+  原神UID450521198012261128 迷你世界账号昵称刘丽承
+  <br>
   <p>
       <img width="995" src="./src/main/resources/assets/minecraft/liquidbounce/logo_large.png" alt="Large Logo">
       <img src="https://image.jianke.com/suo/mall/product/202204/b8e2c46e4ef74709853c1c7f5dcbe84e!320x320.jpg" alt="金振口服液">
