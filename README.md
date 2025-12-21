@@ -3,9 +3,7 @@
   <br>
   我们被拥有两个nametags 两个velocity 三个killaura 两个wallclimb 11个timer相关的 三个gapple 两个nofall 两个watermark 三个scaffold的客户端抄袭了!
   <br>
-  老冯信息：
-  <br>
-  原神UID450521198012261128 迷你世界账号昵称刘丽承
+  老冯信息：原神UID450521198012261128 迷你世界账号昵称刘丽承 教子有方热线13978930814
   <br>
   <p>
       <img width="995" src="./src/main/resources/assets/minecraft/liquidbounce/logo_large.png" alt="Large Logo">
