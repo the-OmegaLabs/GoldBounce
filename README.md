@@ -5,6 +5,10 @@
   <br>
   老冯信息：原神UID450521198012261128 迷你世界账号昵称刘丽承 教子有方热线13978930814
   <br>
+  12.21更新：不是 h1d3n你妈咋是死的啊
+  <p><img width="351" height="522" alt="image" src="https://github.com/user-attachments/assets/75a32ef7-930c-4fc1-a7ed-bd7ad34fd368" />
+  </p>
+  <br>
   <p>
       <img width="995" src="./src/main/resources/assets/minecraft/liquidbounce/logo_large.png" alt="Large Logo">
       <img src="https://image.jianke.com/suo/mall/product/202204/b8e2c46e4ef74709853c1c7f5dcbe84e!320x320.jpg" alt="金振口服液">
