@@ -1,71 +1,44 @@
 <div align="center">
-  <h1>紧急通知！</h1>
-  <br>
-  我们被拥有两个nametags 两个velocity 三个killaura 两个wallclimb 11个timer相关的 三个gapple 两个nofall 两个watermark 三个scaffold的客户端抄袭了!
-  <br>
-  老冯信息：原神UID450521198012261128 迷你世界账号昵称刘丽承 教子有方热线13978930814
-  <h2>
-  12.21更新：不是 h1d3n你妈咋是死的啊</h2>
-  <p><img width="351" height="522" alt="image" src="https://github.com/user-attachments/assets/75a32ef7-930c-4fc1-a7ed-bd7ad34fd368" />
-  </p>
-  <br>
-  <p>
-      <img width="995" src="./src/main/resources/assets/minecraft/liquidbounce/logo_large.png" alt="Large Logo">
-      <img src="https://image.jianke.com/suo/mall/product/202204/b8e2c46e4ef74709853c1c7f5dcbe84e!320x320.jpg" alt="金振口服液">
-  </p>
-  杂牌人用杂牌水XD
-  <br>
-  但是这是金振口服液
-  <br>
-  QQ群 445493864
-  <br>
-  https://discord.gg/RwmbBTtSPr
-  <br>
-  本客户端的全部源代码可自由使用与修改，我对此不持异议。无需署名作者，惟请在文件头部添加项目链接以示出处，感谢您的理解。
-  <br>
-  <img src="https://img.shields.io/github/license/bzym2/GoldBounce" alt="Licence Widget">
-  <img src="https://img.shields.io/github/downloads/bzym2/GoldBounce/total" alt="Total Downloads">
+  <img width="800" src="./src/main/resources/assets/minecraft/liquidbounce/logo_large.png" alt="GoldBounce">
+  <br><br>
+  <b>A high-performance, injection-based modification framework for Minecraft 1.8.9.</b>
+  <br><br>
+  <a href="https://discord.gg/RwmbBTtSPr">Discord</a> ｜ QQ: 445493864
+  <br><br>
+  <img src="https://img.shields.io/github/license/the-OmegaLabs/GoldBounce?style=flat-square&color=black" alt="License">
+  <img src="https://img.shields.io/github/downloads/the-OmegaLabs/GoldBounce/total?style=flat-square&color=black" alt="Downloads">
 </div>
 
-## Issues
+<br>
 
-If you notice any bugs or missing features, you can let us know by opening an
-issue [here](https://github.com/CCBlueX/GoldBounce/issues).
+> *本客户端的全部源代码可自由使用与修改。无需署名作者，惟请在文件头部添加项目链接以示出处。*
+> *All source code can be freely used and modified. No attribution required; please include a repository link in file headers.*
 
-## License
+## Architecture & Philosophy
 
-This project is subject to the [GNU General Public License v3.0](LICENSE). This does
-only apply for source code located directly in this clean repository. During the
-development and compilation process, additional source code may be used to which we
-have obtained no rights. Such code is not covered by the GPL license.
+GoldBounce is engineered as a robust, injection-based framework that redefines client-side architecture for Minecraft 1.8.9. Built with a strict emphasis on performance and packet-level security, the client intercepts and sanitizes inbound network traffic to mitigate risks associated with untrusted servers, including malicious payload injections and deserialization vulnerabilities.
 
-For those who are unfamiliar with the license, here is a summary of its main points.
-This is by no means legal advice nor legally binding.
+Deviating from traditional, cluttered modification interfaces, the visual components—such as the TargetHUD and ESP modules—are heavily influenced by Modernist Swiss Design. We prioritize typographic hierarchy, precise OpenGL coordinate mapping, and minimal render overhead to achieve an industrial-grade, cinematic aesthetic.
 
-You are allowed to
-
-- use
-- share
-- modify
-
-this project entirely or partially for free and even commercially. However, please
-consider the following:
-
-- **You must disclose the source code of your modified work and the source code you
-  took from this project. This means you are not allowed to use code from this
-  project (even partially) in a closed-source (or even obfuscated) application.**
-- **Your modified application must also be licensed under the GPL**
-
-Do the above and share your source code with everyone; just like we do.
+Our engineering culture embraces AI-native workflows (Vibe Coding). We utilize large language models for complex algorithmic prototyping, automated static analysis of Java reflection calls, and maintaining a highly agile development cycle.
 
 ## Contributing
 
-We appreciate contributions. So if you want to support us, feel free to make changes
-to GoldBounce's source code and submit a pull request. Currently, our main goals are
-the following:
+GoldBounce operates on an open-source model. We welcome pull requests that align with our architectural standards. Current technical priorities include:
 
-1. Improve GoldBounce's performance.
-2. Re-work most of the render code.
+- **JVM Bytecode Manipulation:** Optimizing event bus throughput and injection hooks.
+- **Render Engine Overhaul:** Refactoring legacy GUI elements to modern, low-latency OpenGL implementations.
+- **Protocol Security:** Implementing strict bounds-checking and network packet sanitization logic.
 
-If you have experience in one or more of these fields, we would highly appreciate
-your support.
+## Issue Tracker
+
+For technical anomalies, crashes, or architectural proposals, please provide detailed stack traces and reproducible steps via the [Issue Tracker](https://github.com/the-OmegaLabs/GoldBounce/issues).
+
+## License
+
+This repository is distributed under the [GNU General Public License v3.0](LICENSE). 
+
+**Key Directives:**
+- You are permitted to use, modify, and distribute this software commercially or non-commercially.
+- **Copyleft Obligation:** Modifications or derivative works must be strictly open-source. Using any code from this repository within closed-source or obfuscated environments is expressly prohibited.
+- Derived works must adopt the identical GPLv3 license.
